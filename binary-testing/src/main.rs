@@ -16,7 +16,8 @@ fn main() {
 
 
 fn boxy(data: &str) {
-    let terminal_size = 10;
+    let term = termsize::get().unwrap();
+    let terminal_size = (term.cols as usize) - 20;
     let mut processed_data = String::from (data.trim());
     processed_data.push(' ');
     let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
@@ -31,17 +32,19 @@ fn boxy(data: &str) {
         print!("{}", PEICES[0][5].blue());
     }
     println!("{}", PEICES[0][1].blue());
-    for __ in 0..5 {
-        print!("{}", PEICES[0][4].blue());
-        print!("{}", format!("{:<width$}", "", width=terminal_size+1));
-        print!("{}", PEICES[0][4].blue());
-        println!("");
-    }
     print!("{}", PEICES[0][4].blue());
-    let padded_string = format!("{:<width$}", &processed_data[0..nearest_whitespace(&mut ws_indices, &terminal_size, 0)], width=terminal_size+1);
+    let padded_string = format!("   {:<width$}", 
+                                &processed_data[0..nearest_whitespace(&mut ws_indices, &(&terminal_size-5), 0)],
+                                width=terminal_size-2);
     print!("{}", padded_string);
     print!("{}", PEICES[0][4].blue());
     println!("");
+    print!("{}", PEICES[0][2].blue());
+    for _ in 0..=terminal_size {
+        print!("{}", PEICES[0][5].blue());
+    }
+    println!("{}", PEICES[0][3].blue());
+    
 
 }
 
