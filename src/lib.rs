@@ -2,6 +2,22 @@ mod defs;
 
 use crate::defs::*;
 
+pub struct Boxy {
+    data : Vec<String>,
+    colors : Vec<String>,
+    divy : Vec<usize>,
+
+}
+
+impl Boxy {
+    pub fn new() -> Self {
+        Boxy{
+            data : Vec::<String>::new(),
+            colors : Vec::<String>::new(),
+            divy : Vec::<usize>::new(),
+        }
+    }
+}
 
 pub fn add(left: u64, right: u64) -> u64 {
     println!("{:?}", SINGLE_TEMPLATE);
