@@ -1,37 +1,46 @@
 use colored::Colorize;
 
+// Index 0 for full light
+// Index 1 for double horizonta and light vertical
+// Index 2 for light horizonta and double vertical
+// Index 3 for full double
+
+const PEICES : [[&str; 11]; 4] = [["┌", "┐", "└", "┘", "│", "─", "├", "┼", "┤", "┬", "┴"], 
+                                  ["╒", "╕", "╘", "╛", "│", "═", "╞", "╪", "╡", "╤", "╧"],
+                                  ["╓", "╖", "╙", "╜", "║", "─", "╟", "╫", "╢", "╥", "╨"],
+                                  ["╔", "╗", "╚", "╝", "║", "═", "╠", "╬", "╣", "╦", "╩"]];
+
 fn main() {
     boxy(" Hello There BOIII");
 }
 
 
 fn boxy(data: &str) {
-    let terminal_size = 30;
-    let whitespace_indices_temp = data.trim().match_indices(" ").collect::<Vec<_>>();
+    let terminal_size = 10;
+    let mut processed_data = String::from (data.trim());
+    processed_data.push(' ');
+    let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
     let mut ws_indices = Vec::new();
     for (i,_) in whitespace_indices_temp {
         ws_indices.push(i);
     }
     println!("{:?}", nearest_whitespace(&mut ws_indices, &terminal_size, 0));
     println!("{:?}", ws_indices);
-    let light = ["┌", "┐", "└", "┘", "│", "─", "├", "┼", "┤"];
-    print!("{}", light[0].blue());
+    print!("{}", PEICES[0][0].blue());
     for _ in 0..=terminal_size {
-        print!("{}", light[5].blue());
+        print!("{}", PEICES[0][5].blue());
     }
-    println!("{}", light[1].blue());
+    println!("{}", PEICES[0][1].blue());
     for __ in 0..5 {
-        print!("{}", light[4].blue());
-        for _ in 0..=terminal_size {
-            print!(" "); 
-        };
-        print!("{}", light[4].blue());
+        print!("{}", PEICES[0][4].blue());
+        print!("{}", format!("{:<width$}", "", width=terminal_size+1));
+        print!("{}", PEICES[0][4].blue());
         println!("");
     }
-    print!("{}", light[4].blue());
-    let padded_string = format!("{:<width$}", &data.trim()[0..nearest_whitespace(&mut ws_indices, &terminal_size, 0)], width=terminal_size+1);
+    print!("{}", PEICES[0][4].blue());
+    let padded_string = format!("{:<width$}", &processed_data[0..nearest_whitespace(&mut ws_indices, &terminal_size, 0)], width=terminal_size+1);
     print!("{}", padded_string);
-    print!("{}", light[4].blue());
+    print!("{}", PEICES[0][4].blue());
     println!("");
 
 }
@@ -41,7 +50,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
     let mut curr = 0;
     for i in &mut map[start_index..] {
         curr = *i;
-        if curr > *term_size {
+        if curr > *term_size+1 {
             return prev;
         } else {
             prev = curr;
