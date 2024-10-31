@@ -17,6 +17,11 @@ impl Boxy {
             divy : Vec::<usize>::new(),
         }
     }
+
+    pub fn add_line(&mut self, data_string : &str, color : &str) {
+        self.data.push(String::from(data_string));
+        self.colors.push(String::from(color));
+    }
 }
 
 pub fn add(left: u64, right: u64) -> u64 {
