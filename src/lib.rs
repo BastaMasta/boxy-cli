@@ -2,6 +2,7 @@ mod defs;
 
 use crate::defs::*;
 
+#[derive(Debug)]
 pub struct Boxy {
     data : Vec<String>,
     colors : Vec<String>,
@@ -22,6 +23,21 @@ impl Boxy {
         self.data.push(String::from(data_string));
         self.colors.push(String::from(color));
     }
+}
+
+
+fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
+    let mut prev = 0;
+    let mut curr = 0;
+    for i in &mut map[start_index..] {
+        curr = *i;
+        if curr > *term_size+1 {
+            return prev;
+        } else {
+            prev = curr;
+        }
+    }
+    return curr;
 }
 
 pub fn add(left: u64, right: u64) -> u64 {
