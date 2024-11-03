@@ -1,5 +1,3 @@
-use colored::Colorize;
-use hex_color::HexColor;
 use binary_testing::bling::*;
 
 // Index 0 for full light
@@ -9,8 +7,11 @@ use binary_testing::bling::*;
 
 
 fn main() {
-    let box1 = Boxy::new();
+    let mut box1 = Boxy::new();
     println!("{:?}", box1);
+    box1.add_line("Hello There Mate", "#ffff");
+    println!("{:?}", box1);
+
 }
 
 

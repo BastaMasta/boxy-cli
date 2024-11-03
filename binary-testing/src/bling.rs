@@ -1,3 +1,5 @@
+use colored::Colorize;
+use hex_color::HexColor;
 
 #[derive(Debug)]
 pub struct BoxTemplates {
@@ -108,7 +110,38 @@ impl Boxy {
         self.data.push(String::from(data_string));
         self.colors.push(String::from(color));
     }
+
+    pub fn display() {
+        let term = termsize::get().unwrap();
+        let terminal_size = (term.cols as usize) - 20;
+        print!("{}", BOLD_TEMPLATE.top_left.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        for _ in 0..=terminal_size {
+            print!("{}", BOLD_TEMPLATE.horizontal.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        }
+        println!("{}", BOLD_TEMPLATE.top_right.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        
+                
+//          
+    }
 }
+
+fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
+    let mut prev = 0;
+    let mut curr = 0;
+    for i in &mut map[start_index..] {
+        curr = *i;
+        if curr > *term_size+1 {
+            return prev;
+        } else {
+            prev = curr;
+        }
+    }
+    return curr;
+}
+
+fn recur_whitespace_printing(map: &mut Vec<usize>, term_size: &usize, start_index: usize) {
+    print!("{}", BOLD_TEMPLATE.vertical.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+} 
 
 pub fn add(left: u64, right: u64) -> u64 {
     println!("{:?}", SINGLE_TEMPLATE);
