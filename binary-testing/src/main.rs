@@ -7,7 +7,7 @@ use binary_testing::bling::*;
 
 
 fn main() {
-    let mut box1 = Boxy::new();
+    let mut box1 = Boxy::new("#ffff");
     println!("{:?}", box1);
     box1.add_line("Hello There Mate", "#ffff");
     println!("{:?}", box1);

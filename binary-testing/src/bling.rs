@@ -92,15 +92,17 @@ const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
 #[derive(Debug)]
 pub struct Boxy {
     data : Vec<String>,
+    box_col : String,
     colors : Vec<String>,
     divy : Vec<usize>,
 
 }
 
 impl Boxy {
-    pub fn new() -> Self {
+    pub fn new(box_color : &str) -> Self {
         Boxy{
             data : Vec::<String>::new(),
+            box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
             divy : Vec::<usize>::new(),
         }
@@ -111,14 +113,15 @@ impl Boxy {
         self.colors.push(String::from(color));
     }
 
-    pub fn display() {
+    pub fn display(&mut self) {
         let term = termsize::get().unwrap();
         let terminal_size = (term.cols as usize) - 20;
-        print!("{}", BOLD_TEMPLATE.top_left.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        print!("{}", BOLD_TEMPLATE.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         for _ in 0..=terminal_size {
-            print!("{}", BOLD_TEMPLATE.horizontal.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", BOLD_TEMPLATE.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
-        println!("{}", BOLD_TEMPLATE.top_right.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", BOLD_TEMPLATE.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         
                 
 //          
@@ -140,7 +143,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 }
 
 fn recur_whitespace_printing(map: &mut Vec<usize>, term_size: &usize, start_index: usize) {
-    print!("{}", BOLD_TEMPLATE.vertical.truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+    print!("{}", BOLD_TEMPLATE.vertical.to_string().blue());
 } 
 
 pub fn add(left: u64, right: u64) -> u64 {
