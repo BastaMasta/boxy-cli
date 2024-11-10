@@ -114,9 +114,21 @@ impl Boxy {
     }
 
     pub fn display(&mut self) {
+        // Initialising Display Variables
         let term = termsize::get().unwrap();
         let terminal_size = (term.cols as usize) - 20;
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
+
+        // Processing data ad setting up whitespaces map
+        let mut processed_data = String::from (data.trim());
+        processed_data.push(' ');
+        let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
+        let mut ws_indices = Vec::new();
+        for (i,_) in whitespace_indices_temp {
+            ws_indices.push(i);
+        }
+
+        // Actually printing shiet
         print!("{}", BOLD_TEMPLATE.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         for _ in 0..=terminal_size {
             print!("{}", BOLD_TEMPLATE.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
@@ -142,8 +154,11 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
     return curr;
 }
 
-fn recur_whitespace_printing(map: &mut Vec<usize>, term_size: &usize, start_index: usize) {
-    print!("{}", BOLD_TEMPLATE.vertical.to_string().blue());
+fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize, start_index: usize, boxcol: &HexColor) {
+    print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+    print!("{:<width$}", &data[start_index..nearest_whitespace(map, term_size, start_index)], width=term_size-2);
+    print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+    
 } 
 
 pub fn add(left: u64, right: u64) -> u64 {

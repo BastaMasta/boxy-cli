@@ -11,7 +11,7 @@ fn main() {
     println!("{:?}", box1);
     box1.add_line("Hello There Mate", "#ffff");
     println!("{:?}", box1);
-
+    box1.display();
 }
 
 
