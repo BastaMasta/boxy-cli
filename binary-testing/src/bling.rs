@@ -120,7 +120,7 @@ impl Boxy {
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
 
         // Processing data ad setting up whitespaces map
-        let mut processed_data = String::from (data.trim());
+        let mut processed_data = String::from (self.data[0].trim());
         processed_data.push(' ');
         let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
         let mut ws_indices = Vec::new();
