@@ -9,7 +9,7 @@ use binary_testing::bling::*;
 fn main() {
     let mut box1 = Boxy::new("#ffff");
     println!("{:?}", box1);
-    box1.add_line("Hello There Mate", "#ffff");
+    box1.add_line("Hello There Mateojabbfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
     println!("{:?}", box1);
     box1.display();
 }
