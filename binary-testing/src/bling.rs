@@ -154,7 +154,16 @@ impl Boxy {
 fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
     let mut prev = 0;
     let mut curr = 0;
-    for i in &mut map[start_index..] {
+    let mut pos = 0;
+    if start_index == map[map.len()-1] {
+        return start_index;
+    }
+    for j in &mut *map {
+        if *j < start_index {
+            pos += 1;
+        }
+    }
+    for i in &mut map[pos..] {
         curr = *i;
         if curr > *term_size+1 {
             return prev;
@@ -162,7 +171,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
             prev = curr;
         }
     }
-    return curr;
+    return prev;
 }
 
 fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
@@ -172,7 +181,7 @@ fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize,
     print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
     print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     println!(" ");
-    if next_ws != ((data.len()-1) as usize) {
+    if next_ws < (map[map.len()-1]) {
         recur_whitespace_printing(data, map, term_size, next_ws, boxcol, ext_padding, int_padding);
     }
 } 
