@@ -139,15 +139,15 @@ impl Boxy {
             print!("{}", BOLD_TEMPLATE.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", BOLD_TEMPLATE.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-        
+
         recur_whitespace_printing(&processed_data, &mut ws_indices, &(terminal_size-self.int_padding), 0 as usize, &col_truevals, &self.ext_padding, &self.int_padding);
-        
+
         print!("{:>width$}", BOLD_TEMPLATE.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
             print!("{}", BOLD_TEMPLATE.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", BOLD_TEMPLATE.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-        
+
     }
 }
 
@@ -171,7 +171,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
             prev = curr;
         }
     }
-    return prev;
+    prev
 }
 
 fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
@@ -181,8 +181,9 @@ fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize,
     print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
     print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     println!(" ");
+    let net = next_ws.clone();
     if next_ws < (map[map.len()-1]) {
-        recur_whitespace_printing(data, map, term_size, next_ws, boxcol, ext_padding, int_padding);
+        recur_whitespace_printing(data, map, term_size, net.clone(), boxcol, ext_padding, int_padding);
     }
 } 
 
