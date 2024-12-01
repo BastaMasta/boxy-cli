@@ -46,11 +46,11 @@ const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
 
 const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '╖',
-	top_left : '╓',
-	bottom_right : '╜',
-	bottom_left : '╙',
-	horizontal : '─',
-	vertical : '║',
+    top_left : '╓',
+    bottom_right : '╜',
+    bottom_left : '╙',
+    horizontal : '─',
+    vertical : '║',
 };
 
 const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -64,20 +64,20 @@ const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
 
 const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '╮',
-	top_left : '╭',
-	bottom_right : '╯',
-	bottom_left : '╰',
-	horizontal : '─',
-	vertical : '│',
+    top_left : '╭',
+    bottom_right : '╯',
+    bottom_left : '╰',
+    horizontal : '─',
+    vertical : '│',
 };
 
 const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '┓',
-	top_left : '┏',
-	bottom_right : '┛',
-	bottom_left : '┗',
-	horizontal : '━',
-	vertical : '┃',
+    top_left : '┏',
+    bottom_right : '┛',
+    bottom_left : '┗',
+    horizontal : '━',
+    vertical : '┃',
 };
 
 const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -186,7 +186,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 
 fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
     print!("{:>width$}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
-    let next_ws = nearest_whitespace(map, &(term_size - ext_padding), start_index);
+    let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
     print!("{:<pad$}", " ", pad=*int_padding);
     print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
     print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
@@ -194,7 +194,7 @@ fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize,
     if next_ws < (data.len()-1) {
         recur_whitespace_printing(data, map, term_size, next_ws+1, boxcol, ext_padding, int_padding);
     }
-} 
+}
 
 pub fn add(left: u64, right: u64) -> u64 {
     println!("{:?}", SINGLE_TEMPLATE);
