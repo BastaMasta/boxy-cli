@@ -140,7 +140,28 @@ impl Boxy {
         }
         println!("{}", BOLD_TEMPLATE.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
-        recur_whitespace_printing(&processed_data, &mut ws_indices, &(terminal_size-self.int_padding), 0 as usize, &col_truevals, &self.ext_padding, &self.int_padding);
+        // Tried recursive printing, failed miserably
+        // Will fix this in the future
+        // recur_whitespace_printing(&processed_data, &mut ws_indices, &(terminal_size-self.int_padding), 0 as usize, &col_truevals, &self.ext_padding, &self.int_padding);
+
+        //Iterative printing BOIIIII
+        let mut curr_index = 0;
+        let mut next_ws = 0;
+        while curr_index < processed_data.len() {
+            print!("{:>width$}", BOLD_TEMPLATE.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+            // let next_ws = nearest_whitespace(ws_indices, term_size, start_index);
+            for i in &ws_indices {
+                if *i > curr_index && *i-curr_index <= terminal_size {
+                    next_ws = *i;
+                }
+            };
+            print!("{:<pad$}", " ", pad=self.int_padding);
+            let ok = &processed_data[curr_index..next_ws];
+            print!("{:<width$}", ok, width=terminal_size-self.ext_padding,);
+            print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            println!(" ");
+            curr_index = next_ws+1;
+        }
 
         print!("{:>width$}", BOLD_TEMPLATE.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
