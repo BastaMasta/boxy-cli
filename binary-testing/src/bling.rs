@@ -113,7 +113,7 @@ impl Boxy {
         }
     }
 
-    pub fn add_line(&mut self, data_string : &str, color : &str) {
+    pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
         self.data.push(String::from(data_string));
         self.colors.push(String::from(color));
     }
@@ -140,11 +140,12 @@ impl Boxy {
         }
         println!("{}", BOLD_TEMPLATE.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
-        // Tried recursive printing, failed miserably
-        // Will fix this in the future
-        // recur_whitespace_printing(&processed_data, &mut ws_indices, &(terminal_size-self.int_padding), 0 as usize, &col_truevals, &self.ext_padding, &self.int_padding);
+        // Recursive Printing
+        recur_whitespace_printing(&processed_data, &mut ws_indices, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding);
 
-        //Iterative printing BOIIIII
+        // Iterative printing
+        // Disables ad recursive functions very well now
+        /*
         let mut curr_index = 0;
         let mut next_ws = 0;
         while curr_index < processed_data.len() {
@@ -162,6 +163,7 @@ impl Boxy {
             println!(" ");
             curr_index = next_ws+1;
         }
+        */
 
         print!("{:>width$}", BOLD_TEMPLATE.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
@@ -173,38 +175,24 @@ impl Boxy {
 }
 
 fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
-    let mut prev = 0;
-    let mut curr = 0;
-    let mut pos = 0;
-    if start_index == map[map.len()-1] {
-        return start_index;
-    }
-    for j in &mut *map {
-        if *j < start_index {
-            pos += 1;
+    let mut next_ws = 0;
+    for i in map {
+        if *i > start_index && *i-start_index <= *term_size {
+            next_ws = *i;
         }
     }
-    for i in &mut map[pos..] {
-        curr = *i;
-        if curr > *term_size+1 {
-            return prev;
-        } else {
-            prev = curr;
-        }
-    }
-    prev
+    next_ws
 }
 
 fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
     print!("{:>width$}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
-    let next_ws = nearest_whitespace(map, term_size, start_index);
+    let next_ws = nearest_whitespace(map, &(term_size - ext_padding), start_index);
     print!("{:<pad$}", " ", pad=*int_padding);
     print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
     print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     println!(" ");
-    let net = next_ws.clone();
-    if next_ws < (map[map.len()-1]) {
-        recur_whitespace_printing(data, map, term_size, net.clone(), boxcol, ext_padding, int_padding);
+    if next_ws < (data.len()-1) {
+        recur_whitespace_printing(data, map, term_size, next_ws+1, boxcol, ext_padding, int_padding);
     }
 } 
 
