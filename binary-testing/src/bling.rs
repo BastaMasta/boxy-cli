@@ -193,7 +193,7 @@ impl Boxy {
     }
 }
 
-fn print_h_divider(box_index: usize, boccol: &HexColor, term_size: &usize){
+fn print_h_divider(box_index: usize, boxcol: &HexColor, term_size: &usize){
 
 }
 
