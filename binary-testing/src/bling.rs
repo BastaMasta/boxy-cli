@@ -90,7 +90,20 @@ const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
 };
 
 #[derive(Debug)]
+pub enum BoxType{
+    Classic,
+    Single,
+    DoubleHorizontal,
+    DoubleVertical,
+    Double,
+    Bold,
+    Rounded,
+}
+
+
+#[derive(Debug)]
 pub struct Boxy {
+    type_enum: BoxType,
     data : Vec<String>,
     box_col : String,
     colors : Vec<String>,
@@ -102,8 +115,9 @@ pub struct Boxy {
 }
 
 impl Boxy {
-    pub fn new(box_color : &str) -> Self {
+    pub fn new(box_type: BoxType, box_color : &str) -> Self {
         Boxy{
+            type_enum: box_type,
             data : Vec::<String>::new(),
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
@@ -174,6 +188,13 @@ impl Boxy {
         println!("{}", BOLD_TEMPLATE.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
     }
+    fn display_segment(&mut self, seg_index: usize) {
+
+    }
+}
+
+fn print_h_divider(box_index: usize, boccol: &HexColor, term_size: &usize){
+
 }
 
 fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
