@@ -97,6 +97,7 @@ pub struct Boxy {
     divy : Vec<usize>,
     int_padding: usize,
     ext_padding: usize,
+    sect_count: usize,
 
 }
 
@@ -109,13 +110,14 @@ impl Boxy {
             divy : Vec::<usize>::new(),
             int_padding: 5 as usize,
             ext_padding: 5 as usize,
-
+            sect_count: 0 as usize,
         }
     }
 
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
         self.data.push(String::from(data_string));
         self.colors.push(String::from(color));
+        self.sect_count+=1;
     }
 
     pub fn display(&mut self) {
