@@ -144,10 +144,36 @@ impl Boxy {
         // Initialising Display Variables
         let term = termsize::get().unwrap();
         let terminal_size = (term.cols as usize) - 20 - 2*self.ext_padding;
+        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_pieces = map_box_type(&self.type_enum);
         
+        // Printing the top segment
+        print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+        for _ in 0..terminal_size {
+            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        }
+        println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+
+
         for i in 0..self.sect_count {
+            if i > 0 {
+
+                // Replace this part with print_h_divider function when edge values are ready.
+                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+                print!("{:>width$}", " ", width=terminal_size);
+                println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+                
+            }
             self.display_segment(i, &terminal_size);
         }
+
+        // Printing bottom segment
+        print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+        for _ in 0..terminal_size {
+            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        }
+        println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+
 
     }
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
@@ -166,23 +192,10 @@ impl Boxy {
 
         // Actually printing shiet
 
-        // Printing the top segment
-        print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..*terminal_size {
-            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-        }
-        println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-
         // Recursive Printing of text
         recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding);
 
-        // Printing bottom segment
-        print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..*terminal_size {
-            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-        }
-        println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-
+        
     }
 }
 
@@ -223,15 +236,15 @@ fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, boxtype: &BoxType,
 
 // returns the box template for the given enum
 
-fn map_box_type (boxtype : &BoxType) -> &BoxTemplates{
+fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
     match boxtype {
-        BoxType::Classic => &CLASSIC_TEMPLATE,
-        BoxType::Single => &SINGLE_TEMPLATE,
-        BoxType::DoubleHorizontal => &DOUB_H_TEMPLATE,
-        BoxType::DoubleVertical => &DOUB_V_TEMPLATE,
-        BoxType::Double => &DOUBLE_TEMPLATE,
-        BoxType::Bold => &BOLD_TEMPLATE,
-        BoxType::Rounded => &ROUNDED_TEMPLATE,
+        BoxType::Classic => CLASSIC_TEMPLATE,
+        BoxType::Single => SINGLE_TEMPLATE,
+        BoxType::DoubleHorizontal => DOUB_H_TEMPLATE,
+        BoxType::DoubleVertical => DOUB_V_TEMPLATE,
+        BoxType::Double => DOUBLE_TEMPLATE,
+        BoxType::Bold => BOLD_TEMPLATE,
+        BoxType::Rounded => ROUNDED_TEMPLATE,
     }
 }
 
