@@ -105,12 +105,12 @@ pub enum BoxType{
 pub struct Boxy {
     type_enum: BoxType,
     data : Vec<String>,
+    sect_count: usize,
     box_col : String,
     colors : Vec<String>,
     divy : Vec<usize>,
     int_padding: usize,
     ext_padding: usize,
-    sect_count: usize,
 
 }
 
@@ -119,12 +119,12 @@ impl Boxy {
         Boxy{
             type_enum: box_type,
             data : Vec::<String>::new(),
+            sect_count: 0 as usize,
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
             divy : Vec::<usize>::new(),
             int_padding: 5 as usize,
             ext_padding: 5 as usize,
-            sect_count: 0 as usize,
         }
     }
 
@@ -140,23 +140,31 @@ impl Boxy {
         // Initialising Display Variables
         let term = termsize::get().unwrap();
         let terminal_size = (term.cols as usize) - 20 - 2*self.ext_padding;
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        
+        for i in 0..self.sect_count {
+            self.display_segment(i, &terminal_size);
+        }
 
+    }
+    fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
+        // TODO: Add functionality to create segments while displying the textbox
+        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_pieces = map_box_type(&self.type_enum);
+ 
         // Processing data ad setting up whitespaces map
-        let mut processed_data = String::from (self.data[0].trim());
+        let mut processed_data = String::from (self.data[seg_index].trim());
         processed_data.push(' ');
         let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
         let mut ws_indices = Vec::new();
         for (i,_) in whitespace_indices_temp {
             ws_indices.push(i);
         }
-        let box_pieces = map_box_type(&self.type_enum);
 
         // Actually printing shiet
 
         // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..terminal_size {
+        for _ in 0..*terminal_size {
             print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
@@ -166,14 +174,11 @@ impl Boxy {
 
         // Printing bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..terminal_size {
+        for _ in 0..*terminal_size {
             print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
-    }
-    fn display_segment(&mut self, seg_index: usize) {
-        // TODO: Add functionality to create segments while displying the textbox
     }
 }
 
