@@ -136,6 +136,10 @@ impl Boxy {
         self.sect_count+=1;
     }
 
+
+    // Move the header and footer into the main display function, 
+    // limit the display_segment function to only printing text recursively, 
+    // and also adding a divider between text segments 
     pub fn display(&mut self) {
         // Initialising Display Variables
         let term = termsize::get().unwrap();
