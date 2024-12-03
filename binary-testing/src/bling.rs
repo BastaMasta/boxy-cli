@@ -128,6 +128,8 @@ impl Boxy {
         }
     }
 
+    // Adding a new test segment/section to the textbox
+    // also initializes the textbox with its first use -> adds main body text
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
         self.data.push(String::from(data_string));
         self.colors.push(String::from(color));
@@ -151,37 +153,18 @@ impl Boxy {
         let box_pieces = map_box_type(&self.type_enum);
 
         // Actually printing shiet
+
+        // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
             print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
-        // Recursive Printing
+        // Recursive Printing of text
         recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding);
 
-        // Iterative printing
-        // Disables ad recursive functions very well now
-        /*
-        let mut curr_index = 0;
-        let mut next_ws = 0;
-        while curr_index < processed_data.len() {
-            print!("{:>width$}", BOLD_TEMPLATE.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-            // let next_ws = nearest_whitespace(ws_indices, term_size, start_index);
-            for i in &ws_indices {
-                if *i > curr_index && *i-curr_index <= terminal_size {
-                    next_ws = *i;
-                }
-            };
-            print!("{:<pad$}", " ", pad=self.int_padding);
-            let ok = &processed_data[curr_index..next_ws];
-            print!("{:<width$}", ok, width=terminal_size-self.ext_padding,);
-            print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
-            println!(" ");
-            curr_index = next_ws+1;
-        }
-        */
-
+        // Printing bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
             print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
@@ -190,13 +173,17 @@ impl Boxy {
 
     }
     fn display_segment(&mut self, seg_index: usize) {
-
+        // TODO: Add functionality to create segments while displying the textbox
     }
 }
+
+// Printing the horizontal divider.
 
 fn print_h_divider(box_index: usize, boxcol: &HexColor, term_size: &usize){
 
 }
+
+// Function to find the next-most-fitting string slice for the give terminal size
 
 fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
     let mut next_ws = 0;
@@ -207,6 +194,10 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
     }
     next_ws
 }
+
+// Recursively printing the next text segment into the textbox
+
+// Went with recursive as that is just more modular, and i can just reuse this code for printing horizontal and vertical segments.
 
 fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
     let box_pieces = map_box_type(boxtype);
@@ -221,6 +212,8 @@ fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, boxtype: &BoxType,
     }
 }
 
+// returns the box template for the given enum
+
 fn map_box_type (boxtype : &BoxType) -> &BoxTemplates{
     match boxtype {
         BoxType::Classic => &CLASSIC_TEMPLATE,
@@ -232,6 +225,8 @@ fn map_box_type (boxtype : &BoxType) -> &BoxTemplates{
         BoxType::Rounded => &ROUNDED_TEMPLATE,
     }
 }
+
+// Jargon function, purely for testing
 
 pub fn add(left: u64, right: u64) -> u64 {
     println!("{:?}", SINGLE_TEMPLATE);
