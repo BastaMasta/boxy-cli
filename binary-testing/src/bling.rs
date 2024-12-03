@@ -90,32 +90,48 @@ const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
 };
 
 #[derive(Debug)]
+pub enum BoxType{
+    Classic,
+    Single,
+    DoubleHorizontal,
+    DoubleVertical,
+    Double,
+    Bold,
+    Rounded,
+}
+
+
+#[derive(Debug)]
 pub struct Boxy {
+    type_enum: BoxType,
     data : Vec<String>,
     box_col : String,
     colors : Vec<String>,
     divy : Vec<usize>,
     int_padding: usize,
     ext_padding: usize,
+    sect_count: usize,
 
 }
 
 impl Boxy {
-    pub fn new(box_color : &str) -> Self {
+    pub fn new(box_type: BoxType, box_color : &str) -> Self {
         Boxy{
+            type_enum: box_type,
             data : Vec::<String>::new(),
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
             divy : Vec::<usize>::new(),
             int_padding: 5 as usize,
             ext_padding: 5 as usize,
-
+            sect_count: 0 as usize,
         }
     }
 
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
         self.data.push(String::from(data_string));
         self.colors.push(String::from(color));
+        self.sect_count+=1;
     }
 
     pub fn display(&mut self) {
@@ -132,16 +148,17 @@ impl Boxy {
         for (i,_) in whitespace_indices_temp {
             ws_indices.push(i);
         }
+        let box_pieces = map_box_type(&self.type_enum);
 
         // Actually printing shiet
-        print!("{:>width$}", BOLD_TEMPLATE.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+        print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
-            print!("{}", BOLD_TEMPLATE.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
-        println!("{}", BOLD_TEMPLATE.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
         // Recursive Printing
-        recur_whitespace_printing(&processed_data, &mut ws_indices, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding);
+        recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding);
 
         // Iterative printing
         // Disables ad recursive functions very well now
@@ -165,13 +182,20 @@ impl Boxy {
         }
         */
 
-        print!("{:>width$}", BOLD_TEMPLATE.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+        print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size {
-            print!("{}", BOLD_TEMPLATE.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
-        println!("{}", BOLD_TEMPLATE.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
     }
+    fn display_segment(&mut self, seg_index: usize) {
+
+    }
+}
+
+fn print_h_divider(box_index: usize, boxcol: &HexColor, term_size: &usize){
+
 }
 
 fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
@@ -184,15 +208,28 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
     next_ws
 }
 
-fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
-    print!("{:>width$}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
+fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
+    let box_pieces = map_box_type(boxtype);
+    print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
     let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
     print!("{:<pad$}", " ", pad=*int_padding);
     print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
-    print!("{}", BOLD_TEMPLATE.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+    print!("{}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     println!(" ");
     if next_ws < (data.len()-1) {
-        recur_whitespace_printing(data, map, term_size, next_ws+1, boxcol, ext_padding, int_padding);
+        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding);
+    }
+}
+
+fn map_box_type (boxtype : &BoxType) -> &BoxTemplates{
+    match boxtype {
+        BoxType::Classic => &CLASSIC_TEMPLATE,
+        BoxType::Single => &SINGLE_TEMPLATE,
+        BoxType::DoubleHorizontal => &DOUB_H_TEMPLATE,
+        BoxType::DoubleVertical => &DOUB_V_TEMPLATE,
+        BoxType::Double => &DOUBLE_TEMPLATE,
+        BoxType::Bold => &BOLD_TEMPLATE,
+        BoxType::Rounded => &ROUNDED_TEMPLATE,
     }
 }
 
