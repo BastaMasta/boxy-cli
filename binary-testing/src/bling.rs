@@ -107,10 +107,10 @@ const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_left : '+',
     horizontal : '-',
     vertical : '|',
-    left_t : '├',
-    right_t : '┤',
-    upper_t : '┬',
-    lower_t : '┴',
+    left_t : '+',
+    right_t : '+',
+    upper_t : '+',
+    lower_t : '+',
     cross : '+',
 };
 
@@ -184,9 +184,10 @@ impl Boxy {
             if i > 0 {
 
                 // Replace this part with print_h_divider function when edge values are ready.
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-                print!("{:>width$}", " ", width=terminal_size);
-                println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+                // print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
+                // print!("{:>width$}", " ", width=terminal_size);
+                // println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+                self.print_h_divider(&col_truevals,  &terminal_size);
                 
             }
             self.display_segment(i, &terminal_size);
@@ -204,7 +205,6 @@ impl Boxy {
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
         // TODO: Add functionality to create segments while displying the textbox
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
-        let box_pieces = map_box_type(&self.type_enum);
  
         // Processing data ad setting up whitespaces map
         let mut processed_data = String::from (self.data[seg_index].trim());
@@ -222,13 +222,21 @@ impl Boxy {
 
         
     }
+
+
+    // Printing the horizontal divider.
+
+    fn print_h_divider(&mut self, boxcol: &HexColor, term_size: &usize){
+        let box_pieces = map_box_type(&self.type_enum);
+        print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
+            for _ in 0..*term_size {
+                print!("{}", box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+            }
+            println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+    }
+
 }
 
-// Printing the horizontal divider.
-
-fn print_h_divider(box_index: usize, boxcol: &HexColor, term_size: &usize){
-
-}
 
 // Function to find the next-most-fitting string slice for the give terminal size
 
