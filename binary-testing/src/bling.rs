@@ -106,7 +106,7 @@ const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_right : '+',
     bottom_left : '+',
     horizontal : '-',
-    vertical : '|',
+    vertical : '┇',
     left_t : '+',
     right_t : '+',
     upper_t : '+',
@@ -162,9 +162,7 @@ impl Boxy {
     }
 
 
-    // Move the header and footer into the main display function, 
-    // limit the display_segment function to only printing text recursively, 
-    // and also adding a divider between text segments 
+   // Main Display Function to display the textbox
     pub fn display(&mut self) {
         // Initialising Display Variables
         let term = termsize::get().unwrap();
@@ -179,16 +177,10 @@ impl Boxy {
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
-
+        // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
             if i > 0 {
-
-                // Replace this part with print_h_divider function when edge values are ready.
-                // print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-                // print!("{:>width$}", " ", width=terminal_size);
-                // println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
                 self.print_h_divider(&col_truevals,  &terminal_size);
-                
             }
             self.display_segment(i, &terminal_size);
         }
