@@ -9,11 +9,11 @@ pub struct BoxTemplates {
     bottom_right : char,
     vertical : char,
     horizontal : char,
-    // LeftT : char,
-    // RightT : char,
-    // UpperT : char,
-    // LowerT : char,
-    // Cross : char,
+    left_t : char,
+    right_t : char,
+    upper_t : char,
+    lower_t : char,
+    cross : char,
 }
 
 pub const SINGLE_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -23,11 +23,11 @@ pub const SINGLE_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_right : '┘',
     vertical : '│',
     horizontal : '─',
-    // LeftT : '├',
-    // RightT : '┤',
-    // UpperT : '┬',
-    // LowerT : '┴',
-    // Cross : '┼',
+    left_t : '├',
+    right_t : '┤',
+    upper_t : '┬',
+    lower_t : '┴',
+    cross : '┼',
 };
 
 const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -37,11 +37,11 @@ const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_right : '╛',
     vertical : '│',
     horizontal : '═',
-    // LeftT : '╞',
-    // RightT : '╡',
-    // UpperT : '╤',
-    // LowerT : '╧',
-    // Cross : '╪',
+    left_t : '╞',
+    right_t : '╡',
+    upper_t : '╤',
+    lower_t : '╧',
+    cross : '╪',
 };
 
 const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -51,6 +51,11 @@ const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_left : '╙',
     horizontal : '─',
     vertical : '║',
+    left_t : '╟',
+    right_t : '╢',
+    upper_t : '╥',
+    lower_t : '╨',
+    cross : '╫',
 };
 
 const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -60,6 +65,11 @@ const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_left : '╚',
     horizontal : '═',
     vertical : '║',
+    left_t : '╠',
+    right_t : '╣',
+    upper_t : '╦',
+    lower_t : '╩',
+    cross : '╬',
 };
 
 const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -69,6 +79,11 @@ const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_left : '╰',
     horizontal : '─',
     vertical : '│',
+    left_t : '├',
+    right_t : '┤',
+    upper_t : '┬',
+    lower_t : '┴',
+    cross : '┼',
 };
 
 const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -78,6 +93,11 @@ const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_left : '┗',
     horizontal : '━',
     vertical : '┃',
+    left_t : '┣',
+    right_t : '┫',
+    upper_t : '┳',
+    lower_t : '┻',
+    cross : '╋',
 };
 
 const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
@@ -87,6 +107,11 @@ const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
     bottom_left : '+',
     horizontal : '-',
     vertical : '|',
+    left_t : '├',
+    right_t : '┤',
+    upper_t : '┬',
+    lower_t : '┴',
+    cross : '+',
 };
 
 #[derive(Debug)]
