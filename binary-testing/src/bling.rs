@@ -227,6 +227,10 @@ impl Boxy {
             println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
 
+    fn print_v_divider() {
+        
+    }
+
 }
 
 

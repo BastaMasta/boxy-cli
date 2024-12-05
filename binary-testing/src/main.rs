@@ -15,8 +15,13 @@ fn main() {
     // Post line insert check
     println!("{:?}", box1);
     println!("\nTEXTBOX:");
+    use std::time::Instant;
+    let now = Instant::now();
     box1.display();
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
 }
+
 
 
 // const PEICES : [[&str; 11]; 4] = [["┌", "┐", "└", "┘", "│", "─", "├", "┼", "┤", "┬", "┴"], 
