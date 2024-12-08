@@ -1,6 +1,6 @@
 use colored::Colorize;
 use hex_color::HexColor;
-use crate::defns::*;
+use crate::templates::*;
 
 #[derive(Debug)]
 pub enum BoxType{
@@ -20,7 +20,6 @@ pub enum BoxAlign {
     Right,
 }
 
-
 #[derive(Debug)]
 pub struct Boxy {
     type_enum: BoxType,
@@ -39,11 +38,11 @@ impl Boxy {
         Boxy{
             type_enum: box_type,
             data : Vec::<String>::new(),
-            sect_count: 0 as usize,
+            sect_count: 0usize,
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
-            int_padding: 5 as usize,
-            ext_padding: 5 as usize,
+            int_padding: 5usize,
+            ext_padding: 5usize,
             align : BoxAlign::Left,
         }
     }
@@ -103,7 +102,7 @@ impl Boxy {
 
     }
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
-        // TODO: Add functionality to create segments while displying the textbox
+        // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
  
         // Processing data ad setting up whitespaces map
@@ -120,7 +119,6 @@ impl Boxy {
         // Recursive Printing of text
         recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
-        
     }
 
 
@@ -134,6 +132,9 @@ impl Boxy {
             }
             println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
+
+
+    // TODO: Add vertical divider printing functionality
 
     // fn print_v_divider() {
     //
