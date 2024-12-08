@@ -1,25 +1,19 @@
 use binary_testing::bling::*;
 
-// Index 0 for full light
-// Index 1 for double horizonta and light vertical
-// Index 2 for light horizonta and double vertical
-// Index 3 for full double
-
 
 fn main() {
-    let mut box1 = Boxy::new(BoxType::Classic,"#00ffff");
+    let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");
     // Post line insert check
     println!("{:?}", box1);
     box1.add_text_sgmt("Hello There Mateojablij trhwesoiuethj 0piswe hjgtgoise jgtowie3thj q3o-oitujpwiej toiq 0iweeh gt owjtpiewrwh WOKWRHJ JRQWE4IHYNE5R bfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
     box1.add_text_sgmt("Hello There Mateojablij trhwesoiuethj 0piswe hjgtgoise jgtowie3thj q3o-oitujpwiej toiq 0iweeh gt owjtpiewrwh WOKWRHJ JRQWE4IHYNE5R bfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
+    box1.add_text_sgmt("Hello Theree", "#ffff");
     // Post line insert check
     println!("{:?}", box1);
     println!("\nTEXTBOX:");
-    use std::time::Instant;
-    let now = Instant::now();
     box1.display();
-    let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
+    box1.set_align(BoxAlign::Center);
+    box1.display();
 }
 
 

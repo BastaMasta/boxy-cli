@@ -1,118 +1,6 @@
 use colored::Colorize;
 use hex_color::HexColor;
-
-#[derive(Debug)]
-pub struct BoxTemplates {
-    top_left : char,
-    top_right : char,
-    bottom_left : char,
-    bottom_right : char,
-    vertical : char,
-    horizontal : char,
-    left_t : char,
-    right_t : char,
-    upper_t : char,
-    lower_t : char,
-    cross : char,
-}
-
-pub const SINGLE_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_left : '┌',
-    top_right : '┐',
-    bottom_left : '└',
-    bottom_right : '┘',
-    vertical : '│',
-    horizontal : '─',
-    left_t : '├',
-    right_t : '┤',
-    upper_t : '┬',
-    lower_t : '┴',
-    cross : '┼',
-};
-
-const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_left : '╒',
-    top_right : '╕',
-    bottom_left : '╘',
-    bottom_right : '╛',
-    vertical : '│',
-    horizontal : '═',
-    left_t : '╞',
-    right_t : '╡',
-    upper_t : '╤',
-    lower_t : '╧',
-    cross : '╪',
-};
-
-const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_right : '╖',
-    top_left : '╓',
-    bottom_right : '╜',
-    bottom_left : '╙',
-    horizontal : '─',
-    vertical : '║',
-    left_t : '╟',
-    right_t : '╢',
-    upper_t : '╥',
-    lower_t : '╨',
-    cross : '╫',
-};
-
-const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_right : '╗',
-    top_left : '╔',
-    bottom_right : '╝',
-    bottom_left : '╚',
-    horizontal : '═',
-    vertical : '║',
-    left_t : '╠',
-    right_t : '╣',
-    upper_t : '╦',
-    lower_t : '╩',
-    cross : '╬',
-};
-
-const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_right : '╮',
-    top_left : '╭',
-    bottom_right : '╯',
-    bottom_left : '╰',
-    horizontal : '─',
-    vertical : '│',
-    left_t : '├',
-    right_t : '┤',
-    upper_t : '┬',
-    lower_t : '┴',
-    cross : '┼',
-};
-
-const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_right : '┓',
-    top_left : '┏',
-    bottom_right : '┛',
-    bottom_left : '┗',
-    horizontal : '━',
-    vertical : '┃',
-    left_t : '┣',
-    right_t : '┫',
-    upper_t : '┳',
-    lower_t : '┻',
-    cross : '╋',
-};
-
-const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
-    top_right : '+',
-    top_left : '+',
-    bottom_right : '+',
-    bottom_left : '+',
-    horizontal : '-',
-    vertical : '┇',
-    left_t : '+',
-    right_t : '+',
-    upper_t : '+',
-    lower_t : '+',
-    cross : '+',
-};
+use crate::defns::*;
 
 #[derive(Debug)]
 pub enum BoxType{
@@ -125,6 +13,13 @@ pub enum BoxType{
     Rounded,
 }
 
+#[derive(Debug)]
+pub enum BoxAlign {
+    Left,
+    Center,
+    Right,
+}
+
 
 #[derive(Debug)]
 pub struct Boxy {
@@ -133,9 +28,9 @@ pub struct Boxy {
     sect_count: usize,
     box_col : String,
     colors : Vec<String>,
-    divy : Vec<usize>,
     int_padding: usize,
     ext_padding: usize,
+    align : BoxAlign,
 
 }
 
@@ -147,9 +42,9 @@ impl Boxy {
             sect_count: 0 as usize,
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
-            divy : Vec::<usize>::new(),
             int_padding: 5 as usize,
             ext_padding: 5 as usize,
+            align : BoxAlign::Left,
         }
     }
 
@@ -161,6 +56,9 @@ impl Boxy {
         self.sect_count+=1;
     }
 
+    pub fn set_align(&mut self, align: BoxAlign) {
+        self.align = align;
+    }
 
    // Main Display Function to display the textbox
     pub fn display(&mut self) {
@@ -182,7 +80,17 @@ impl Boxy {
             if i > 0 {
                 self.print_h_divider(&col_truevals,  &terminal_size);
             }
-            self.display_segment(i, &terminal_size);
+            match self.align {
+                BoxAlign::Left => {
+                    self.display_segment(i, &(&terminal_size));
+                }
+                BoxAlign::Center => {
+                    self.display_segment(i, &(&terminal_size - self.int_padding));
+                }
+                BoxAlign::Right => {
+                    self.display_segment(i, &(&terminal_size - self.int_padding));
+                }
+            }
         }
 
         // Printing bottom segment
@@ -210,7 +118,7 @@ impl Boxy {
         // Actually printing shiet
 
         // Recursive Printing of text
-        recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding);
+        recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
         
     }
@@ -227,9 +135,9 @@ impl Boxy {
             println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
 
-    fn print_v_divider() {
-        
-    }
+    // fn print_v_divider() {
+    //
+    // }
 
 }
 
@@ -250,16 +158,28 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 
 // Went with recursive as that is just more modular, and i can just reuse this code for printing horizontal and vertical segments.
 
-fn recur_whitespace_printing(data:&str ,map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize) {
+
+
+fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
     let box_pieces = map_box_type(boxtype);
     print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
     let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
-    print!("{:<pad$}", " ", pad=*int_padding);
-    print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
+
+    match align {
+        BoxAlign::Left => {
+            print!("{:<pad$}", " ", pad=*int_padding);
+            print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
+        }
+        BoxAlign::Center => {
+            print!("{:<pad$}", " ", pad=*int_padding + ((term_size-(next_ws-start_index))/2));
+            print!("{:<width$}", &data[start_index..next_ws], width=term_size-((term_size-(next_ws-start_index))/2)+*int_padding);
+        }
+        _ => {}
+    }
     print!("{}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     println!(" ");
     if next_ws < (data.len()-1) {
-        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding);
+        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding, align);
     }
 }
 
