@@ -157,7 +157,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 
 // Recursively printing the next text segment into the textbox
 
-// Went with recursive as that is just more modular, and i can just reuse this code for printing horizontal and vertical segments.
+// Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
 
 
