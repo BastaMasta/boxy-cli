@@ -1,6 +1,6 @@
-mod defs;
+mod templates;
 
-use crate::defs::*;
+use crate::templates::*;
 
 #[derive(Debug)]
 pub struct Boxy {
