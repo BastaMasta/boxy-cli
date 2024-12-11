@@ -262,9 +262,11 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
 pub fn resolve_col(dat : String) -> String {
     return dat
 }
+
 pub fn resolve_pad(dat : String) -> usize {
     return dat.parse::<usize>().unwrap_or(0usize);
 }
+
 pub fn resolve_align(dat : String) -> BoxAlign {
     return match &*dat {
         "center" => BoxAlign::Center,
@@ -272,7 +274,9 @@ pub fn resolve_align(dat : String) -> BoxAlign {
         "left" => BoxAlign::Left,
         _ => BoxAlign::Left,
     }
-}pub fn resolve_type(dat : String) -> BoxType{
+}
+
+pub fn resolve_type(dat : String) -> BoxType{
     return match &*dat {
         "classic" => BoxType::Classic,
         "single" => BoxType::Single,
