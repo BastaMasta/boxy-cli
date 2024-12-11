@@ -1,2 +1,2 @@
 pub mod bling;
-pub mod defns;
+pub mod templates;

@@ -1,7 +1,10 @@
+use std::fmt::Display;
 use colored::Colorize;
 use hex_color::HexColor;
-use crate::defns::*;
+use crate::templates::*;
 
+
+// TextBox Type Enums
 #[derive(Debug)]
 pub enum BoxType{
     Classic,
@@ -13,6 +16,24 @@ pub enum BoxType{
     Rounded,
 }
 
+// Added Display Fucntion to resolve type errors in the macro
+impl Display for BoxType{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match &self {
+            BoxType::Classic => "classic".to_string(),
+            BoxType::Single => "single".to_string(),
+            BoxType::DoubleHorizontal => "double_horizontal".to_string(),
+            BoxType::DoubleVertical => "double_vertical".to_string(),
+            BoxType::Double => "double".to_string(),
+            BoxType::Bold => "bold".to_string(),
+            BoxType::Rounded => "rounded".to_string(),
+        };
+        write!(f, "{}", str)
+    }
+}
+
+// Alignment Enums
+
 #[derive(Debug)]
 pub enum BoxAlign {
     Left,
@@ -20,18 +41,67 @@ pub enum BoxAlign {
     Right,
 }
 
+// Added Display Fucntion to resolve type errors in the macro
+impl Display for BoxAlign {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
+            BoxAlign::Left => "left".to_string(),
+            BoxAlign::Center => "center".to_string(),
+            BoxAlign::Right => "right".to_string(),
+        };
+        write!(f, "{}", str)
+    }
+}
+
+
 
 #[derive(Debug)]
 pub struct Boxy {
-    type_enum: BoxType,
-    data : Vec<String>,
-    sect_count: usize,
-    box_col : String,
-    colors : Vec<String>,
-    int_padding: usize,
-    ext_padding: usize,
-    align : BoxAlign,
+    pub type_enum: BoxType,
+    pub data : Vec<String>,
+    pub sect_count: usize,
+    pub box_col : String,
+    pub colors : Vec<String>,
+    pub int_padding: usize,
+    pub ext_padding: usize,
+    pub align : BoxAlign,
 
+}
+
+// Default struct values for the textbox
+impl Default for Boxy {
+    fn default() -> Self {
+        Self {
+            type_enum: BoxType::Single,
+            data : Vec::<String>::new(),
+            sect_count: 0usize,
+            box_col: "#ffffff".to_string(),
+            colors : Vec::<String>::new(),
+            int_padding: 5usize,
+            ext_padding: 5usize,
+            align : BoxAlign::Left,
+        }
+    }
+}
+
+
+// boxy macro
+#[macro_export]
+macro_rules! boxy {
+    ($($key:ident: $value:expr),* $(,)?) => {{
+        let mut boxy = Boxy::default();
+        $(
+            match stringify!($key) {
+                "type" => boxy.type_enum = resolve_type($value.to_string()),
+                "color" => boxy.box_col = resolve_col($value.to_string()),
+                "internal_pad" => boxy.int_padding = resolve_pad($value.to_string()),
+                "external_pad" => boxy.ext_padding = resolve_pad($value.to_string()),
+                "alignment" => boxy.align = resolve_align($value.to_string()),
+                _ => panic!("Unknown field: {}", stringify!($key)),
+            }
+        )*
+        boxy
+    }};
 }
 
 impl Boxy {
@@ -39,11 +109,11 @@ impl Boxy {
         Boxy{
             type_enum: box_type,
             data : Vec::<String>::new(),
-            sect_count: 0 as usize,
+            sect_count: 0usize,
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
-            int_padding: 5 as usize,
-            ext_padding: 5 as usize,
+            int_padding: 5usize,
+            ext_padding: 5usize,
             align : BoxAlign::Left,
         }
     }
@@ -56,8 +126,15 @@ impl Boxy {
         self.sect_count+=1;
     }
 
+    // Setting the Alignment maually
     pub fn set_align(&mut self, align: BoxAlign) {
         self.align = align;
+    }
+
+    // Setting the Padding manually
+    pub fn set_padding(&mut self, ext_padding : usize, int_padding : usize) {
+        self.ext_padding = ext_padding;
+        self.int_padding = int_padding;
     }
 
    // Main Display Function to display the textbox
@@ -103,7 +180,7 @@ impl Boxy {
 
     }
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
-        // TODO: Add functionality to create segments while displying the textbox
+        // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
  
         // Processing data ad setting up whitespaces map
@@ -120,7 +197,6 @@ impl Boxy {
         // Recursive Printing of text
         recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
-        
     }
 
 
@@ -134,6 +210,9 @@ impl Boxy {
             }
             println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
+
+
+    // TODO: Add vertical divider printing functionality
 
     // fn print_v_divider() {
     //
@@ -156,7 +235,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 
 // Recursively printing the next text segment into the textbox
 
-// Went with recursive as that is just more modular, and i can just reuse this code for printing horizontal and vertical segments.
+// Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
 
 
@@ -196,6 +275,36 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
         BoxType::Rounded => ROUNDED_TEMPLATE,
     }
 }
+
+// Macro Resolution fucntions for boxy!
+
+pub fn resolve_col(dat : String) -> String {
+    return dat
+}
+pub fn resolve_pad(dat : String) -> usize {
+    return dat.parse::<usize>().unwrap_or(0usize);
+}
+pub fn resolve_align(dat : String) -> BoxAlign {
+    return match &*dat {
+        "center" => BoxAlign::Center,
+        "right" => BoxAlign::Right,
+        "left" => BoxAlign::Left,
+        _ => BoxAlign::Left,
+    }
+}pub fn resolve_type(dat : String) -> BoxType{
+    return match &*dat {
+        "classic" => BoxType::Classic,
+        "single" => BoxType::Single,
+        "double_horizontal" => BoxType::DoubleHorizontal,
+        "double_vertical" => BoxType::DoubleVertical,
+        "double" => BoxType::Double,
+        "bold" => BoxType::Bold,
+        "rounded" => BoxType::Rounded,
+        _ => BoxType::Single,
+    }
+}
+
+
 
 // Jargon function, purely for testing
 
