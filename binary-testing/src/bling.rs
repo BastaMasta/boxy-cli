@@ -270,15 +270,15 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
 // Macro Resolution fucntions for boxy!
 
 pub fn resolve_col(dat : String) -> String {
-    return dat
+    dat
 }
 
 pub fn resolve_pad(dat : String) -> usize {
-    return dat.parse::<usize>().unwrap_or(0usize);
+    dat.parse::<usize>().unwrap_or(0usize)
 }
 
 pub fn resolve_align(dat : String) -> BoxAlign {
-    return match &*dat {
+    match &*dat {
         "center" => BoxAlign::Center,
         "right" => BoxAlign::Right,
         "left" => BoxAlign::Left,
@@ -287,7 +287,7 @@ pub fn resolve_align(dat : String) -> BoxAlign {
 }
 
 pub fn resolve_type(dat : String) -> BoxType{
-    return match &*dat {
+    match &*dat {
         "classic" => BoxType::Classic,
         "single" => BoxType::Single,
         "double_horizontal" => BoxType::DoubleHorizontal,
