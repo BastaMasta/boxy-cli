@@ -117,6 +117,12 @@ impl Boxy {
         self.ext_padding = ext_padding;
         self.int_padding = int_padding;
     }
+    pub fn set_padding_int(&mut self, int_padding : usize) {
+            self.int_padding = int_padding;
+    }
+    pub fn set_padding_ext(&mut self, ext_padding : usize) {
+            self.ext_padding = ext_padding;
+    }
 
     // Change Box Type manually
     pub fn change_box_type(&mut self, box_type : BoxType) {
@@ -132,12 +138,14 @@ impl Boxy {
     //TODO: fix the set_width function. it just causes a bump in the box everytime the caracter difference is one or two for a prticular line
 
     // Manually Set Box Width
+    /*
     pub fn set_width(&mut self, width : usize) {
         let term = termsize::get().unwrap();
         let terminal_size = (term.cols as usize) - 20;
         self.int_padding = 0;
         self.ext_padding = (terminal_size - width)/2;
     }
+    */
 
    // Main Display Function to display the textbox
     pub fn display(&mut self) {
