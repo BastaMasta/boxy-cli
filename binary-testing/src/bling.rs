@@ -128,6 +128,9 @@ impl Boxy {
         self.box_col = box_color.to_string();
     }
 
+
+    //TODO: fix the set_width function. it just causes a bump in the box everytime the caracter difference is one or two for a prticular line
+
     // Manually Set Box Width
     pub fn set_width(&mut self, width : usize) {
         let term = termsize::get().unwrap();

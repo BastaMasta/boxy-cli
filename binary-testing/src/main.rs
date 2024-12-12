@@ -11,7 +11,7 @@ fn main() {
     box1.display();
     let mut box2 = boxy!(boxtype: BoxType::Double, color:"#00ffff", align:BoxAlign::Center);
     // box2.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", "#ffff");
-    box2.add_text_sgmt("Hello Theree BIGG Boi", "#ffff");
+    box2.add_text_sgmt("Hello Theree BIGG Bo sdsdg gdsi", "#ffff");
     box2.set_width(22);
     box2.display();
 
