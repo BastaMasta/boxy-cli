@@ -123,9 +123,17 @@ impl Boxy {
         self.type_enum = box_type;
     }
 
-    // Chnage Box Color manually
+    // Change Box Color manually
     pub fn change_box_color(&mut self, box_color : &str) {
         self.box_col = box_color.to_string();
+    }
+
+    // Manually Set Box Width
+    pub fn set_width(&mut self, width : usize) {
+        let term = termsize::get().unwrap();
+        let terminal_size = (term.cols as usize) - 20;
+        self.int_padding = 0;
+        self.ext_padding = (terminal_size - width)/2;
     }
 
    // Main Display Function to display the textbox
@@ -172,8 +180,10 @@ impl Boxy {
     }
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
- 
+        let box_col_truevals = HexColor::parse(&self.box_col).unwrap();
+
+        let text_col_truevals = HexColor::parse(&self.colors[seg_index].trim()).unwrap();
+
         // Processing data ad setting up whitespaces map
         let mut processed_data = String::from (self.data[seg_index].trim());
         processed_data.push(' ');
@@ -186,7 +196,7 @@ impl Boxy {
         // Actually printing shiet
 
         // Recursive Printing of text
-        recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
+        recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &box_col_truevals, &text_col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
     }
 
@@ -230,7 +240,7 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 
 
 
-fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
+fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, textcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
     let box_pieces = map_box_type(boxtype);
     print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
     let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
@@ -238,18 +248,18 @@ fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType,
     match align {
         BoxAlign::Left => {
             print!("{:<pad$}", " ", pad=*int_padding);
-            print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
+            print!("{:<width$}", data[start_index..next_ws].to_string().truecolor(textcol.r, textcol.g, textcol.b), width=term_size,);
         }
         BoxAlign::Center => {
             print!("{:<pad$}", " ", pad=*int_padding + ((term_size-(next_ws-start_index))/2));
-            print!("{:<width$}", &data[start_index..next_ws], width=term_size-((term_size-(next_ws-start_index))/2)+*int_padding);
+            print!("{:<width$}", data[start_index..next_ws].to_string().truecolor(textcol.r, textcol.g, textcol.b), width=term_size-((term_size-(next_ws-start_index))/2)+*int_padding);
         }
         _ => {}
     }
     print!("{}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     println!(" ");
     if next_ws < (data.len()-1) {
-        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding, align);
+        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, textcol,ext_padding, int_padding, align);
     }
 }
 
