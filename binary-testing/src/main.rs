@@ -12,7 +12,7 @@ fn main() {
     println!("{:?}", box1);
     println!("\nTEXTBOX:");
     box1.display();
-    let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
+    let mut box2 = boxy!(boxtype: BoxType::Double, color:"#00ffff", align:BoxAlign::Center);
     box2.add_text_sgmt("Hello There Mateojablij trhwesoiuethj 0piswe hjgtgoise jgtowie3thj q3o-oitujpwiej toiq 0iweeh gt owjtpiewrwh WOKWRHJ JRQWE4IHYNE5R bfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
     box2.add_text_sgmt("Hello Theree", "#ffff");
     box2.display();

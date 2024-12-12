@@ -118,6 +118,16 @@ impl Boxy {
         self.int_padding = int_padding;
     }
 
+    // Change Box Type manually
+    pub fn change_box_type(&mut self, box_type : BoxType) {
+        self.type_enum = box_type;
+    }
+
+    // Chnage Box Color manually
+    pub fn change_box_color(&mut self, box_color : &str) {
+        self.box_col = box_color.to_string();
+    }
+
    // Main Display Function to display the textbox
     pub fn display(&mut self) {
         // Initialising Display Variables
