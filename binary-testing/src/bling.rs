@@ -141,13 +141,13 @@ impl Boxy {
     pub fn display(&mut self) {
         // Initialising Display Variables
         let term = termsize::get().unwrap();
-        let terminal_size = (term.cols as usize) - 20 - 2*self.ext_padding;
+        let terminal_size = (term.cols as usize) - 20;
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
         
         // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..terminal_size {
+        for _ in 0..(terminal_size-2*self.ext_padding) {
             print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
@@ -172,7 +172,7 @@ impl Boxy {
 
         // Printing bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..terminal_size {
+        for _ in 0..terminal_size-2*self.ext_padding {
             print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
         println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
@@ -180,6 +180,7 @@ impl Boxy {
 
     }
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
+
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
  
@@ -192,10 +193,15 @@ impl Boxy {
             ws_indices.push(i);
         }
 
+        let mut liner : Vec<String> = Vec::new();
+        text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), 0usize, &self.ext_padding, &self.int_padding, &mut liner);
+
+        iter_line_prnt(&mut liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
+
         // Actually printing shiet
 
         // Recursive Printing of text
-        recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &(terminal_size-self.int_padding), 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
+        // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
     }
 
@@ -205,7 +211,7 @@ impl Boxy {
     fn print_h_divider(&mut self, boxcol: &HexColor, term_size: &usize){
         let box_pieces = map_box_type(&self.type_enum);
         print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
-            for _ in 0..*term_size {
+            for _ in 0..*term_size-2*self.ext_padding {
                 print!("{}", box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
             }
             println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
@@ -219,7 +225,6 @@ impl Boxy {
     // }
 
 }
-
 
 // Function to find the next-most-fitting string slice for the give terminal size
 
@@ -237,7 +242,35 @@ fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usiz
 
 // Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
+fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, start_index: usize, ext_padding: &usize, int_padding: &usize, line_vec: &mut Vec<String>) {
+    let next_ws = nearest_whitespace(map, &(term_size - 2*(int_padding + ext_padding)), start_index);
+    line_vec.push(String::from(&data[start_index..next_ws]));
+    if next_ws < (data.len()-1) {
+        text_wrap_vec(data, map, term_size, next_ws+1, ext_padding, int_padding, line_vec);
+    }
+}
 
+
+fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
+
+    match align {
+        BoxAlign::Left => {
+            for i in liner.iter() {
+                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:<pad$}", " ", pad=*int_padding);
+                print!("{:<width$}", i, width=term_size-2*(ext_padding+int_padding));
+                print!("{:<pad$}", " ", pad=*int_padding);
+                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+            }
+
+        },
+        BoxAlign::Center => {},
+        BoxAlign::Right => {},
+        _ => {
+            println!("Unknown align: {}", align);
+        }
+    }
+}
 
 fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
     let box_pieces = map_box_type(boxtype);
