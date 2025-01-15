@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::process::exit;
 use colored::Colorize;
 use hex_color::HexColor;
 use crate::templates::*;
@@ -274,6 +275,8 @@ fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexCo
         },
         _ => {
             println!("Unknown align: {}", align);
+            println!("error: provided box align is invalid or not supported");
+            exit(-1);
         }
     }
 }
