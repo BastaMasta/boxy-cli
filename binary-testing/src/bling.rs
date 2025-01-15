@@ -15,6 +15,7 @@ pub enum BoxType{
     Double,
     Bold,
     Rounded,
+    BoldCorners
 }
 
 // Added Display Fucntion to resolve type errors in the macro
@@ -28,6 +29,7 @@ impl Display for BoxType{
             BoxType::Double => "double".to_string(),
             BoxType::Bold => "bold".to_string(),
             BoxType::Rounded => "rounded".to_string(),
+            BoxType::BoldCorners => "bold_corners".to_string(),
         };
         write!(f, "{}", str)
     }
@@ -188,11 +190,12 @@ impl Boxy {
         let mut liner : Vec<String> = Vec::new();
         text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), 0usize, &self.ext_padding, &self.int_padding, &mut liner);
 
-        iter_line_prnt(&mut liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
-
         // Actually printing shiet
 
-        // Recursive Printing of text
+        // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity
+        iter_line_prnt(&mut liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
+
+        // Recursive Printing of text -> now depreciated
         // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
     }
@@ -220,10 +223,10 @@ impl Boxy {
 
 // Function to find the next-most-fitting string slice for the give terminal size
 
-fn nearest_whitespace(map: &mut Vec<usize>, term_size: &usize, start_index: usize) -> usize {
+fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_index: usize) -> usize {
     let mut next_ws = 0;
     for i in map {
-        if *i > start_index && *i-start_index <= *term_size {
+        if *i > start_index && *i-start_index <= *printable_length {
             next_ws = *i;
         }
     }
@@ -281,6 +284,8 @@ fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexCo
     }
 }
 
+// following printing method is now depreciated and obsolete.
+// will remove this function in a future version when it is confiremd we won't migrate back to recursive printing
 fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
     let box_pieces = map_box_type(boxtype);
     print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
@@ -315,6 +320,7 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
         BoxType::Double => DOUBLE_TEMPLATE,
         BoxType::Bold => BOLD_TEMPLATE,
         BoxType::Rounded => ROUNDED_TEMPLATE,
+        BoxType::BoldCorners => BOLD_CORNERS_TEMPLATE,
     }
 }
 
@@ -342,6 +348,7 @@ pub fn resolve_align(dat : String) -> BoxAlign {
         "double" => BoxType::Double,
         "bold" => BoxType::Bold,
         "rounded" => BoxType::Rounded,
+        "bold_corners" => BoxType::BoldCorners,
         _ => BoxType::Single,
     }
 }
