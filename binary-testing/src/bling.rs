@@ -157,17 +157,8 @@ impl Boxy {
             if i > 0 {
                 self.print_h_divider(&col_truevals,  &terminal_size);
             }
-            match self.align {
-                BoxAlign::Left => {
-                    self.display_segment(i, &terminal_size);
-                }
-                BoxAlign::Center => {
-                    self.display_segment(i, &terminal_size);
-                }
-                BoxAlign::Right => {
-                    self.display_segment(i, &terminal_size);
-                }
-            }
+            self.display_segment(i, &terminal_size);
+
         }
 
         // Printing bottom segment
@@ -252,9 +243,7 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, start_index
 
 
 fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
-
     let printable_area = term_size-2*(ext_padding+int_padding);
-
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
