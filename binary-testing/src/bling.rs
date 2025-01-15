@@ -159,13 +159,13 @@ impl Boxy {
             }
             match self.align {
                 BoxAlign::Left => {
-                    self.display_segment(i, &(&terminal_size));
+                    self.display_segment(i, &terminal_size);
                 }
                 BoxAlign::Center => {
-                    self.display_segment(i, &(&terminal_size - self.int_padding));
+                    self.display_segment(i, &terminal_size);
                 }
                 BoxAlign::Right => {
-                    self.display_segment(i, &(&terminal_size - self.int_padding));
+                    self.display_segment(i, &terminal_size);
                 }
             }
         }
@@ -253,12 +253,14 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, start_index
 
 fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
 
+    let printable_area = term_size-2*(ext_padding+int_padding);
+
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
                 print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding);
-                print!("{:<width$}", i, width=term_size-2*(ext_padding+int_padding));
+                print!("{:<width$}", i, width=printable_area);
                 print!("{:<pad$}", " ", pad=*int_padding);
                 println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
             }
@@ -266,11 +268,21 @@ fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexCo
         BoxAlign::Center => {
             for i in liner.iter() {
                 print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
-                
+                print!("{:<pad$}", " ", pad=*int_padding+((printable_area-i.len())/2));
+                print!("{}", i);
+                print!("{:<pad$}", " ", pad=*int_padding+(printable_area-i.len())-((printable_area-i.len())/2));
                 println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
             }
         },
-        BoxAlign::Right => {},
+        BoxAlign::Right => {
+            for i in liner.iter() {
+                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:<pad$}", " ", pad=*int_padding);
+                print!("{:>width$}", i, width=printable_area);
+                print!("{:<pad$}", " ", pad=*int_padding);
+                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+            }
+        },
         _ => {
             println!("Unknown align: {}", align);
         }
