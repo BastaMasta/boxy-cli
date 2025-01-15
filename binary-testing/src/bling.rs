@@ -262,9 +262,14 @@ fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexCo
                 print!("{:<pad$}", " ", pad=*int_padding);
                 println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
             }
-
         },
-        BoxAlign::Center => {},
+        BoxAlign::Center => {
+            for i in liner.iter() {
+                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                
+                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+            }
+        },
         BoxAlign::Right => {},
         _ => {
             println!("Unknown align: {}", align);
