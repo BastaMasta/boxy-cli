@@ -2,6 +2,7 @@ use std::fmt::Display;
 use std::process::exit;
 use colored::Colorize;
 use hex_color::HexColor;
+use regex::Regex;
 use crate::templates::*;
 
 
@@ -61,7 +62,7 @@ impl Display for BoxAlign {
 #[derive(Debug)]
 pub struct Boxy {
     pub type_enum: BoxType,
-    pub data : Vec<String>,
+    pub data : Vec<Vec<String>>,
     pub sect_count: usize,
     pub box_col : String,
     pub colors : Vec<String>,
@@ -76,7 +77,7 @@ impl Default for Boxy {
     fn default() -> Self {
         Self {
             type_enum: BoxType::Single,
-            data : Vec::<String>::new(),
+            data : Vec::<Vec<String>>::new(),
             sect_count: 0usize,
             box_col: "#ffffff".to_string(),
             colors : Vec::<String>::new(),
@@ -111,7 +112,7 @@ impl Boxy {
     pub fn new(box_type: BoxType, box_color : &str) -> Self {
         Boxy{
             type_enum: box_type,
-            data : Vec::<String>::new(),
+            data : Vec::<Vec<String>>::new(),
             sect_count: 0usize,
             box_col : (&box_color).to_string(),
             colors : Vec::<String>::new(),
@@ -124,9 +125,13 @@ impl Boxy {
     // Adding a new test segment/section to the textbox
     // also initializes the textbox with its first use -> adds main body text
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
-        self.data.push(String::from(data_string));
+        self.data.push(vec![String::from(data_string)]);
         self.colors.push(String::from(color));
         self.sect_count+=1;
+    }
+
+    pub fn add_text_line(&mut self, data_string : &str, seg_index : usize) {
+        self.data[seg_index].push(String::from(data_string));
     }
 
     // Setting the Alignment maually
@@ -177,24 +182,35 @@ impl Boxy {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
- 
-        // Processing data ad setting up whitespaces map
-        let mut processed_data = String::from (self.data[seg_index].trim());
-        processed_data.push(' ');
-        let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
-        let mut ws_indices = Vec::new();
-        for (i,_) in whitespace_indices_temp {
-            ws_indices.push(i);
+
+        // looping for each text linein the segment
+        for i in 0..self.data[seg_index].len() {
+            // Processing data ad setting up whitespaces map
+            let mut processed_data = String::from(self.data[seg_index][i].trim());
+            processed_data.push(' ');
+            let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
+            let mut ws_indices = Vec::new();
+            for (j, _) in whitespace_indices_temp {
+                ws_indices.push(j);
+            }
+
+            let mut liner: Vec<String> = Vec::new();
+            text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), 0usize, &self.ext_padding, &self.int_padding, &mut liner);
+
+            // Actually printing shiet
+
+            // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity
+            iter_line_prnt(&mut liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
+
+            // printing an empty line between consecutive non-terminal text line
+            if i < self.data[seg_index].len() - 1 {
+                println!("{1:>width$}{}{1}", " ".repeat(terminal_size - 2 * self.ext_padding),
+                         map_box_type(&self.type_enum)
+                             .vertical.to_string()
+                             .truecolor(col_truevals.r, col_truevals.g, col_truevals.b),
+                         width=self.ext_padding+1);
+            }
         }
-
-        let mut liner : Vec<String> = Vec::new();
-        text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), 0usize, &self.ext_padding, &self.int_padding, &mut liner);
-
-        // Actually printing shiet
-
-        // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity
-        iter_line_prnt(&mut liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
-
         // Recursive Printing of text -> now depreciated
         // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
 
@@ -324,7 +340,7 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
     }
 }
 
-// Macro Resolution fucntions for boxy!
+// Macro type resolution fucntions for boxy!
 
 pub fn resolve_col(dat : String) -> String {
     return dat
