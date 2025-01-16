@@ -1,8 +1,6 @@
 use std::fmt::Display;
-use std::process::exit;
 use colored::Colorize;
 use hex_color::HexColor;
-use regex::Regex;
 use crate::templates::*;
 
 
@@ -130,8 +128,11 @@ impl Boxy {
         self.sect_count+=1;
     }
 
-    pub fn add_text_line(&mut self, data_string : &str, seg_index : usize) {
+    pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
         self.data[seg_index].push(String::from(data_string));
+    }
+    pub fn add_text_line(&mut self, data_string : &str) {
+        self.data[self.sect_count-1].push(String::from(data_string));
     }
 
     // Setting the Alignment maually
@@ -200,7 +201,7 @@ impl Boxy {
             // Actually printing shiet
 
             // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity
-            iter_line_prnt(&mut liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
+            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
@@ -262,7 +263,7 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, start_index
 }
 
 
-fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
+fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
     let printable_area = term_size-2*(ext_padding+int_padding);
     match align {
         BoxAlign::Left => {
@@ -291,17 +292,13 @@ fn iter_line_prnt(liner : &Vec<String>, box_pieces:BoxTemplates, box_col: &HexCo
                 print!("{:<pad$}", " ", pad=*int_padding);
                 println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
             }
-        },
-        _ => {
-            println!("Unknown align: {}", align);
-            println!("error: provided box align is invalid or not supported");
-            exit(-1);
         }
     }
 }
 
 // following printing method is now depreciated and obsolete.
 // will remove this function in a future version when it is confiremd we won't migrate back to recursive printing
+/*
 fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
     let box_pieces = map_box_type(boxtype);
     print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
@@ -324,6 +321,7 @@ fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType,
         recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding, align);
     }
 }
+*/
 
 // returns the box template for the given enum
 
@@ -343,20 +341,21 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
 // Macro type resolution fucntions for boxy!
 
 pub fn resolve_col(dat : String) -> String {
-    return dat
+    dat
 }
 pub fn resolve_pad(dat : String) -> usize {
-    return dat.parse::<usize>().unwrap_or(0usize);
+    dat.parse::<usize>().unwrap_or(0usize)
 }
 pub fn resolve_align(dat : String) -> BoxAlign {
-    return match &*dat {
+    match &*dat {
         "center" => BoxAlign::Center,
         "right" => BoxAlign::Right,
         "left" => BoxAlign::Left,
         _ => BoxAlign::Left,
     }
-}pub fn resolve_type(dat : String) -> BoxType{
-    return match &*dat {
+}
+pub fn resolve_type(dat : String) -> BoxType{
+    match &*dat {
         "classic" => BoxType::Classic,
         "single" => BoxType::Single,
         "double_horizontal" => BoxType::DoubleHorizontal,
