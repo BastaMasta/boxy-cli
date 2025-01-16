@@ -214,9 +214,7 @@ impl Boxy {
         }
         // Recursive Printing of text -> now depreciated
         // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
-
     }
-
 
     // Printing the horizontal divider.
 
@@ -296,35 +294,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
     }
 }
 
-// following printing method is now depreciated and obsolete.
-// will remove this function in a future version when it is confiremd we won't migrate back to recursive printing
-/*
-fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
-    let box_pieces = map_box_type(boxtype);
-    print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
-    let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
-
-    match align {
-        BoxAlign::Left => {
-            print!("{:<pad$}", " ", pad=*int_padding);
-            print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
-        }
-        BoxAlign::Center => {
-            print!("{:<pad$}", " ", pad=*int_padding + ((term_size-(next_ws-start_index))/2));
-            print!("{:<width$}", &data[start_index..next_ws], width=term_size-((term_size-(next_ws-start_index))/2)+*int_padding);
-        }
-        _ => {}
-    }
-    print!("{}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
-    println!(" ");
-    if next_ws < (data.len()-1) {
-        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding, align);
-    }
-}
-*/
-
 // returns the box template for the given enum
-
 fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
     match boxtype {
         BoxType::Classic => CLASSIC_TEMPLATE,
@@ -368,15 +338,12 @@ pub fn resolve_type(dat : String) -> BoxType{
     }
 }
 
-
-
 // Jargon function, purely for testing
 
 pub fn add(left: u64, right: u64) -> u64 {
     println!("{:?}", SINGLE_TEMPLATE);
     left + right
 }
-
 
 
 // #[cfg(test)]
@@ -389,3 +356,30 @@ pub fn add(left: u64, right: u64) -> u64 {
 //         assert_eq!(result, 4);
 //     }
 // }
+
+// following printing method is now depreciated and obsolete.
+// will remove this function in a future version when it is confiremd we won't migrate back to recursive printing
+/*
+fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
+    let box_pieces = map_box_type(boxtype);
+    print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
+    let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
+
+    match align {
+        BoxAlign::Left => {
+            print!("{:<pad$}", " ", pad=*int_padding);
+            print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
+        }
+        BoxAlign::Center => {
+            print!("{:<pad$}", " ", pad=*int_padding + ((term_size-(next_ws-start_index))/2));
+            print!("{:<width$}", &data[start_index..next_ws], width=term_size-((term_size-(next_ws-start_index))/2)+*int_padding);
+        }
+        _ => {}
+    }
+    print!("{}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+    println!(" ");
+    if next_ws < (data.len()-1) {
+        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding, align);
+    }
+}
+*/
