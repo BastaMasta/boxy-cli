@@ -123,13 +123,13 @@ impl Boxy {
     // Adding a new test segment/section to the textbox
     // also initializes the textbox with its first use -> adds main body text
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
-        self.data.push(vec![String::from(data_string)]);
+        self.data.push(vec![data_string.to_owned()]);
         self.colors.push(String::from(color));
         self.sect_count+=1;
     }
 
     pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
-        self.data[seg_index].push(String::from(data_string));
+        self.data[seg_index].push(data_string.to_owned());
     }
     pub fn add_text_line(&mut self, data_string : &str) {
         self.data[self.sect_count-1].push(String::from(data_string));
@@ -187,16 +187,19 @@ impl Boxy {
         // looping for each text linein the segment
         for i in 0..self.data[seg_index].len() {
             // Processing data ad setting up whitespaces map
-            let mut processed_data = String::from(self.data[seg_index][i].trim());
+            let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
+            processed_data.push_str(self.data[seg_index][i].trim());
             processed_data.push(' ');
-            let whitespace_indices_temp = processed_data.match_indices(" ").collect::<Vec<_>>();
             let mut ws_indices = Vec::new();
-            for (j, _) in whitespace_indices_temp {
-                ws_indices.push(j);
+            let mut k = 0usize;
+            while k < processed_data.len() {
+                if processed_data.as_bytes()[k] == b' ' {
+                    ws_indices.push(k);
+                }
+                k += 1;
             }
 
-            let mut liner: Vec<String> = Vec::new();
-            text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), 0usize, &self.ext_padding, &self.int_padding, &mut liner);
+            let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), &self.ext_padding, &self.int_padding);
 
             // Actually printing shiet
 
@@ -252,12 +255,26 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
 
 // Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
-fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, start_index: usize, ext_padding: &usize, int_padding: &usize, line_vec: &mut Vec<String>) {
+fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding: &usize, int_padding: &usize) -> Vec<String> {
+    let mut liner: Vec<String> = Vec::new();
+    let mut start_index = 0;
+
+    while start_index < data.len() {
+        let next_ws = nearest_whitespace(map, &(term_size - 2*(int_padding + ext_padding)), start_index);
+        liner.push(data[start_index..next_ws].to_string());
+        if next_ws >= data.len()-1 {break;}
+        start_index = next_ws+1;
+    }
+    liner
+
+    // Legacy recursive code. Depreciated to increase efficiency for larger usecases
+    /*
     let next_ws = nearest_whitespace(map, &(term_size - 2*(int_padding + ext_padding)), start_index);
     line_vec.push(String::from(&data[start_index..next_ws]));
     if next_ws < (data.len()-1) {
         text_wrap_vec(data, map, term_size, next_ws+1, ext_padding, int_padding, line_vec);
     }
+    */
 }
 
 
