@@ -128,9 +128,12 @@ impl Boxy {
         self.sect_count+=1;
     }
 
+    // Adding a text line to a segemnt with a specific index
     pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
         self.data[seg_index].push(data_string.to_owned());
     }
+    
+    // Adding a text line to the latest segment
     pub fn add_text_line(&mut self, data_string : &str) {
         self.data[self.sect_count-1].push(String::from(data_string));
     }
@@ -179,18 +182,23 @@ impl Boxy {
 
 
     }
+    
+    // Displaying each individual segment body
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
 
-        // looping for each text linein the segment
+        // looping for each text line in the segment
         for i in 0..self.data[seg_index].len() {
-            // Processing data ad setting up whitespaces map
+            // Processing data
             let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
             processed_data.push_str(self.data[seg_index][i].trim());
             processed_data.push(' ');
             let mut ws_indices = Vec::new();
+            
+            // Creating a map of all whitespaces to help in text wrapping for this text segment\
+            // looping over binary segments, as all other methods create a new iterator, taking up more memory
             let mut k = 0usize;
             while k < processed_data.len() {
                 if processed_data.as_bytes()[k] == b' ' {
@@ -203,7 +211,7 @@ impl Boxy {
 
             // Actually printing shiet
 
-            // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity
+            // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
             iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line
@@ -220,14 +228,13 @@ impl Boxy {
     }
 
     // Printing the horizontal divider.
-
     fn print_h_divider(&mut self, boxcol: &HexColor, term_size: &usize){
         let box_pieces = map_box_type(&self.type_enum);
         print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
             for _ in 0..*term_size-2*self.ext_padding {
                 print!("{}", box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
             }
-            println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+        println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
 
 
@@ -248,8 +255,9 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
             next_ws = *i;
         }
     }
+    // force line break if no appropriate whitespace found
     if next_ws == 0 {
-        next_ws = *printable_length;
+        next_ws = start_index + printable_length;
     }
     next_ws
 }
@@ -270,7 +278,7 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding
     }
     liner
 
-    // Legacy recursive code. Depreciated to increase efficiency for larger usecases
+    // Legacy recursive code. Depreciated to increase efficiency for larger use cases
     /*
     let next_ws = nearest_whitespace(map, &(term_size - 2*(int_padding + ext_padding)), start_index);
     line_vec.push(String::from(&data[start_index..next_ws]));
@@ -376,30 +384,3 @@ pub fn add(left: u64, right: u64) -> u64 {
 //         assert_eq!(result, 4);
 //     }
 // }
-
-// following printing method is now depreciated and obsolete.
-// will remove this function in a future version when it is confiremd we won't migrate back to recursive printing
-/*
-fn recur_whitespace_printing(data:&str, map: &mut Vec<usize>, boxtype: &BoxType, term_size: &usize, start_index: usize, boxcol: &HexColor, ext_padding: &usize, int_padding: &usize, align : &BoxAlign) {
-    let box_pieces = map_box_type(boxtype);
-    print!("{:>width$}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=*ext_padding+1);
-    let next_ws = nearest_whitespace(map, &(term_size - int_padding), start_index);
-
-    match align {
-        BoxAlign::Left => {
-            print!("{:<pad$}", " ", pad=*int_padding);
-            print!("{:<width$}", &data[start_index..next_ws], width=term_size,);
-        }
-        BoxAlign::Center => {
-            print!("{:<pad$}", " ", pad=*int_padding + ((term_size-(next_ws-start_index))/2));
-            print!("{:<width$}", &data[start_index..next_ws], width=term_size-((term_size-(next_ws-start_index))/2)+*int_padding);
-        }
-        _ => {}
-    }
-    print!("{}", box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
-    println!(" ");
-    if next_ws < (data.len()-1) {
-        recur_whitespace_printing(data, map, boxtype, term_size, next_ws+1, boxcol, ext_padding, int_padding, align);
-    }
-}
-*/
