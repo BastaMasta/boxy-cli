@@ -110,3 +110,17 @@ pub const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
     lower_t : '+',
     cross : '+',
 };
+
+pub const BOLD_CORNERS_TEMPLATE : BoxTemplates = BoxTemplates {
+    top_right : '┓',
+    top_left : '┏',
+    bottom_right : '┛',
+    bottom_left : '┗',
+    horizontal : '─',
+    vertical : '│',
+    left_t : '├',
+    right_t : '┤',
+    upper_t : '┬',
+    lower_t : '┴',
+    cross : '┼',
+};
