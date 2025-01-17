@@ -248,6 +248,9 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
             next_ws = *i;
         }
     }
+    if next_ws == 0 {
+        next_ws = *printable_length;
+    }
     next_ws
 }
 
