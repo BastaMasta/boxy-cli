@@ -158,8 +158,6 @@ impl Boxy {
                          width=self.ext_padding+1);
             }
         }
-        // Recursive Printing of text -> now depreciated
-        // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
     }
 
     // Printing the horizontal divider.
@@ -202,9 +200,8 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
     next_ws
 }
 
-// Recursively printing the next text segment into the textbox
 
-// Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
+// Iteratively wrapping the text and pushing it onto a vector of strings, for easier printing, and textbox size optimization.
 
 fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding: &usize, int_padding: &usize) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
@@ -217,17 +214,9 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding
         start_index = next_ws+1;
     }
     liner
-
-    // Legacy recursive code. Depreciated to increase efficiency for larger use cases
-    /*
-    let next_ws = nearest_whitespace(map, &(term_size - 2*(int_padding + ext_padding)), start_index);
-    line_vec.push(String::from(&data[start_index..next_ws]));
-    if next_ws < (data.len()-1) {
-        text_wrap_vec(data, map, term_size, next_ws+1, ext_padding, int_padding, line_vec);
-    }
-    */
 }
 
+// Iteratively printing the next text segment into the textbox
 
 fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
     let printable_area = term_size-2*(ext_padding+int_padding);
