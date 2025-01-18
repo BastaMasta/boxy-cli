@@ -1,61 +1,7 @@
-use std::fmt::Display;
 use colored::Colorize;
 use hex_color::HexColor;
 use crate::templates::*;
-
-
-// TextBox Type Enums
-#[derive(Debug)]
-pub enum BoxType{
-    Classic,
-    Single,
-    DoubleHorizontal,
-    DoubleVertical,
-    Double,
-    Bold,
-    Rounded,
-    BoldCorners
-}
-
-// Added Display Fucntion to resolve type errors in the macro
-impl Display for BoxType{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str = match &self {
-            BoxType::Classic => "classic".to_string(),
-            BoxType::Single => "single".to_string(),
-            BoxType::DoubleHorizontal => "double_horizontal".to_string(),
-            BoxType::DoubleVertical => "double_vertical".to_string(),
-            BoxType::Double => "double".to_string(),
-            BoxType::Bold => "bold".to_string(),
-            BoxType::Rounded => "rounded".to_string(),
-            BoxType::BoldCorners => "bold_corners".to_string(),
-        };
-        write!(f, "{}", str)
-    }
-}
-
-// Alignment Enums
-
-#[derive(Debug)]
-pub enum BoxAlign {
-    Left,
-    Center,
-    Right,
-}
-
-// Added Display Fucntion to resolve type errors in the macro
-impl Display for BoxAlign {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str = match self {
-            BoxAlign::Left => "left".to_string(),
-            BoxAlign::Center => "center".to_string(),
-            BoxAlign::Right => "right".to_string(),
-        };
-        write!(f, "{}", str)
-    }
-}
-
-
+use crate::constructs::*;
 
 #[derive(Debug)]
 pub struct Boxy {
@@ -86,25 +32,6 @@ impl Default for Boxy {
     }
 }
 
-
-// boxy macro
-#[macro_export]
-macro_rules! boxy {
-    ($($key:ident: $value:expr),* $(,)?) => {{
-        let mut boxy = Boxy::default();
-        $(
-            match stringify!($key) {
-                "type" => boxy.type_enum = resolve_type($value.to_string()),
-                "color" => boxy.box_col = resolve_col($value.to_string()),
-                "internal_pad" => boxy.int_padding = resolve_pad($value.to_string()),
-                "external_pad" => boxy.ext_padding = resolve_pad($value.to_string()),
-                "alignment" => boxy.align = resolve_align($value.to_string()),
-                _ => panic!("Unknown field: {}", stringify!($key)),
-            }
-        )*
-        boxy
-    }};
-}
 
 impl Boxy {
     pub fn new(box_type: BoxType, box_color : &str) -> Self {

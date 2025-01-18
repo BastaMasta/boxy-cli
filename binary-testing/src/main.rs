@@ -1,5 +1,6 @@
 use binary_testing::bling::*;
 use binary_testing::boxy;
+use binary_testing::constructs::*;
 
 fn main() {
     let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");
