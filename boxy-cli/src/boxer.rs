@@ -186,8 +186,13 @@ impl Boxy {
 fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_index: usize) -> usize {
     let mut next_ws = 0;
     for i in map {
-        if *i > start_index && *i-start_index <= *printable_length {
-            next_ws = *i;
+        if *i > start_index {
+            if *i-start_index <= *printable_length {
+                next_ws = *i;
+            }
+            else {
+                break;
+            }
         }
     }
     // force line break if no appropriate whitespace found
