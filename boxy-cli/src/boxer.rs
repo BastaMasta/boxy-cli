@@ -50,19 +50,25 @@ impl Boxy {
     // Adding a new test segment/section to the textbox
     // also initializes the textbox with its first use -> adds main body text
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
-        self.data.push(vec![data_string.to_owned()]);
+        let mut text = data_string.trim().to_string();
+        text.push(' ');
+        self.data.push(vec![text]);
         self.colors.push(String::from(color));
         self.sect_count+=1;
     }
 
     // Adding a text line to a segemnt with a specific index
     pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
-        self.data[seg_index].push(data_string.to_owned());
+        let mut text = data_string.trim().to_string();
+        text.push(' ');
+        self.data[seg_index].push(text);
     }
     
     // Adding a text line to the latest segment
     pub fn add_text_line(&mut self, data_string : &str) {
-        self.data[self.sect_count-1].push(String::from(data_string));
+        let mut text = data_string.trim().to_string();
+        text.push(' ');
+        self.data[self.sect_count-1].push(text);
     }
 
     // Setting the Alignment maually
@@ -83,11 +89,12 @@ impl Boxy {
         let terminal_size = (term.cols as usize) - 20;
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
+        let horizontal_line = box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b);
         
         // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..(terminal_size-2*self.ext_padding) {
-            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", horizontal_line);
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
@@ -103,7 +110,7 @@ impl Boxy {
         // Printing bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size-2*self.ext_padding {
-            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", horizontal_line);
         }
         println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
@@ -116,25 +123,26 @@ impl Boxy {
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
 
+
         // looping for each text line in the segment
         for i in 0..self.data[seg_index].len() {
-            // Processing data
-            let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
-            processed_data.push_str(self.data[seg_index][i].trim());
-            processed_data.push(' ');
-            let mut ws_indices = Vec::new();
             
-            // Creating a map of all whitespaces to help in text wrapping for this text segment\
+            // Creating a map of all whitespaces to help in text wrapping for this text segment
+
+            // Here, I'm calculating the total number of whitespaces so that I don't allocate a vector of arbitrary size, only the size needed.
+            // does increase the runtime a bit but worth it in terms of memory reduction I hope
+            let mut ws_indices = Vec::with_capacity(self.data[seg_index][i].chars().filter(|&x| x == ' ').count());
+
             // looping over binary segments, as all other methods create a new iterator, taking up more memory
             let mut k = 0usize;
-            while k < processed_data.len() {
-                if processed_data.as_bytes()[k] == b' ' {
+            while k < self.data[seg_index][i].len() {
+                if self.data[seg_index][i].as_bytes()[k] == b' ' {
                     ws_indices.push(k);
                 }
                 k += 1;
             }
 
-            let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), &self.ext_padding, &self.int_padding);
+            let liner: Vec<String> = text_wrap_vec(&self.data[seg_index][i], &mut ws_indices, &terminal_size.clone(), &self.ext_padding, &self.int_padding);
 
             // Actually printing shiet
 
@@ -218,32 +226,33 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding
 
 fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
     let printable_area = term_size-2*(ext_padding+int_padding);
+    let vertical_line = box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b);
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:>width$}", vertical_line, width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding);
                 print!("{:<width$}", i, width=printable_area);
                 print!("{:<pad$}", " ", pad=*int_padding);
-                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+                println!("{}", vertical_line);
             }
         },
         BoxAlign::Center => {
             for i in liner.iter() {
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:>width$}", vertical_line, width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding+((printable_area-i.len())/2));
                 print!("{}", i);
                 print!("{:<pad$}", " ", pad=*int_padding+(printable_area-i.len())-((printable_area-i.len())/2));
-                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+                println!("{}", vertical_line);
             }
         },
         BoxAlign::Right => {
             for i in liner.iter() {
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:>width$}", vertical_line, width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding);
                 print!("{:>width$}", i, width=printable_area);
                 print!("{:<pad$}", " ", pad=*int_padding);
-                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+                println!("{}", vertical_line);
             }
         }
     }
