@@ -1,4 +1,4 @@
-use binary_testing::prelude::*;
+use boxy_cli::prelude::*;
 
 
 fn main() {
