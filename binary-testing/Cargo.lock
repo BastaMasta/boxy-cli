@@ -6,6 +6,13 @@ version = 3
 name = "binary-testing"
 version = "0.1.0"
 dependencies = [
+ "boxy-cli",
+]
+
+[[package]]
+name = "boxy-cli"
+version = "0.1.0"
+dependencies = [
  "colored",
  "hex_color",
  "termsize",
