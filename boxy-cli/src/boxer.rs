@@ -13,6 +13,7 @@ pub struct Boxy {
     pub int_padding: usize,
     pub ext_padding: usize,
     pub align : BoxAlign,
+    pub tot_seg: usize,
 
 }
 
@@ -28,6 +29,7 @@ impl Default for Boxy {
             int_padding: 5usize,
             ext_padding: 5usize,
             align : BoxAlign::Left,
+            tot_seg: 0usize,
         }
     }
 }
@@ -44,6 +46,7 @@ impl Boxy {
             int_padding: 5usize,
             ext_padding: 5usize,
             align : BoxAlign::Left,
+            tot_seg: 0usize,
         }
     }
 
@@ -291,6 +294,9 @@ pub fn resolve_type(dat : String) -> BoxType{
         "bold_corners" => BoxType::BoldCorners,
         _ => BoxType::Single,
     }
+}
+pub fn resolve_segments(dat : String) -> usize {
+    dat.parse().expect("failed to parse total segment number")
 }
 
 // Jargon function, purely for testing
