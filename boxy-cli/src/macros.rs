@@ -10,7 +10,10 @@ macro_rules! boxy {
                 "internal_pad" => boxy.int_padding = resolve_pad($value.to_string()),
                 "external_pad" => boxy.ext_padding = resolve_pad($value.to_string()),
                 "alignment" => boxy.align = resolve_align($value.to_string()),
-                "segcount" => boxy.tot_seg = resolve_segments($value.to_string()),
+                "segcount" => {
+                    boxy.tot_seg = resolve_segments($value.to_string()); 
+                    boxy.data = Vec::<Vec<String>>::with_capacity(boxy.tot_seg)
+                },
                 _ => panic!("Unknown field: {}", stringify!($key)),
             }
         )*

@@ -36,7 +36,7 @@ impl Default for Boxy {
 
 
 impl Boxy {
-    pub fn new(box_type: BoxType, box_color : &str) -> Self {
+    pub fn new(box_type: BoxType, box_color: &str) -> Self {
         Boxy{
             type_enum: box_type,
             data : Vec::<Vec<String>>::new(),
@@ -47,6 +47,20 @@ impl Boxy {
             ext_padding: 5usize,
             align : BoxAlign::Left,
             tot_seg: 0usize,
+        }
+    }
+
+    pub fn new_seg(box_type: BoxType, box_color: &str, total_segments: usize) -> Self {
+        Boxy{
+            type_enum: box_type,
+            data : Vec::<Vec<String>>::new(),
+            sect_count: 0usize,
+            box_col : (&box_color).to_string(),
+            colors : Vec::<String>::new(),
+            int_padding: 5usize,
+            ext_padding: 5usize,
+            align : BoxAlign::Left,
+            tot_seg : total_segments,
         }
     }
 
@@ -102,7 +116,7 @@ impl Boxy {
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
         // Iteratively print all the textbox sections, with appropriate dividers in between
-        for i in 0..self.sect_count {
+        for i in 0..(if self.tot_seg==0 {self.sect_count} else {self.tot_seg}) {
             if i > 0 {
                 self.print_h_divider(&col_truevals,  &terminal_size);
             }
@@ -126,41 +140,44 @@ impl Boxy {
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
 
-
-        // looping for each text line in the segment
-        for i in 0..self.data[seg_index].len() {
-            
-            // Creating a map of all whitespaces to help in text wrapping for this text segment
-
-            // Here, I'm calculating the total number of whitespaces so that I don't allocate a vector of arbitrary size, only the size needed.
-            // does increase the runtime a bit but worth it in terms of memory reduction I hope
-            let mut ws_indices = Vec::with_capacity(self.data[seg_index][i].chars().filter(|&x| x == ' ').count());
-
-            // looping over binary segments, as all other methods create a new iterator, taking up more memory
-            let mut k = 0usize;
-            while k < self.data[seg_index][i].len() {
-                if self.data[seg_index][i].as_bytes()[k] == b' ' {
-                    ws_indices.push(k);
-                }
-                k += 1;
-            }
-
-            let liner: Vec<String> = text_wrap_vec(&self.data[seg_index][i], &mut ws_indices, &terminal_size.clone(), &self.ext_padding, &self.int_padding);
-
-            // Actually printing shiet
-
-            // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
-            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
-
-            // printing an empty line between consecutive non-terminal text line
-            if i < self.data[seg_index].len() - 1 {
-                println!("{1:>width$}{}{1}", " ".repeat(terminal_size - 2 * self.ext_padding),
-                         map_box_type(&self.type_enum)
-                             .vertical.to_string()
-                             .truecolor(col_truevals.r, col_truevals.g, col_truevals.b),
-                         width=self.ext_padding+1);
-            }
+        if seg_index >= self.data.len() {
+            blank_line_prnt(map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding);
         }
+        else {// looping for each text line in the segment
+            for i in 0..self.data[seg_index].len() {
+                
+                // Creating a map of all whitespaces to help in text wrapping for this text segment
+
+                // Here, I'm calculating the total number of whitespaces so that I don't allocate a vector of arbitrary size, only the size needed.
+                // does increase the runtime a bit but worth it in terms of memory reduction I hope
+                let mut ws_indices = Vec::with_capacity(self.data[seg_index][i].chars().filter(|&x| x == ' ').count());
+
+                // looping over binary segments, as all other methods create a new iterator, taking up more memory
+                let mut k = 0usize;
+                while k < self.data[seg_index][i].len() {
+                    if self.data[seg_index][i].as_bytes()[k] == b' ' {
+                        ws_indices.push(k);
+                    }
+                    k += 1;
+                }
+
+                let liner: Vec<String> = text_wrap_vec(&self.data[seg_index][i], &mut ws_indices, &terminal_size.clone(), &self.ext_padding, &self.int_padding);
+
+                // Actually printing shiet
+
+                // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
+                iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
+
+                // printing an empty line between consecutive non-terminal text line
+                if i < self.data[seg_index].len() - 1 {
+                    println!("{1:>width$}{}{1}", " ".repeat(terminal_size - 2 * self.ext_padding),
+                            map_box_type(&self.type_enum)
+                                .vertical.to_string()
+                                .truecolor(col_truevals.r, col_truevals.g, col_truevals.b),
+                            width=self.ext_padding+1);
+                }
+            }
+        }  
     }
 
     // Printing the horizontal divider.
@@ -203,6 +220,13 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
     next_ws
 }
 
+fn blank_line_prnt(box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize){
+    let ws_area = term_size-2*(ext_padding);
+    let vertical_line = box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b);
+    print!("{:>width$}", vertical_line, width=*ext_padding+1);
+    print!("{:<width$}", " ", width=ws_area);
+    println!("{}", vertical_line);
+}
 
 // Iteratively wrapping the text and pushing it onto a vector of strings, for easier printing, and textbox size optimization.
 
