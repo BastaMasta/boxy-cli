@@ -4,7 +4,9 @@ A Crate to create boxes in command-line interfaces with Rust
 ## Example:
 
 ### Textbox 1
-`use boxy_cli::prelude::*;
+
+`
+use boxy_cli::prelude::*;
 
 
 fn main() {
@@ -14,6 +16,6 @@ fn main() {
     box1.add_text_sgmt("Hello Theree", "#ffff");
     box1.display();
     }
-    `
+`
 ### Output:
 ![First textbox, lime green, double borders](readme-assets/textbox1.jpg)
