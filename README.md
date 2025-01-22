@@ -5,7 +5,7 @@ A Crate to create boxes in command-line interfaces with Rust
 
 ### Textbox 1
 
-`
+```rust
 use boxy_cli::prelude::*;
 
 
@@ -16,6 +16,6 @@ fn main() {
     box1.add_text_sgmt("Hello Theree", "#ffff");
     box1.display();
     }
-`
+```
 ### Output:
 ![First textbox, lime green, double borders](readme-assets/textbox1.jpg)
