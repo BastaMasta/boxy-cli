@@ -33,7 +33,7 @@ fn main() {
 }
 ```
 
-### Output:
+### Output (Wider terminal):
 ![Second textbox, Cyan Blue, Bold borders](readme-assets/textbox2.jpg)
 
 
