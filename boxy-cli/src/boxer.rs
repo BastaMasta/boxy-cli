@@ -86,11 +86,12 @@ impl Boxy {
         let terminal_size = (term.cols as usize) - 20;
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
+       let horiz =box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b);
         
         // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..(terminal_size-2*self.ext_padding) {
-            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", horiz);
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
@@ -106,7 +107,7 @@ impl Boxy {
         // Printing bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
         for _ in 0..terminal_size-2*self.ext_padding {
-            print!("{}", box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            print!("{}", horiz);
         }
         println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
@@ -160,9 +161,10 @@ impl Boxy {
     // Printing the horizontal divider.
     fn print_h_divider(&mut self, boxcol: &HexColor, term_size: &usize){
         let box_pieces = map_box_type(&self.type_enum);
+        let horiz =  box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
         print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
             for _ in 0..*term_size-2*self.ext_padding {
-                print!("{}", box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+                print!("{}", horiz);
             }
         println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
@@ -221,32 +223,33 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding
 
 fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
     let printable_area = term_size-2*(ext_padding+int_padding);
+    let vertical = box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b);
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:>width$}", vertical, width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding);
                 print!("{:<width$}", i, width=printable_area);
                 print!("{:<pad$}", " ", pad=*int_padding);
-                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+                println!("{}", vertical);
             }
         },
         BoxAlign::Center => {
             for i in liner.iter() {
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:>width$}", vertical, width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding+((printable_area-i.len())/2));
                 print!("{}", i);
                 print!("{:<pad$}", " ", pad=*int_padding+(printable_area-i.len())-((printable_area-i.len())/2));
-                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+                println!("{}", vertical);
             }
         },
         BoxAlign::Right => {
             for i in liner.iter() {
-                print!("{:>width$}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b), width=*ext_padding+1);
+                print!("{:>width$}", vertical, width=*ext_padding+1);
                 print!("{:<pad$}", " ", pad=*int_padding);
                 print!("{:>width$}", i, width=printable_area);
                 print!("{:<pad$}", " ", pad=*int_padding);
-                println!("{}", box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b));
+                println!("{}", vertical);
             }
         }
     }
