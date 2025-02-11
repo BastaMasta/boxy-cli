@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-colored = "2.1.0"
+colored = "3.0.0"
 hex_color = "3.0.0"
 termsize = "0.1.9"
