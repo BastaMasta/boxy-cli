@@ -113,13 +113,13 @@ impl Boxy {
 
     }
     
-    // Displaying each individual segment body
+    // Displaying each segment body
     fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
 
-        // looping for each text line in the segment
+        // Loop for all text lines
         for i in 0..self.data[seg_index].len() {
             // Processing data
             let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
@@ -127,8 +127,7 @@ impl Boxy {
             processed_data.push(' ');
             let mut ws_indices = Vec::new();
             
-            // Creating a map of all whitespaces to help in text wrapping for this text segment\
-            // looping over binary segments, as all other methods create a new iterator, taking up more memory
+            // Whitespace Map
             let mut k = 0usize;
             while k < processed_data.len() {
                 if processed_data.as_bytes()[k] == b' ' {
@@ -193,8 +192,6 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
 }
 
 // Recursively printing the next text segment into the textbox
-
-// Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
 fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding: &usize, int_padding: &usize) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
