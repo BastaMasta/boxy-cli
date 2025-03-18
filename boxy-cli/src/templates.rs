@@ -1,19 +1,18 @@
-#[derive(Debug)]
-pub struct BoxTemplates {
-    pub top_left : char,
-    pub top_right : char,
-    pub bottom_left : char,
-    pub bottom_right : char,
-    pub vertical : char,
-    pub horizontal : char,
-    pub left_t : char,
-    pub right_t : char,
-    pub upper_t : char,
-    pub lower_t : char,
-    pub cross : char,
+pub(crate)  struct BoxTemplates {
+    pub(crate) top_left : char,
+    pub(crate) top_right : char,
+    pub(crate) bottom_left : char,
+    pub(crate) bottom_right : char,
+    pub(crate) vertical : char,
+    pub(crate) horizontal : char,
+    pub(crate) left_t : char,
+    pub(crate) right_t : char,
+    pub(crate) upper_t : char,
+    pub(crate) lower_t : char,
+    pub(crate) cross : char,
 }
 
-pub const SINGLE_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const SINGLE_TEMPLATE : BoxTemplates = BoxTemplates {
     top_left : '┌',
     top_right : '┐',
     bottom_left : '└',
@@ -27,7 +26,7 @@ pub const SINGLE_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '┼',
 };
 
-pub const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
     top_left : '╒',
     top_right : '╕',
     bottom_left : '╘',
@@ -41,7 +40,7 @@ pub const DOUB_H_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '╪',
 };
 
-pub const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '╖',
     top_left : '╓',
     bottom_right : '╜',
@@ -55,7 +54,7 @@ pub const DOUB_V_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '╫',
 };
 
-pub const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '╗',
     top_left : '╔',
     bottom_right : '╝',
@@ -69,7 +68,7 @@ pub const DOUBLE_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '╬',
 };
 
-pub const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '╮',
     top_left : '╭',
     bottom_right : '╯',
@@ -83,7 +82,7 @@ pub const ROUNDED_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '┼',
 };
 
-pub const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '┓',
     top_left : '┏',
     bottom_right : '┛',
@@ -97,7 +96,7 @@ pub const BOLD_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '╋',
 };
 
-pub const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '+',
     top_left : '+',
     bottom_right : '+',
@@ -111,7 +110,7 @@ pub const CLASSIC_TEMPLATE : BoxTemplates = BoxTemplates {
     cross : '+',
 };
 
-pub const BOLD_CORNERS_TEMPLATE : BoxTemplates = BoxTemplates {
+pub(crate) const BOLD_CORNERS_TEMPLATE : BoxTemplates = BoxTemplates {
     top_right : '┓',
     top_left : '┏',
     bottom_right : '┛',

@@ -14,7 +14,7 @@ pub struct Boxy {
     pub ext_padding: usize,
     pub align : BoxAlign,
     pub tot_seg: usize,
-
+    pub fixed_size: usize,
 }
 
 // Default struct values for the textbox
@@ -30,6 +30,7 @@ impl Default for Boxy {
             ext_padding: 5usize,
             align : BoxAlign::Left,
             tot_seg: 0usize,
+            fixed_size: 0usize,
         }
     }
 }
@@ -47,6 +48,7 @@ impl Boxy {
             ext_padding: 5usize,
             align : BoxAlign::Left,
             tot_seg: 0usize,
+            fixed_size: 0usize,
         }
     }
 
@@ -82,15 +84,18 @@ impl Boxy {
    // Main Display Function to display the textbox
     pub fn display(&mut self) {
         // Initialising Display Variables
-        let term = termsize::get().unwrap();
-        let terminal_size = (term.cols as usize) - 20;
+        let disp_size = if (self.fixed_size!=0) {
+            self.fixed_size
+        } else {
+            termsize::get().unwrap().cols as usize - 20
+        };
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
-       let horiz =box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b);
+        let horiz =box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b);
         
         // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..(terminal_size-2*self.ext_padding) {
+        for _ in 0..(disp_size -2*self.ext_padding) {
             print!("{}", horiz);
         }
         println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
@@ -98,24 +103,23 @@ impl Boxy {
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
             if i > 0 {
-                self.print_h_divider(&col_truevals,  &terminal_size);
+                self.print_h_divider(&col_truevals,  &disp_size);
             }
-            self.display_segment(i, &terminal_size);
+            self.display_segment(i, &disp_size);
 
         }
 
         // Printing bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding+1);
-        for _ in 0..terminal_size-2*self.ext_padding {
+        for _ in 0..disp_size -2*self.ext_padding {
             print!("{}", horiz);
         }
         println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
 
-
     }
     
     // Displaying each individual segment body
-    fn display_segment(&mut self, seg_index: usize, terminal_size: &usize) {
+    fn display_segment(&mut self, seg_index: usize, disp_size: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
@@ -138,16 +142,16 @@ impl Boxy {
                 k += 1;
             }
 
-            let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &terminal_size.clone(), &self.ext_padding, &self.int_padding);
+            let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &disp_size.clone(), &self.ext_padding, &self.int_padding);
 
             // Actually printing shiet
 
             // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
-            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, terminal_size, &self.ext_padding, &self.int_padding, &self.align);
+            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, disp_size, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
-                println!("{1:>width$}{}{1}", " ".repeat(terminal_size - 2 * self.ext_padding),
+                println!("{1:>width$}{}{1}", " ".repeat(disp_size - 2 * self.ext_padding),
                          map_box_type(&self.type_enum)
                              .vertical.to_string()
                              .truecolor(col_truevals.r, col_truevals.g, col_truevals.b),
@@ -159,23 +163,34 @@ impl Boxy {
     }
 
     // Printing the horizontal divider.
-    fn print_h_divider(&mut self, boxcol: &HexColor, term_size: &usize){
+    fn print_h_divider(&mut self, boxcol: &HexColor, disp_size: &usize){
         let box_pieces = map_box_type(&self.type_enum);
         let horiz =  box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
         print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
-            for _ in 0..*term_size-2*self.ext_padding {
-                print!("{}", horiz);
-            }
+        for _ in 0..*disp_size-2*self.ext_padding {
+            print!("{}", horiz);
+        }
         println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
 
+    // TODO: Modify program to support vertical segment dividers
 
-    // TODO: Add vertical divider printing functionality
+    fn print_vh_divider(&mut self, left_width_ratio: usize, boxcol: &HexColor, disp_size: &usize) {
+        let left_width = disp_size /left_width_ratio;
+        let box_pieces = map_box_type(&self.type_enum);
+        let horiz =  box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
+        let _vert = box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
 
-    // fn print_v_divider() {
-    //
-    // }
-
+        print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
+        for _ in 0..(left_width-1) {
+            print!("{}", horiz);
+        }
+        print!("{:>width$}", box_pieces.upper_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding+1);
+        for _ in 0..(*disp_size -2*self.ext_padding - left_width) {
+            print!("{}", horiz);
+        }
+        println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+    }
 }
 
 // Function to find the next-most-fitting string slice for the give terminal size
@@ -198,12 +213,12 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
 
 // Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
-fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding: &usize, int_padding: &usize) -> Vec<String> {
+fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_size: &usize, ext_padding: &usize, int_padding: &usize) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
     let mut start_index = 0;
 
     while start_index < data.len() {
-        let next_ws = nearest_whitespace(map, &(term_size - 2*(int_padding + ext_padding)), start_index);
+        let next_ws = nearest_whitespace(map, &(disp_size - 2*(int_padding + ext_padding)), start_index);
         liner.push(data[start_index..next_ws].to_string());
         if next_ws >= data.len()-1 {break;}
         start_index = next_ws+1;
@@ -221,8 +236,8 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, term_size: &usize, ext_padding
 }
 
 
-fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, term_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
-    let printable_area = term_size-2*(ext_padding+int_padding);
+fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, disp_size: &usize, ext_padding: &usize, int_padding: &usize, align: &BoxAlign) {
+    let printable_area = disp_size -2*(ext_padding+int_padding);
     let vertical = box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b);
     match align {
         BoxAlign::Left => {
@@ -301,14 +316,6 @@ pub fn resolve_type(dat : String) -> BoxType{
 pub fn resolve_segments(dat : String) -> usize {
     dat.parse().expect("failed to parse total segment number")
 }
-
-// Jargon function, purely for testing
-
-pub fn add(left: u64, right: u64) -> u64 {
-    println!("{:?}", SINGLE_TEMPLATE);
-    left + right
-}
-
 
 // #[cfg(test)]
 // mod tests {
