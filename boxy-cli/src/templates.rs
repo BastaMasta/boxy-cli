@@ -1,3 +1,5 @@
+
+#[allow(dead_code)]
 pub(crate)  struct BoxTemplates {
     pub(crate) top_left : char,
     pub(crate) top_right : char,
