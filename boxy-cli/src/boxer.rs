@@ -17,6 +17,7 @@ pub struct Boxy {
     pub fixed_height: usize,
     pub seg_v_div_count: Vec<usize>,
     pub seg_v_div_ratio: Vec<Vec<usize>>,
+    pub tot_seg: usize,
 }
 
 // Default struct values for the textbox
@@ -35,6 +36,7 @@ impl Default for Boxy {
             fixed_height: 0usize,
             seg_v_div_count: Vec::<usize>::new(),
             seg_v_div_ratio: Vec::<Vec<usize>>::new(),
+            tot_seg: 0usize,
         }
     }
 }
@@ -55,6 +57,7 @@ impl Boxy {
             fixed_height: 0usize,
             seg_v_div_count: Vec::<usize>::new(),
             seg_v_div_ratio: Vec::<Vec<usize>>::new(),
+            tot_seg: 0usize,
         }
     }
 
@@ -102,7 +105,7 @@ impl Boxy {
     pub fn set_height(&mut self, height : usize) {
         self.fixed_height = height;
     }
-    
+
     //TODO: Add functionality to create vertical dividers in declarations
     pub fn add_vdiv(&mut self, _data_string : &str, _segment_id: usize, _colour: &str) {
         
@@ -245,7 +248,7 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, ext_paddin
     let mut start_index = 0;
 
     while start_index < data.len() {
-        let next_ws = nearest_whitespace(map, &(disp_width - (int_padding.lr() + ext_padding.lr())), start_index);
+        let next_ws = nearest_whitespace(map, &(disp_width - (int_padding.lr() + ext_padding.lr()) - 2), start_index);
         liner.push(data[start_index..next_ws].to_string());
         if next_ws >= data.len()-1 {break;}
         start_index = next_ws+1;
@@ -271,7 +274,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:<width$}", i, width=printable_area);
+                print!("{:<width$}", i, width=printable_area-2); // subtract 2 for the bars
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
@@ -289,7 +292,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:>width$}", i, width=printable_area);
+                print!("{:>width$}", i, width=printable_area-2); // subtract 2 for the bars
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
