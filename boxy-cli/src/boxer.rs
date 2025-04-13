@@ -211,20 +211,20 @@ impl Boxy {
     fn display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize, ratios: &[usize]) {
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
-
+    
         // Calculate total ratio and widths for each mini-segment
         let total_ratio: usize = ratios.iter().sum();
-        let printable_width = terminal_size - 2 * self.ext_padding;
+        let printable_width = terminal_size - self.ext_padding.lr();
         let segment_widths: Vec<usize> = ratios.iter().map(|r| r * printable_width / total_ratio).collect();
-
+    
         // Prepare text for each mini-segment
         let mut mini_segments: Vec<Vec<String>> = vec![Vec::new(); ratios.len()];
         let lines = &self.data[seg_index];
-        for (i, line) in lines.iter().enumerate() {
+        for line in lines.iter() {
             let mut processed_data = String::with_capacity(line.len() + 1);
             processed_data.push_str(line.trim());
             processed_data.push(' ');
-
+    
             let mut ws_indices = Vec::new();
             let mut k = 0usize;
             while k < processed_data.len() {
@@ -233,43 +233,41 @@ impl Boxy {
                 }
                 k += 1;
             }
-
+    
             // Distribute text into mini-segments
             for (j, width) in segment_widths.iter().enumerate() {
-                let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &0, &0);
+                let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &self.ext_padding, &self.int_padding);
                 mini_segments[j].extend(liner);
             }
         }
-
+    
         // Print each line of the mini-segments with vertical dividers
         let max_lines = mini_segments.iter().map(|seg| seg.len()).max().unwrap_or(0);
         for line_index in 0..max_lines {
-            print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width = self.ext_padding + 1);
-
+            // Print the left padding and vertical bar
+            print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width = self.ext_padding.left + 1);
+    
             for (j, segment) in mini_segments.iter().enumerate() {
                 if line_index < segment.len() {
-                    print!("{:<width$}", segment[line_index], width = segment_widths[j]);
+                    // Print the text in the mini-segment
+                    print!("{:<pad$}", " ", pad = self.int_padding.left);
+                    print!("{:<width$}", segment[line_index], width = segment_widths[j] - self.int_padding.lr());
+                    print!("{:<pad$}", " ", pad = self.int_padding.right);
                 } else {
+                    // Print empty space if no text exists for this line
                     print!("{:<width$}", " ", width = segment_widths[j]);
                 }
-
+    
                 // Print vertical divider between mini-segments
                 if j < mini_segments.len() - 1 {
                     print!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
                 }
             }
-
+    
+            // Print the right padding and vertical bar
             println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
     }
-
-
-    // TODO: Add vertical divider printing functionality
-
-    // fn print_v_divider() {
-    //
-    // }
-
 }
 
 // Function to find the next-most-fitting string slice for the give terminal size
