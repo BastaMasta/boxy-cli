@@ -204,6 +204,8 @@ impl Boxy {
     }
 
     //TODO: Review the copilot-generated segment below for efficiency and correctness with ratio-based verticial division of segments
+    //TODO: Add the necesasry changes required to the boxer struct to support this
+    //TODO: Not kill yourself while doing this
 
     // Display a segment divided into mini-segments based on ratios
     fn display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize, ratios: &[usize]) {
