@@ -205,8 +205,14 @@ impl Boxy {
         println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
 
-    //TODO: Review the copilot-generated segment below for efficiency and correctness with ratio-based verticial division of segments
-    //TODO: Add the necesasry changes required to the boxer struct to support this
+    //TODO: Set up the boxy struct to have a vec for each segment, with a cons list for each individual segment
+    // that'll make sure that all segments have a proper implementation, and no segments have mismatched data datatypes
+    
+    //TODO: have the function fetch the data for it's sub-segment only, and not repeat the same for all the segments
+
+    //TODO: Resolve the internal whiitespace padding issue which occurs when longer segments are placed beside shorter segments
+    //TODO: check if the whitespace padidng is uniform along the length, if not squish the bug.
+    
     //TODO: Not kill yourself while doing this
 
     // Display a segment divided into mini-segments based on ratios
