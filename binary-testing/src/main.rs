@@ -28,5 +28,16 @@ fn main() {
     box2.display();
     let duration1 = start1.elapsed();
     println!("Time elapsed: {:?}", duration1);
+    
+    let mut boxy = Boxy::default();
+    boxy.add_text_sgmt("This is the first line of text.", "#ff0000");
+    boxy.add_text_line("This is the second line of text.");
+    boxy.add_text_line("This is the third line of text.");
+    
+    // Set ratios for the first segment
+    boxy.set_segment_ratios(0, vec![1, 3, 2]);
+    
+    // Display the first segment divided into mini-segments
+    boxy.display_segment_with_ratios(0, &80);
 
 }
