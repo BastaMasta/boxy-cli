@@ -203,24 +203,71 @@ impl Boxy {
         println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
 
-    // TODO: Modify program to support vertical segment dividers
+    //TODO: Review the copilot-generated segment below for efficiency and correctness with ratio-based verticial division of segments
 
-    fn _print_vh_divider(&mut self, left_width_ratio: usize, boxcol: &HexColor, disp_width: &usize) {
-        let left_width = disp_width /left_width_ratio;
+    // Display a segment divided into mini-segments based on ratios
+    fn display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize, ratios: &[usize]) {
+        let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
-        let horiz =  box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
-        let _vert = box_pieces.vertical.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
 
-        print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding.left+1);
-        for _ in 0..(left_width-1) {
-            print!("{}", horiz);
+        // Calculate total ratio and widths for each mini-segment
+        let total_ratio: usize = ratios.iter().sum();
+        let printable_width = terminal_size - 2 * self.ext_padding;
+        let segment_widths: Vec<usize> = ratios.iter().map(|r| r * printable_width / total_ratio).collect();
+
+        // Prepare text for each mini-segment
+        let mut mini_segments: Vec<Vec<String>> = vec![Vec::new(); ratios.len()];
+        let lines = &self.data[seg_index];
+        for (i, line) in lines.iter().enumerate() {
+            let mut processed_data = String::with_capacity(line.len() + 1);
+            processed_data.push_str(line.trim());
+            processed_data.push(' ');
+
+            let mut ws_indices = Vec::new();
+            let mut k = 0usize;
+            while k < processed_data.len() {
+                if processed_data.as_bytes()[k] == b' ' {
+                    ws_indices.push(k);
+                }
+                k += 1;
+            }
+
+            // Distribute text into mini-segments
+            for (j, width) in segment_widths.iter().enumerate() {
+                let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &0, &0);
+                mini_segments[j].extend(liner);
+            }
         }
-        print!("{:>width$}", box_pieces.upper_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding.right+1);
-        for _ in 0..(*disp_width - self.ext_padding.lr() - left_width) {
-            print!("{}", horiz);
+
+        // Print each line of the mini-segments with vertical dividers
+        let max_lines = mini_segments.iter().map(|seg| seg.len()).max().unwrap_or(0);
+        for line_index in 0..max_lines {
+            print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width = self.ext_padding + 1);
+
+            for (j, segment) in mini_segments.iter().enumerate() {
+                if line_index < segment.len() {
+                    print!("{:<width$}", segment[line_index], width = segment_widths[j]);
+                } else {
+                    print!("{:<width$}", " ", width = segment_widths[j]);
+                }
+
+                // Print vertical divider between mini-segments
+                if j < mini_segments.len() - 1 {
+                    print!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+                }
+            }
+
+            println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
         }
-        println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
     }
+
+
+    // TODO: Add vertical divider printing functionality
+
+    // fn print_v_divider() {
+    //
+    // }
+
 }
 
 // Function to find the next-most-fitting string slice for the give terminal size
