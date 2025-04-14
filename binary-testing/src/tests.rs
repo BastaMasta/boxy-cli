@@ -1,19 +1,17 @@
-use boxy_cli::prelude::*;
-use std::time::{Duration, Instant};
-
-
-fn validate_runtime(time: Duration) -> Result<(), String> {
-	if time < Duration::from_millis(100) {
-		Ok(())
-	}
-	else {
-		panic!("\n\nRuntime exceeding upper limit!!!\n\n")
-	}
-}
-
 #[cfg(test)]
 mod tests {
-	use super::*;
+	use boxy_cli::prelude::*;
+	use std::time::{Duration, Instant};
+
+	fn validate_runtime(time: Duration) -> Result<(), String> {
+		if time < Duration::from_millis(100) {
+			Ok(())
+		}
+		else {
+			panic!("\n\nRuntime exceeding upper limit!!!\n\n")
+		}
+	}
+
 	#[test]
 	fn bechmark_test() {
 		let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");

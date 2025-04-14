@@ -216,7 +216,7 @@ impl Boxy {
     //TODO: Not kill yourself while doing this
 
     // Display a segment divided into mini-segments based on ratios
-    fn display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
+    fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
         let box_pieces = map_box_type(&self.type_enum);
 
