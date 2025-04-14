@@ -2,3 +2,5 @@
 /boxy-cli/target
 /binary-testing/target
 /.idea
+/boxy-cli/target/
+/binary-testing/target/
