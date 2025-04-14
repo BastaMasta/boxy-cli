@@ -11,12 +11,27 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    
+    # Build and test library crate
+    - name: Build library
+      run: |
+        cd boxy-cli
+        cargo build --verbose
+    - name: Test library
+      run: |
+        cd boxy-cli
+        cargo test --verbose
+        
+    # Build and test binary crate
+    - name: Build binary tests
+      run: |
+        cd binary-testing
+        cargo build --verbose
+    - name: Run binary tests
+      run: |
+        cd binary-testing
+        cargo test --verbose
