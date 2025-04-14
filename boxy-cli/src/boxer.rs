@@ -119,7 +119,12 @@ impl Boxy {
         let disp_width = if self.fixed_width !=0 {
             self.fixed_width
         } else {
-            termsize::get().unwrap().cols as usize - 20
+            let size = termsize::get();
+            if size.is_ok() {
+                size.unwrap().cols as usize - 20
+            } else {
+                80 // Default width if unable to get terminal size
+            }
         };
 
         let col_truevals = HexColor::parse(&self.box_col).unwrap();
