@@ -1,5 +1,8 @@
 use std::fmt::Display;
 
+/// Type of border for the TextBox
+///
+/// Total of 8 types: Classic, Single, DoubleHorizontal, DoubleVertical, Double, Bold, Rounded and BoldCorners
 // TextBox Type Enums
 #[derive(Debug)]
 pub enum BoxType{
@@ -31,7 +34,9 @@ impl Display for BoxType{
 }
 
 // Alignment Enums
-
+/// Type of alignment for the text inside the TextBox
+///
+/// Total of 3 types: Left, Center and Right
 #[derive(Debug)]
 pub enum BoxAlign {
     Left,
@@ -51,6 +56,8 @@ impl Display for BoxAlign {
     }
 }
 
+
+/// Padding Struct for the TextBox
 #[derive(Debug)]
 pub struct BoxPad {
     pub top: usize,
@@ -74,6 +81,7 @@ impl BoxPad {
             right: 0
         }
     }
+    /// Creates a new BoxPad Struct with the given padding values in order: top, left, down, right (tldr)
     pub fn from_tldr(top: usize, left: usize, down: usize, right: usize) -> Self {
         BoxPad{
             top,
@@ -82,6 +90,8 @@ impl BoxPad {
             right
         }
     }
+
+    /// Creates a new BoxPad Struct with uniform padding values on all sides
     pub fn uniform(pad: usize) -> Self{
         BoxPad{
             top: pad,
@@ -90,6 +100,7 @@ impl BoxPad {
             right: pad
         }
     }
+    /// Creates a new BoxPad Struct with the given padding values in order: vertical, horizontal
     pub fn vh(vertical: usize, horizontal: usize) -> Self{
         BoxPad{
             top: vertical,
@@ -98,6 +109,7 @@ impl BoxPad {
             right: horizontal
         }
     }
+    /// returns the total padidng on either side. used for text wrapping and display time calculations
     pub fn lr(&self) -> usize{
         self.right + self.left
     }
