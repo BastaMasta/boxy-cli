@@ -12,11 +12,8 @@ env:
 jobs:
   build-library:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    
-    # Build and test library crate
     - name: Build library
       run: |
         cd boxy-cli
@@ -27,20 +24,18 @@ jobs:
         cargo test --verbose
 
   build-binary:
+    needs: build-library
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-
-    # Build and test binary crate
     - name: Build binary tests
       run: |
         cd binary-testing
         cargo build --verbose
-  
-  test-binary:
-    runs-on: ubuntu-latest
 
+  test-binary:
+    needs: build-binary
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Run binary tests
