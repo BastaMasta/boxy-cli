@@ -50,3 +50,55 @@ impl Display for BoxAlign {
         write!(f, "{}", str)
     }
 }
+
+#[derive(Debug)]
+pub struct BoxPad {
+    pub top: usize,
+    pub down: usize,
+    pub left: usize,
+    pub right: usize,
+}
+
+impl Default for BoxPad {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl BoxPad {
+    pub fn new() -> Self {
+        BoxPad{
+            top: 0,
+            down: 0,
+            left: 0,
+            right: 0
+        }
+    }
+    pub fn from_tldr(top: usize, left: usize, down: usize, right: usize) -> Self {
+        BoxPad{
+            top,
+            down,
+            left,
+            right
+        }
+    }
+    pub fn uniform(pad: usize) -> Self{
+        BoxPad{
+            top: pad,
+            down: pad,
+            left: pad,
+            right: pad
+        }
+    }
+    pub fn vh(vertical: usize, horizontal: usize) -> Self{
+        BoxPad{
+            top: vertical,
+            down: vertical,
+            left: horizontal,
+            right: horizontal
+        }
+    }
+    pub fn lr(&self) -> usize{
+        self.right + self.left
+    }
+}
