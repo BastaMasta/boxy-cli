@@ -120,10 +120,10 @@ impl Boxy {
             self.fixed_width
         } else {
             let size = termsize::get();
-            if size.is_ok() {
+            if size.is_some() {
                 size.unwrap().cols as usize - 20
             } else {
-                80 // Default width if unable to get terminal size
+                return;
             }
         };
 
