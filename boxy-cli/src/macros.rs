@@ -6,7 +6,7 @@
 /// # use boxy_cli::prelude::*;
 /// # fn main() {
 /// // use the boxy macro
-/// let boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left, segcount: 3);
+/// let mut boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left, segcount: 3);
 ///
 /// // Adding text segments
 /// boxy.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "#ffff");
