@@ -1,4 +1,23 @@
 // boxy macro
+/// Macro for creating a new Boxy struct
+/// 
+/// # Example
+/// ```
+/// # use boxy::prelude::*;
+/// # fn main() {
+/// // use the boxy macro
+/// let boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left, segcount: 3);
+///
+/// // Adding text segments
+/// boxy.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "#ffff");
+/// boxy.add_text_sgmt("et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
+/// boxy.add_text_sgmt("Hello Theree", "#ffff");
+/// boxy.display();
+/// # }
+/// ```
+/// ! the segcount sets the number of segments in the box. If text for only two segments is provided, the third segment will be displayed empty.
+/// 
+/// ! the padding values here are taken to be for uniform padding on all sides.
 #[macro_export]
 macro_rules! boxy {
     ($($key:ident: $value:expr),* $(,)?) => {{
