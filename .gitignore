@@ -4,3 +4,4 @@
 /.idea
 /boxy-cli/target/
 /binary-testing/target/
+/secrets

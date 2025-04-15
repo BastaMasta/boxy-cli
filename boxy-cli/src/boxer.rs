@@ -6,6 +6,8 @@ use crate::constructs::*;
 
 //TODO: Add Documentation and exaples for each method and/or segment. Especially the display method, the setters and the macro 
 
+
+/// The main struct. contains all the data rekevant to the TextBox
 #[derive(Debug)]
 pub struct Boxy {
     pub type_enum: BoxType,

@@ -1,8 +1,6 @@
 use std::fmt::Display;
 
 /// Type of border for the TextBox
-///
-/// Total of 8 types: Classic, Single, DoubleHorizontal, DoubleVertical, Double, Bold, Rounded and BoldCorners
 // TextBox Type Enums
 #[derive(Debug)]
 pub enum BoxType{
@@ -35,8 +33,6 @@ impl Display for BoxType{
 
 // Alignment Enums
 /// Type of alignment for the text inside the TextBox
-///
-/// Total of 3 types: Left, Center and Right
 #[derive(Debug)]
 pub enum BoxAlign {
     Left,

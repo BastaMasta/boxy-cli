@@ -1,5 +1,13 @@
-// boxy macro
+use crate::constructs::{BoxType, BoxAlign};
+
 /// Macro for creating a new Boxy struct
+/// 
+/// Currently, has the following accepting fields:
+///     type - takes a [BoxType] enum
+///     color - takes a hex code for a color
+///     external_pad and internal-pad - take any integer or float value
+///     alignment - sets the alignment for the text inside the box. takes a [BoxAlign] enum
+///     segcount - sets the number of segments in the textbox (not necessary to use)
 /// 
 /// # Example
 /// ```
