@@ -1,5 +1,7 @@
+
+
 #[cfg(test)]
-mod tests {
+mod test {
 	use boxy_cli::prelude::*;
 	use std::time::{Duration, Instant};
 
@@ -11,7 +13,6 @@ mod tests {
 			panic!("\n\nRuntime exceeding upper limit!!!\n\n")
 		}
 	}
-
 	#[test]
 	fn bechmark_test() {
 		let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");
