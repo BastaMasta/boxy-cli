@@ -3,7 +3,7 @@
 /// 
 /// # Example
 /// ```
-/// # use boxy::prelude::*;
+/// # use boxy_cli::prelude::*;
 /// # fn main() {
 /// // use the boxy macro
 /// let boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left, segcount: 3);
