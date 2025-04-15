@@ -46,6 +46,7 @@ impl Default for Boxy {
 
 
 impl Boxy {
+    /// Retuns a new instance of the Boxy struct with specified border type and colour
     pub fn new(box_type: BoxType, box_color : &str) -> Self {
         Boxy{
             type_enum: box_type,
@@ -64,7 +65,9 @@ impl Boxy {
         }
     }
 
-    // Adding a new test segment/section to the textbox
+    /// Adds a new text segment/section to the textbox, separated by a horizontal divider.
+
+    // Adding a new text segment/section to the textbox
     // also initializes the textbox with its first use -> adds main body text
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
         self.data.push(vec![data_string.to_owned()]);
@@ -72,43 +75,62 @@ impl Boxy {
         self.sect_count+=1;
     }
 
+    /// Adds a new text line to the segemnt with a specific index.
     // Adding a text line to a segemnt with a specific index
     pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
         self.data[seg_index].push(data_string.to_owned());
     }
     
+    /// Adds a new text line to the latest segment.
     // Adding a text line to the latest segment
     pub fn add_text_line(&mut self, data_string : &str) {
         self.data[self.sect_count-1].push(String::from(data_string));
     }
 
+    /// Sets the aligment of the text in the textbox.
     // Setting the Alignment maually
     pub fn set_align(&mut self, align: BoxAlign) {
         self.align = align;
     }
 
+    /// Set the internal padding for the textbox. (Between border and text)
+    ///
+    /// !! provide a [`BoxPad`] Struct for the padding
     // Setting the Padding manually
     pub fn set_int_padding(&mut self, int_padding : BoxPad) {
         self.int_padding = int_padding;
     }
+    /// Set the external padding for the textbox. (Between terminal limits and border)
+    /// 
+    /// !! provide a [`BoxPad`] Struct for the padding
     pub fn set_ext_padding(&mut self, ext_padding : BoxPad) {
         self.ext_padding = ext_padding;
     }
+    /// Set the internal padding and external padding for the textbox.
+    ///
+    /// !! provide a [`BoxPad`] Struct for the padding
     pub fn set_padding(&mut self, ext_padding : BoxPad, int_padding : BoxPad) {
         self.int_padding = int_padding;
         self.ext_padding = ext_padding;
     }
 
+    /// Sets a fixed width for the textbox insted of dynamically sizing it to the width of the terminal
     // Setting the Width manually
     pub fn set_width(&mut self, width : usize) {
         self.fixed_width = width;
     }
 
+    /// Sets a fixed height for the textbox. (adds in whitespace above and below the text)
+    ///
+    /// !! This feature is a work in progress. it may not work with the current version of the crate
     // Setting the Height manually
     pub fn set_height(&mut self, height : usize) {
         self.fixed_height = height;
     }
 
+    /// Sets the size-ratio between segments when using vertical divisions
+    ///
+    /// !! This feature is a work in progress. it may not work with the current version of the crate
     pub fn set_segment_ratios(&mut self, seg_index: usize, ratios: Vec<usize>) {
         if seg_index >= self.seg_v_div_ratio.len() {
             self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
@@ -116,7 +138,8 @@ impl Boxy {
         self.seg_v_div_ratio[seg_index] = ratios;
     }
 
-   // Main Display Function to display the textbox
+    /// Prints/Displays the textbox into the CLI
+    // Main Display Function to display the textbox
     pub fn display(&mut self) {
         // Initialising Display Variables
         let disp_width = if self.fixed_width !=0 {
@@ -392,12 +415,16 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
 
 // Macro type resolution fucntions for boxy!
 
+
+/// Macro type-resolution function
 pub fn resolve_col(dat : String) -> String {
     dat
 }
+/// Macro type-resolution function
 pub fn resolve_pad(dat : String) -> BoxPad {
     BoxPad::uniform(dat.parse::<usize>().unwrap_or(0usize))
 }
+/// Macro type-resolution function
 pub fn resolve_align(dat : String) -> BoxAlign {
     match &*dat {
         "center" => BoxAlign::Center,
@@ -406,6 +433,7 @@ pub fn resolve_align(dat : String) -> BoxAlign {
         _ => BoxAlign::Left,
     }
 }
+/// Macro type-resolution function
 pub fn resolve_type(dat : String) -> BoxType{
     match &*dat {
         "classic" => BoxType::Classic,
@@ -419,17 +447,7 @@ pub fn resolve_type(dat : String) -> BoxType{
         _ => BoxType::Single,
     }
 }
+/// Macro type-resolution function
 pub fn resolve_segments(dat : String) -> usize {
     dat.parse().expect("failed to parse total segment number")
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
-// }
