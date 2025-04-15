@@ -1,6 +1,8 @@
 # boxy-cli
 A Crate to create boxes in command-line interfaces with Rust
 
+[![BuildTests](https://github.com/BastaMasta/boxy-cli/actions/workflows/rust.yml/badge.svg)](https://github.com/BastaMasta/boxy-cli/actions/workflows/rust.yml)
+
 ## Example:
 
 ### Textbox 1

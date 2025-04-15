@@ -1,5 +1,7 @@
 # boxy-cli
-![Static Badge](https://img.shields.io/badge/GitHub-BastaMasta%2Fboxy--cli-blue?style=for-the-badge&logo=github)
+![Static Badge](https://img.shields.io/badge/GitHub-BastaMasta%2Fboxy--cli-blue?style=flat&logo=github)
+[![BuildTests](https://github.com/BastaMasta/boxy-cli/actions/workflows/rust.yml/badge.svg)](https://github.com/BastaMasta/boxy-cli/actions/workflows/rust.yml)
+
 
 A Crate to create boxes in command-line interfaces with Rust
 
