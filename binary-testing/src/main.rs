@@ -3,7 +3,7 @@ mod tests;
 use boxy_cli::prelude::*;
 use terminal_size::terminal_size;
 use std::time::Instant;
-
+use boxy_cli::constructs::BoxPad;
 
 fn main() {
     let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");
@@ -28,5 +28,14 @@ fn main() {
     box2.display();
     let duration1 = start1.elapsed();
     println!("Time elapsed: {:?}", duration1);
-    
+    Boxy::builder()
+        .box_type(BoxType::Double)
+        .color("#aaffff")
+        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+        .align(BoxAlign::Center)
+        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_line("This is a new line.", "#eeeeee")
+        .add_segment("Another section", "#dddddd")
+        .width(50)
+        .build().display();
 }
