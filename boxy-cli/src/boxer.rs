@@ -39,8 +39,8 @@ impl Default for Boxy {
             align : BoxAlign::Left,
             fixed_width: 0usize,
             fixed_height: 0usize,
-            seg_v_div_count: Vec::<usize>::new(),
             seg_v_div_ratio: Vec::<Vec<usize>>::new(),
+            seg_v_div_count: Vec::<usize>::new(),
             tot_seg: 0usize,
         }
     }
@@ -149,16 +149,22 @@ impl Boxy {
             }
         };
 
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_col_truecolor = match HexColor::parse(&self.box_col) {
+            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
+                Color::White // Default color
+            }
+        };
         let box_pieces = map_box_type(&self.type_enum);
-        let horiz =box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b);
+        let horiz =box_pieces.horizontal.to_string().color(box_col_truecolor);
 
         // Printing the top segment
-        print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding.left+1);
+        print!("{:>width$}", box_pieces.top_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
         for _ in 0..(disp_width -2*self.ext_padding.right) {
             print!("{}", horiz);
         }
-        println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", box_pieces.top_right.to_string().color(box_col_truecolor));
 
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
@@ -169,11 +175,11 @@ impl Boxy {
         }
 
         // Printing bottom segment
-        print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding.left+1);
+        print!("{:>width$}", box_pieces.bottom_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
         for _ in 0..disp_width -2*self.ext_padding.right {
             print!("{}", horiz);
         }
-        println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", box_pieces.bottom_right.to_string().color(box_col_truecolor));
 
     }
 
@@ -181,8 +187,7 @@ impl Boxy {
     fn display_segment(&mut self, seg_index: usize, disp_width: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
-        let box_color_result = HexColor::parse(&self.box_col);
-        let box_col_truecolor = match box_color_result {
+        let box_col_truecolor = match HexColor::parse(&self.box_col) {
             Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
             Err(e) => {
                 eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
@@ -193,8 +198,7 @@ impl Boxy {
         // Loop for all text lines
         for i in 0..self.data[seg_index].len() {
             // obtaining text colour truevalues
-            let text_color_result = HexColor::parse(&self.colors[seg_index][i]);
-            let text_col_truecolor = match text_color_result {
+            let text_col_truecolor = match HexColor::parse(&self.colors[seg_index][i]) {
                 Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
                 Err(e) => {
                     eprintln!("Error parsing text color '{}': {}", &self.colors[seg_index][i], e);
@@ -266,7 +270,13 @@ impl Boxy {
 
     // Display a segment divided into mini-segments based on ratios
     fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_col_truecolor = match HexColor::parse(&self.box_col) {
+            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
+                Color::White // Default color
+            }
+        };
         let box_pieces = map_box_type(&self.type_enum);
 
         // Fetch ratios for the segment
@@ -316,7 +326,7 @@ impl Boxy {
         let max_lines = mini_segments.iter().map(|seg| seg.len()).max().unwrap_or(0);
         for line_index in 0..max_lines {
             // Print the left padding and vertical bar
-            print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width = self.ext_padding.left + 1);
+            print!("{:>width$}", box_pieces.vertical.to_string().color(box_col_truecolor), width = self.ext_padding.left + 1);
 
             for (j, segment) in mini_segments.iter().enumerate() {
                 if line_index < segment.len() {
@@ -331,12 +341,12 @@ impl Boxy {
 
                 // Print vertical divider between mini-segments
                 if j < mini_segments.len() - 1 {
-                    print!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+                    print!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
                 }
             }
 
             // Print the right padding and vertical bar
-            println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            println!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
         }
     }
 }
@@ -484,7 +494,6 @@ pub struct BoxyBuilder {
     align: BoxAlign,
     fixed_width: usize,
     fixed_height: usize,
-    seg_v_div_count: Vec<usize>,
     seg_v_div_ratio: Vec<Vec<usize>>,
 }
 
@@ -584,7 +593,13 @@ impl BoxyBuilder {
             align: self.align,
             fixed_width: self.fixed_width,
             fixed_height: self.fixed_height,
-            seg_v_div_count: Vec::new(), // These are calculated later if needed
+            seg_v_div_count: {
+                let mut seg_v_div_count = Vec::new();
+                for seg in &self.seg_v_div_ratio {
+                    seg_v_div_count.push(seg.len());
+                }
+                seg_v_div_count
+            },
             seg_v_div_ratio: self.seg_v_div_ratio,
 
         }
