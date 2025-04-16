@@ -142,8 +142,8 @@ impl Boxy {
             self.fixed_width
         } else {
             let size = termsize::get();
-            if size.is_some() {
-                size.unwrap().cols as usize - 20
+            if let Some(terminal_size) = size {
+                terminal_size.cols as usize - 20
             } else {
                 return;
             }
