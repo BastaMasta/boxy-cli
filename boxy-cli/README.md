@@ -41,11 +41,11 @@ box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff");
 ```
 Add some more text to the same segment (or the latest segment):
 ```rust
-box1.add_text_line("consectetur adipiscing elit");
+box1.add_text_line("consectetur adipiscing elit", "#32CD32");
 ```
 or to a segment with a particular index:
 ```rust
-box1.add_text_line_indx(" consectetur adipiscing elit", 0);
+box1.add_text_line_indx(" consectetur adipiscing elit", "#32CD32", 0);
 ```
 Once you are done, just display the TextBox:
 ```rust
@@ -78,7 +78,7 @@ use boxy_cli::prelude::*;
 fn main() {
     let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
     box2.add_text_sgmt("Hello There Mateojablij trhwesoiuethj 0piswe hjgtgoise jgtowie3thj q3o-oitujpwiej toiq 0iweeh gt owjtpiewrwh WOKWRHJ JRQWE4IHYNE5R bfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
-    box2.add_text_line("Hello Theree");
+    box2.add_text_line("Hello Theree", "#32CD32");
     box2.display();
 }
 ```

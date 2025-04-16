@@ -79,14 +79,16 @@ impl Boxy {
 
     /// Adds a new text line to the segemnt with a specific index.
     // Adding a text line to a segemnt with a specific index
-    pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
+    pub fn add_text_line_indx(&mut self, data_string : &str, color: &str, seg_index : usize) {
         self.data[seg_index].push(data_string.to_owned());
+        self.colors[seg_index].push(String::from(color));
     }
     
     /// Adds a new text line to the latest segment.
     // Adding a text line to the latest segment
-    pub fn add_text_line(&mut self, data_string : &str) {
+    pub fn add_text_line(&mut self, data_string : &str, color : &str) {
         self.data[self.sect_count-1].push(String::from(data_string));
+        self.colors[self.sect_count-1].push(String::from(color));
     }
 
     /// Sets the aligment of the text in the textbox.
@@ -191,6 +193,8 @@ impl Boxy {
 
         // Loop for all text lines
         for i in 0..self.data[seg_index].len() {
+            // obtaining text colour truevalues
+            let text_col_truevals = HexColor::parse(&self.colors[seg_index][i]).unwrap();
             // Processing data
             let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
             processed_data.push_str(self.data[seg_index][i].trim());
@@ -211,7 +215,7 @@ impl Boxy {
             // Actually printing shiet
 
             // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
-            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, disp_width, &self.ext_padding, &self.int_padding, &self.align);
+            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, &text_col_truevals,disp_width, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
@@ -367,7 +371,7 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, ext_paddin
 }
 
 
-fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad, align: &BoxAlign) {
+fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, text_col: &HexColor, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad, align: &BoxAlign) {
     let printable_area = disp_width - (int_padding.lr() + ext_padding.lr());
     let vertical = box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b);
     match align {
@@ -375,7 +379,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:<width$}", i, width=printable_area-2); // subtract 2 for the bars
+                print!("{:<width$}", i.truecolor(text_col.r, text_col.g, text_col.b), width=printable_area-2); // subtract 2 for the bars
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
@@ -384,7 +388,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left+((printable_area-i.len())/2));
-                print!("{}", i);
+                print!("{}", i.truecolor(text_col.r, text_col.g, text_col.b));
                 print!("{:<pad$}", " ", pad=int_padding.right+(printable_area-i.len())-((printable_area-i.len())/2));
                 println!("{}", vertical);
             }
@@ -393,7 +397,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:>width$}", i, width=printable_area-2); // subtract 2 for the bars
+                print!("{:>width$}", i.truecolor(text_col.r, text_col.g, text_col.b), width=printable_area-2); // subtract 2 for the bars
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
