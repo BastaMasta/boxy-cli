@@ -45,3 +45,13 @@ jobs:
       run: |
         cd binary-testing
         cargo test --verbose
+  
+  test-docs:
+    needs: build-library
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile Docs
+      run: |
+        cd boxy-cli
+        cargo doc

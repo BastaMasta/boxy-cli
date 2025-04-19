@@ -483,6 +483,9 @@ pub fn resolve_segments(dat : String) -> usize {
 
 
 // Builder
+/// The BoxyBuilder Struct. Used to initialise and create Boxy Structs, the precursor to the textboxes.
+///
+/// Use the build method once done configuring to build the Boxy Stuct and then use the display method on it to display the textbox
 #[derive(Debug, Default)]
 pub struct BoxyBuilder {
     type_enum: BoxType,
@@ -499,23 +502,46 @@ pub struct BoxyBuilder {
 
 impl BoxyBuilder {
     /// Creates a new `BoxyBuilder` with default values.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// let mut my_box = BoxyBuilder::new();
+    /// ```
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Sets the border type for the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.box_type(BoxType::Double);
+    /// ```
     pub fn box_type(mut self, box_type: BoxType) -> Self {
         self.type_enum = box_type;
         self
     }
-
+    
     /// Sets the border color for the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.color("#00ffff");
+    /// ```
     pub fn color(mut self, box_color: &str) -> Self {
         self.box_col = box_color.to_string();
         self
     }
 
     /// Adds a new text segment with its color.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.add_segment("Lorem ipsum dolor sit amet", "#ffffff");
+    /// ```
     pub fn add_segment(mut self, text: &str, color: &str) -> Self {
         self.data.push(vec![text.to_owned()]);
         self.colors.push(vec![color.to_owned()]);
@@ -523,6 +549,12 @@ impl BoxyBuilder {
     }
 
     /// Adds a new text line to the last added segment with its color.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.add_line("This is a new line!!!", "#ffffff");
+    /// ```
     pub fn add_line(mut self, text: &str, color: &str) -> Self {
         if let Some(last_segment) = self.data.last_mut() {
             last_segment.push(text.to_owned());
@@ -534,24 +566,51 @@ impl BoxyBuilder {
     }
 
     /// Sets the text alignment for the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.align(BoxAlign::Center);
+    /// ```
     pub fn align(mut self, alignment: BoxAlign) -> Self {
         self.align = alignment;
         self
     }
 
     /// Sets the internal padding for the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # use boxy_cli::constructs::BoxPad;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.internal_padding(BoxPad::from_tldr(1,2,1,2));
+    /// ```
     pub fn internal_padding(mut self, padding: BoxPad) -> Self {
         self.int_padding = padding;
         self
     }
 
     /// Sets the external padding for the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # use boxy_cli::constructs::BoxPad;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.external_padding(BoxPad::from_tldr(3,4,3,4));
+    /// ```
     pub fn external_padding(mut self, padding: BoxPad) -> Self {
         self.ext_padding = padding;
         self
     }
 
     /// Sets both internal and external padding.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # use boxy_cli::constructs::BoxPad;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.padding(BoxPad::from_tldr(3,4,3,4), BoxPad::from_tldr(1,2,1,2));
+    /// ```
     pub fn padding(mut self, external: BoxPad, internal: BoxPad) -> Self {
         self.ext_padding = external;
         self.int_padding = internal;
@@ -559,12 +618,26 @@ impl BoxyBuilder {
     }
 
     /// Sets a fixed width for the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.width(30);
+    /// ```
     pub fn width(mut self, width: usize) -> Self {
         self.fixed_width = width;
         self
     }
 
     /// Sets a fixed height for the `Boxy` instance.
+    ///
+    /// This feature is still experimental, and may not work
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.height(50);
+    /// ```
     pub fn height(mut self, height: usize) -> Self {
         self.fixed_height = height;
         self
@@ -580,6 +653,19 @@ impl BoxyBuilder {
     }
 
     /// Builds the `Boxy` instance.
+    ///
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.build();
+    /// ```
+    /// Subsequently, disply using display()
+    /// ```
+    /// # use boxy_cli::prelude::*;
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.build().display();
+    /// ```
+    ///
     pub fn build(self) -> Boxy {
         Boxy {
             type_enum: self.type_enum,
