@@ -553,6 +553,7 @@ impl BoxyBuilder {
     /// ```
     /// # use boxy_cli::prelude::*;
     /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.add_segment("Lorem ipsum dolor sit amet", "#ffffff");
     /// my_box.add_line("This is a new line!!!", "#ffffff");
     /// ```
     pub fn add_line(mut self, text: &str, color: &str) -> Self {
