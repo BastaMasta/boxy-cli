@@ -1,7 +1,7 @@
 # boxy-cli
 [![Static Badge](https://img.shields.io/badge/GitHub-BastaMasta%2Fboxy--cli-blue?style=flat-square&logo=github)](https://github.com/BastaMasta/boxy-cli)
 [![Crates.io](https://img.shields.io/crates/v/boxy-cli?style=flat-square&logo=rust)](https://crates.io/crates/boxy-cli)
-[![Docs.rs](https://img.shields.io/badge/docs.rs-boxy--cli-66c2a5?style=flat-square&logo=docs.rs)](https://docs.rs/boxy-cli/0.1.0/)
+[![Docs.rs](https://img.shields.io/badge/docs.rs-boxy--cli-66c2a5?style=flat-square&logo=docs.rs)](https://docs.rs/boxy-cli/latest/)
 [![Crates.io](https://img.shields.io/crates/d/boxy-cli?style=flat-square)](https://crates.io/crates/boxy-cli)
 [![Static Badge](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-APACHE)
 [![Static Badge](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-MIT)
@@ -17,10 +17,63 @@ Dual-licensed under [Apache 2.0](https://github.com/BastaMasta/boxy-cli/blob/mai
 
 ### How to use:
 
+#### Using the Builder:
+you can directly create (and simutaneously print the textbox) using the BoxyBuilder Struct. here is how to use it:
+
+Importing the necessary:
+
+```rust
+use boxy_cli::prelude::*;
+use boxy_cli::constructs::BoxPad;
+```
+
+Next, you can create the BoxyBuilder struct
+
+```rust
+let mut my_box = Boxy::builder()
+        .box_type(BoxType::Double)
+        .color("#00ffff")
+        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+        .align(BoxAlign::Center)
+        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_line("This is a new line.", "#32CD32")
+        .add_segment("Another section", "#663399")
+        .width(50)
+        .build();
+```
+
+and now, display it:
+
+```rust
+my_box.display();
+```
+
+Or do both simultanrously:
+```rust
+Boxy::builder()
+        .box_type(BoxType::Double)
+        .color("#aaffff")
+        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+        .align(BoxAlign::Center)
+        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_line("This is a new line.", "#32CD32")
+        .add_segment("Another section", "#f19356")
+        .width(50)
+        .build()
+        .display();
+```
+
+further, you can use the same methods as displayed above to modify the textbox before building.
+
+But you can also modify the textbox after building it (before displaying) using the methods shown in the following section.
+
+#### Using the Struct and methods.
+
 First import the crate into the current scope, using:
 
 ```rust
 use boxy_cli::prelude::*;
+use boxy_cli::constructs::BoxPad;
 ```
 
 Next you create a new boxy struct with either the ```new``` method:
@@ -41,11 +94,11 @@ box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff");
 ```
 Add some more text to the same segment (or the latest segment):
 ```rust
-box1.add_text_line("consectetur adipiscing elit");
+box1.add_text_line("consectetur adipiscing elit", "#32CD32");
 ```
 or to a segment with a particular index:
 ```rust
-box1.add_text_line_indx(" consectetur adipiscing elit", 0);
+box1.add_text_line_indx(" consectetur adipiscing elit", "#32CD32", 0);
 ```
 Once you are done, just display the TextBox:
 ```rust
@@ -78,7 +131,7 @@ use boxy_cli::prelude::*;
 fn main() {
     let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
     box2.add_text_sgmt("Hello There Mateojablij trhwesoiuethj 0piswe hjgtgoise jgtowie3thj q3o-oitujpwiej toiq 0iweeh gt owjtpiewrwh WOKWRHJ JRQWE4IHYNE5R bfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
-    box2.add_text_line("Hello Theree");
+    box2.add_text_line("Hello Theree", "#32CD32");
     box2.display();
 }
 ```

@@ -1,4 +1,4 @@
-use colored::Colorize;
+use colored::{Color, Colorize};
 use hex_color::HexColor;
 use crate::templates::*;
 use crate::constructs::*;
@@ -39,8 +39,8 @@ impl Default for Boxy {
             align : BoxAlign::Left,
             fixed_width: 0usize,
             fixed_height: 0usize,
-            seg_v_div_count: Vec::<usize>::new(),
             seg_v_div_ratio: Vec::<Vec<usize>>::new(),
+            seg_v_div_count: Vec::<usize>::new(),
             tot_seg: 0usize,
         }
     }
@@ -50,25 +50,17 @@ impl Default for Boxy {
 impl Boxy {
     /// Retuns a new instance of the Boxy struct with specified border type and colour
     pub fn new(box_type: BoxType, box_color : &str) -> Self {
-        Boxy{
+        Boxy {
             type_enum: box_type,
-            data : Vec::<Vec<String>>::new(),
-            sect_count: 0usize,
-            box_col : (&box_color).to_string(),
-            colors : Vec::<Vec<String>>::new(),
-            int_padding: BoxPad::new(),
-            ext_padding: BoxPad::new(),
-            align : BoxAlign::Left,
-            fixed_width: 0usize,
-            fixed_height: 0usize,
-            seg_v_div_count: Vec::<usize>::new(),
-            seg_v_div_ratio: Vec::<Vec<usize>>::new(),
-            tot_seg: 0usize,
+            box_col: box_color.to_string(),
+            ..Self::default()
         }
+    }
+    pub fn builder() -> BoxyBuilder {
+        BoxyBuilder::new()
     }
 
     /// Adds a new text segment/section to the textbox, separated by a horizontal divider.
-
     // Adding a new text segment/section to the textbox
     // also initializes the textbox with its first use -> adds main body text
     pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
@@ -79,14 +71,16 @@ impl Boxy {
 
     /// Adds a new text line to the segemnt with a specific index.
     // Adding a text line to a segemnt with a specific index
-    pub fn add_text_line_indx(&mut self, data_string : &str, seg_index : usize) {
+    pub fn add_text_line_indx(&mut self, data_string : &str, color: &str, seg_index : usize) {
         self.data[seg_index].push(data_string.to_owned());
+        self.colors[seg_index].push(String::from(color));
     }
     
     /// Adds a new text line to the latest segment.
     // Adding a text line to the latest segment
-    pub fn add_text_line(&mut self, data_string : &str) {
+    pub fn add_text_line(&mut self, data_string : &str, color : &str) {
         self.data[self.sect_count-1].push(String::from(data_string));
+        self.colors[self.sect_count-1].push(String::from(color));
     }
 
     /// Sets the aligment of the text in the textbox.
@@ -148,38 +142,44 @@ impl Boxy {
             self.fixed_width
         } else {
             let size = termsize::get();
-            if size.is_some() {
-                size.unwrap().cols as usize - 20
+            if let Some(terminal_size) = size {
+                terminal_size.cols as usize - 20
             } else {
                 return;
             }
         };
 
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_col_truecolor = match HexColor::parse(&self.box_col) {
+            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
+                Color::White // Default color
+            }
+        };
         let box_pieces = map_box_type(&self.type_enum);
-        let horiz =box_pieces.horizontal.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b);
+        let horiz =box_pieces.horizontal.to_string().color(box_col_truecolor);
 
         // Printing the top segment
-        print!("{:>width$}", box_pieces.top_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding.left+1);
+        print!("{:>width$}", box_pieces.top_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
         for _ in 0..(disp_width -2*self.ext_padding.right) {
             print!("{}", horiz);
         }
-        println!("{}", box_pieces.top_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", box_pieces.top_right.to_string().color(box_col_truecolor));
 
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
             if i > 0 {
-                self.print_h_divider(&col_truevals,  &disp_width);
+                self.print_h_divider(&*self.box_col.clone(), &disp_width);
             }
             self.display_segment(i, &disp_width);
         }
 
         // Printing bottom segment
-        print!("{:>width$}", box_pieces.bottom_left.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width=self.ext_padding.left+1);
+        print!("{:>width$}", box_pieces.bottom_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
         for _ in 0..disp_width -2*self.ext_padding.right {
             print!("{}", horiz);
         }
-        println!("{}", box_pieces.bottom_right.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+        println!("{}", box_pieces.bottom_right.to_string().color(box_col_truecolor));
 
     }
 
@@ -187,10 +187,24 @@ impl Boxy {
     fn display_segment(&mut self, seg_index: usize, disp_width: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_col_truecolor = match HexColor::parse(&self.box_col) {
+            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
+                Color::White // Default color
+            }
+        };
 
         // Loop for all text lines
         for i in 0..self.data[seg_index].len() {
+            // obtaining text colour truevalues
+            let text_col_truecolor = match HexColor::parse(&self.colors[seg_index][i]) {
+                Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+                Err(e) => {
+                    eprintln!("Error parsing text color '{}': {}", &self.colors[seg_index][i], e);
+                    Color::White // Default color
+                }
+            };
             // Processing data
             let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
             processed_data.push_str(self.data[seg_index][i].trim());
@@ -211,14 +225,14 @@ impl Boxy {
             // Actually printing shiet
 
             // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
-            iter_line_prnt(&liner, map_box_type(&self.type_enum), &col_truevals, disp_width, &self.ext_padding, &self.int_padding, &self.align);
+            iter_line_prnt(&liner, map_box_type(&self.type_enum), &box_col_truecolor, &text_col_truecolor,disp_width, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
                 println!("{1:>width$}{}{1}", " ".repeat(disp_width - self.ext_padding.lr()),
                          map_box_type(&self.type_enum)
                              .vertical.to_string()
-                             .truecolor(col_truevals.r, col_truevals.g, col_truevals.b),
+                             .color(box_col_truecolor),
                          width=self.ext_padding.left+1);
             }
         }
@@ -227,14 +241,21 @@ impl Boxy {
     }
 
     // Printing the horizontal divider.
-    fn print_h_divider(&mut self, boxcol: &HexColor, disp_width: &usize){
+    fn print_h_divider(&mut self, boxcol_hex: &str, disp_width: &usize){
         let box_pieces = map_box_type(&self.type_enum);
-        let horiz =  box_pieces.horizontal.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b);
-        print!("{:>width$}", box_pieces.left_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b), width=self.ext_padding.left+1);
+        let box_col_truecolor = match HexColor::parse(boxcol_hex) {
+            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+            Err(e) => {
+                eprintln!("Error parsing divider color '{}': {}", boxcol_hex, e);
+                Color::White // Default color
+            }
+        };
+        let horiz =  box_pieces.horizontal.to_string().color(box_col_truecolor);
+        print!("{:>width$}", box_pieces.left_t.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
         for _ in 0..*disp_width-self.ext_padding.lr() {
             print!("{}", horiz);
         }
-        println!("{}", box_pieces.right_t.to_string().truecolor(boxcol.r, boxcol.g, boxcol.b));
+        println!("{}", box_pieces.right_t.to_string().color(box_col_truecolor));
     }
 
     //TODO: Set up the boxy struct to have a vec for each segment, with a cons list for each individual segment
@@ -249,7 +270,13 @@ impl Boxy {
 
     // Display a segment divided into mini-segments based on ratios
     fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
-        let col_truevals = HexColor::parse(&self.box_col).unwrap();
+        let box_col_truecolor = match HexColor::parse(&self.box_col) {
+            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
+                Color::White // Default color
+            }
+        };
         let box_pieces = map_box_type(&self.type_enum);
 
         // Fetch ratios for the segment
@@ -299,7 +326,7 @@ impl Boxy {
         let max_lines = mini_segments.iter().map(|seg| seg.len()).max().unwrap_or(0);
         for line_index in 0..max_lines {
             // Print the left padding and vertical bar
-            print!("{:>width$}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b), width = self.ext_padding.left + 1);
+            print!("{:>width$}", box_pieces.vertical.to_string().color(box_col_truecolor), width = self.ext_padding.left + 1);
 
             for (j, segment) in mini_segments.iter().enumerate() {
                 if line_index < segment.len() {
@@ -314,12 +341,12 @@ impl Boxy {
 
                 // Print vertical divider between mini-segments
                 if j < mini_segments.len() - 1 {
-                    print!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+                    print!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
                 }
             }
 
             // Print the right padding and vertical bar
-            println!("{}", box_pieces.vertical.to_string().truecolor(col_truevals.r, col_truevals.g, col_truevals.b));
+            println!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
         }
     }
 }
@@ -367,15 +394,15 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, ext_paddin
 }
 
 
-fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad, align: &BoxAlign) {
+fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &Color, text_col: &Color, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad, align: &BoxAlign) {
     let printable_area = disp_width - (int_padding.lr() + ext_padding.lr());
-    let vertical = box_pieces.vertical.to_string().truecolor(box_col.r, box_col.g, box_col.b);
+    let vertical = box_pieces.vertical.to_string().color(*box_col);
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:<width$}", i, width=printable_area-2); // subtract 2 for the bars
+                print!("{:<width$}", i.color(*text_col), width=printable_area-2); // subtract 2 for the bars
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
@@ -384,7 +411,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left+((printable_area-i.len())/2));
-                print!("{}", i);
+                print!("{}", i.color(*text_col));
                 print!("{:<pad$}", " ", pad=int_padding.right+(printable_area-i.len())-((printable_area-i.len())/2));
                 println!("{}", vertical);
             }
@@ -393,7 +420,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &HexColor
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:>width$}", i, width=printable_area-2); // subtract 2 for the bars
+                print!("{:>width$}", i.color(*text_col), width=printable_area-2); // subtract 2 for the bars
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
@@ -452,4 +479,129 @@ pub fn resolve_type(dat : String) -> BoxType{
 /// Macro type-resolution function
 pub fn resolve_segments(dat : String) -> usize {
     dat.parse().expect("failed to parse total segment number")
+}
+
+
+// Builder
+#[derive(Debug, Default)]
+pub struct BoxyBuilder {
+    type_enum: BoxType,
+    data: Vec<Vec<String>>,
+    box_col: String,
+    colors: Vec<Vec<String>>,
+    int_padding: BoxPad,
+    ext_padding: BoxPad,
+    align: BoxAlign,
+    fixed_width: usize,
+    fixed_height: usize,
+    seg_v_div_ratio: Vec<Vec<usize>>,
+}
+
+impl BoxyBuilder {
+    /// Creates a new `BoxyBuilder` with default values.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the border type for the `Boxy` instance.
+    pub fn box_type(mut self, box_type: BoxType) -> Self {
+        self.type_enum = box_type;
+        self
+    }
+
+    /// Sets the border color for the `Boxy` instance.
+    pub fn color(mut self, box_color: &str) -> Self {
+        self.box_col = box_color.to_string();
+        self
+    }
+
+    /// Adds a new text segment with its color.
+    pub fn add_segment(mut self, text: &str, color: &str) -> Self {
+        self.data.push(vec![text.to_owned()]);
+        self.colors.push(vec![color.to_owned()]);
+        self
+    }
+
+    /// Adds a new text line to the last added segment with its color.
+    pub fn add_line(mut self, text: &str, color: &str) -> Self {
+        if let Some(last_segment) = self.data.last_mut() {
+            last_segment.push(text.to_owned());
+        } else {
+            self.data.push(vec![text.to_owned()]);
+        }
+        self.colors[self.data.len()-1].push(color.to_owned());
+        self
+    }
+
+    /// Sets the text alignment for the `Boxy` instance.
+    pub fn align(mut self, alignment: BoxAlign) -> Self {
+        self.align = alignment;
+        self
+    }
+
+    /// Sets the internal padding for the `Boxy` instance.
+    pub fn internal_padding(mut self, padding: BoxPad) -> Self {
+        self.int_padding = padding;
+        self
+    }
+
+    /// Sets the external padding for the `Boxy` instance.
+    pub fn external_padding(mut self, padding: BoxPad) -> Self {
+        self.ext_padding = padding;
+        self
+    }
+
+    /// Sets both internal and external padding.
+    pub fn padding(mut self, external: BoxPad, internal: BoxPad) -> Self {
+        self.ext_padding = external;
+        self.int_padding = internal;
+        self
+    }
+
+    /// Sets a fixed width for the `Boxy` instance.
+    pub fn width(mut self, width: usize) -> Self {
+        self.fixed_width = width;
+        self
+    }
+
+    /// Sets a fixed height for the `Boxy` instance.
+    pub fn height(mut self, height: usize) -> Self {
+        self.fixed_height = height;
+        self
+    }
+
+    /// Sets the size ratios between segments for vertical divisions.
+    pub fn segment_ratios(mut self, seg_index: usize, ratios: Vec<usize>) -> Self {
+        if seg_index >= self.seg_v_div_ratio.len() {
+            self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
+        }
+        self.seg_v_div_ratio[seg_index] = ratios;
+        self
+    }
+
+    /// Builds the `Boxy` instance.
+    pub fn build(self) -> Boxy {
+        Boxy {
+            type_enum: self.type_enum,
+            tot_seg: self.data.len(),
+            sect_count: self.data.len(),
+            data: self.data,
+            box_col: self.box_col,
+            colors: self.colors,
+            int_padding: self.int_padding,
+            ext_padding: self.ext_padding,
+            align: self.align,
+            fixed_width: self.fixed_width,
+            fixed_height: self.fixed_height,
+            seg_v_div_count: {
+                let mut seg_v_div_count = Vec::new();
+                for seg in &self.seg_v_div_ratio {
+                    seg_v_div_count.push(seg.len());
+                }
+                seg_v_div_count
+            },
+            seg_v_div_ratio: self.seg_v_div_ratio,
+
+        }
+    }
 }

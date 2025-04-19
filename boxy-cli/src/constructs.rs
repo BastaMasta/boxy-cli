@@ -2,9 +2,10 @@ use std::fmt::Display;
 
 /// Type of border for the TextBox
 // TextBox Type Enums
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum BoxType{
     Classic,
+    #[default]
     Single,
     DoubleHorizontal,
     DoubleVertical,
@@ -33,9 +34,10 @@ impl Display for BoxType{
 
 // Alignment Enums
 /// Type of alignment for the text inside the TextBox
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum BoxAlign {
     Left,
+    #[default]
     Center,
     Right,
 }
