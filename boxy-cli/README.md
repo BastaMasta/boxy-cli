@@ -17,10 +17,63 @@ Dual-licensed under [Apache 2.0](https://github.com/BastaMasta/boxy-cli/blob/mai
 
 ### How to use:
 
+#### Using the Builder:
+you can directly create (and simutaneously print the textbox) using the BoxyBuilder Struct. here is how to use it:
+
+Importing the necessary:
+
+```rust
+use boxy_cli::prelude::*;
+use boxy_cli::constructs::BoxPad;
+```
+
+Next, you can create the BoxyBuilder struct
+
+```rust
+let mut my_box = Boxy::builder()
+        .box_type(BoxType::Double)
+        .color("#00ffff")
+        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+        .align(BoxAlign::Center)
+        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_line("This is a new line.", "#32CD32")
+        .add_segment("Another section", "#663399")
+        .width(50)
+        .build();
+```
+
+and now, display it:
+
+```rust
+my_box.display();
+```
+
+Or do both simultanrously:
+```rust
+Boxy::builder()
+        .box_type(BoxType::Double)
+        .color("#aaffff")
+        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+        .align(BoxAlign::Center)
+        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_line("This is a new line.", "#32CD32")
+        .add_segment("Another section", "#f19356")
+        .width(50)
+        .build()
+        .display();
+```
+
+further, you can use the same methods as displayed above to modify the textbox before building.
+
+But you can also modify the textbox after building it (before displaying) using the methods shown in the following section.
+
+#### Using the Struct and methods.
+
 First import the crate into the current scope, using:
 
 ```rust
 use boxy_cli::prelude::*;
+use boxy_cli::constructs::BoxPad;
 ```
 
 Next you create a new boxy struct with either the ```new``` method:
