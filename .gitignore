@@ -5,3 +5,4 @@
 /boxy-cli/target/
 /binary-testing/target/
 /secrets
+/.vscode
