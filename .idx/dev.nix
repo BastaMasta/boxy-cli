@@ -8,7 +8,6 @@
   packages = [
     pkgs.gcc
     pkgs.rustup
-    pkgs.gh
   ];
 
   # Sets environment variables in the workspace
