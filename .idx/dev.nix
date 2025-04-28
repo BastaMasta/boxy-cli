@@ -7,7 +7,6 @@
   # Use https://search.nixos.org/packages to find packages
   packages = [
     pkgs.gcc
-    pkgs.rustup
   ];
 
   # Sets environment variables in the workspace
