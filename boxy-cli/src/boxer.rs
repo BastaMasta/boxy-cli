@@ -128,7 +128,7 @@ impl Boxy {
 
     /// Sets the size-ratio between segments when using vertical divisions
     ///
-    /// !! This feature is a work in progress. it may not work with the current version of the crate
+    /// This feature is still experimental, and not yet implemented fully, and hence may not work in the current version of the crate.
     pub fn set_segment_ratios(&mut self, seg_index: usize, ratios: Vec<usize>) {
         if seg_index >= self.seg_v_div_ratio.len() {
             self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
@@ -270,7 +270,9 @@ impl Boxy {
     
     //TODO: Not kill yourself while doing this
 
-    // Display a segment divided into mini-segments based on ratios
+    /// Display a segment divided into mini-segments based on ratios
+    ///
+    /// This feature is still experimental, and not yet implemented fully, and hence may not work in the current version of the crate.
     fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
         let box_col_truecolor = match HexColor::parse(&self.box_col) {
             Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
@@ -648,6 +650,8 @@ impl BoxyBuilder {
     }
 
     /// Sets the size ratios between segments for vertical divisions.
+    ///
+    /// This feature is still experimental, and not yet implemented fully, and hence may not work in the current version of the crate.
     pub fn segment_ratios(mut self, seg_index: usize, ratios: Vec<usize>) -> Self {
         if seg_index >= self.seg_v_div_ratio.len() {
             self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
