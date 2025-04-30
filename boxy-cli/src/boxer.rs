@@ -667,12 +667,11 @@ impl BoxyBuilder {
     /// while a negative value will make it wider (and will most likely break the TextBox if it goes out of bounds of the terminal).
     ///
     /// ```
-    /// use boxy_cli::boxy::Boxy;
-    /// use boxy_cli::constructs::BoxType;
+    /// # use boxy_cli::prelude::*;
+    /// # use boxy_cli::constructs::BoxType;
     ///
-    /// let mut my_box = Boxy::new(BoxType::Single, "#ffffff");
-    /// my_box.set_terminal_width_offset(-10); // Make the box 10 characters wider than the default
-    /// my_box.display();
+    /// # let mut my_box = BoxyBuilder::new();
+    /// my_box.set_terminal_width_offset(10); // Make the box 10 characters narrower than the total terminal width
     /// ```
     pub fn set_terminal_width_offset(mut self, offset: i32) -> Self {
         self.terminal_width_offset = offset;
