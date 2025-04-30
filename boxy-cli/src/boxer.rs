@@ -23,6 +23,7 @@ pub struct Boxy {
     pub seg_v_div_count: Vec<usize>,
     pub seg_v_div_ratio: Vec<Vec<usize>>,
     pub tot_seg: usize,
+    pub terminal_width_offset: i32,
 }
 
 // Default struct values for the textbox
@@ -42,6 +43,7 @@ impl Default for Boxy {
             seg_v_div_ratio: Vec::<Vec<usize>>::new(),
             seg_v_div_count: Vec::<usize>::new(),
             tot_seg: 0usize,
+            terminal_width_offset: -20
         }
     }
 }
@@ -143,7 +145,7 @@ impl Boxy {
         } else {
             let size = termsize::get();
             if let Some(terminal_size) = size {
-                terminal_size.cols as usize - 20
+                (terminal_size.cols as i32 + self.terminal_width_offset) as usize
             } else {
                 return;
             }
@@ -498,6 +500,7 @@ pub struct BoxyBuilder {
     fixed_width: usize,
     fixed_height: usize,
     seg_v_div_ratio: Vec<Vec<usize>>,
+    terminal_width_offset: i32,
 }
 
 impl BoxyBuilder {
@@ -653,6 +656,26 @@ impl BoxyBuilder {
         self
     }
 
+    /// Sets the offset used when calculating the dynamic width of the textbox based on the terminal size.
+    ///
+    /// By default, when `fixed_width` is not set, the textbox width is calculated as the terminal width minus 20.
+    /// This method allows you to overwrite this default offset. A positive value will make the textbox narrower,
+    /// while a negative value will make it wider (and will most likely break the TextBox if it goes out of bounds of the terminal).
+    ///
+    /// ```
+    /// use boxy_cli::boxy::Boxy;
+    /// use boxy_cli::constructs::BoxType;
+    ///
+    /// let mut my_box = Boxy::new(BoxType::Single, "#ffffff");
+    /// my_box.set_terminal_width_offset(-10); // Make the box 10 characters wider than the default
+    /// my_box.display();
+    /// ```
+    pub fn set_terminal_width_offset(mut self, offset: i32) -> Self {
+        self.terminal_width_offset = offset;
+        self
+    }
+
+
     /// Builds the `Boxy` instance.
     ///
     /// ```
@@ -688,6 +711,7 @@ impl BoxyBuilder {
                 seg_v_div_count
             },
             seg_v_div_ratio: self.seg_v_div_ratio,
+            terminal_width_offset: self.terminal_width_offset,
 
         }
     }
