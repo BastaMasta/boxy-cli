@@ -69,7 +69,7 @@ But you can also modify the textbox after building it (before displaying) using 
 
 #### Using the Struct and methods.
 
-First import the crate into the current scope, using:
+First, import the crate into the current scope, using:
 
 ```rust
 use boxy_cli::prelude::*;
@@ -100,12 +100,12 @@ or to a segment with a particular index:
 ```rust
 box1.add_text_line_indx(" consectetur adipiscing elit", "#32CD32", 0);
 ```
-Once you are done, just display the TextBox:
+Once you are done, display the TextBox:
 ```rust
 box1.display();
 ```
 
-*the text colour is a required argument, and will be implemented into a usable feature in the very near future. But for now, it does not work*
+*the text colour is a required argument and will be implemented into a usable feature in the very near future. But for now, it does not work*
 
 ## Examples:
 

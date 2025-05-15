@@ -13,7 +13,7 @@ fn main() {
     box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
     box1.add_text_sgmt("Hello Theree", "#00ffff");
     println!("{:#?}", box1);
-    // Post line insert check
+    // Post-line insert check
     println!("{:?}", box1);
     println!("\nTEXTBOX:");
     let start = Instant::now();

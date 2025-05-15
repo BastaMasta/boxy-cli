@@ -1,6 +1,6 @@
 /// Macro for creating a new Boxy struct
 ///
-/// Currently, has the following accepting fields:
+/// Currently, it has the following accepting fields:
 ///
 ///  - **type** - takes a [BoxType](crate::constructs::BoxType) enum
 ///
@@ -8,7 +8,7 @@
 ///
 ///  - **external_pad** and **internal-pad** - take any integer or float value
 ///
-///  - **alignment** - sets the alignment for the text inside the box. takes a [BoxAlign](crate::constructs::BoxAlign) enum
+///  - **alignment** - sets the alignment for the text inside the box. Takes a [BoxAlign](crate::constructs::BoxAlign) enum
 ///
 ///  - **segcount** - sets the number of segments in the textbox (not necessary to use)
 ///
@@ -26,9 +26,9 @@
 /// boxy.display();
 /// # }
 /// ```
-/// ! the segcount sets the number of segments in the box. If text for only two segments is provided, the third segment will be displayed empty.
+/// ! The segcount sets the number of segments in the box. If text for only two segments is provided, the third segment will be displayed empty.
 /// 
-/// ! the padding values here are taken to be for uniform padding on all sides.
+/// ! The padding values here are taken to be for uniform padding on all sides.
 #[macro_export]
 macro_rules! boxy {
     ($($key:ident: $value:expr),* $(,)?) => {{
