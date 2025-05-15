@@ -7,7 +7,7 @@ use crate::constructs::*;
 //TODO: Add Documentation and exaples for each method and/or segment. Especially the display method, the setters and the macro 
 
 
-/// The main struct. contains all the data rekevant to the TextBox
+/// The main struct. Contains all the data rekevant to the TextBox
 #[derive(Debug)]
 pub struct Boxy {
     pub type_enum: BoxType,
@@ -48,7 +48,7 @@ impl Default for Boxy {
 
 
 impl Boxy {
-    /// Retuns a new instance of the Boxy struct with specified border type and colour
+    /// Retuns a new instance of the Boxy struct with a specified border type and color
     pub fn new(box_type: BoxType, box_color : &str) -> Self {
         Boxy {
             type_enum: box_type,
@@ -91,26 +91,26 @@ impl Boxy {
 
     /// Set the internal padding for the textbox. (Between border and text)
     ///
-    /// !! provide a [`BoxPad`] Struct for the padding
+    /// !! Provide a [`BoxPad`] Struct for the padding
     // Setting the Padding manually
     pub fn set_int_padding(&mut self, int_padding : BoxPad) {
         self.int_padding = int_padding;
     }
     /// Set the external padding for the textbox. (Between terminal limits and border)
     /// 
-    /// !! provide a [`BoxPad`] Struct for the padding
+    /// !! Provide a [`BoxPad`] Struct for the padding
     pub fn set_ext_padding(&mut self, ext_padding : BoxPad) {
         self.ext_padding = ext_padding;
     }
     /// Set the internal padding and external padding for the textbox.
     ///
-    /// !! provide a [`BoxPad`] Struct for the padding
+    /// !! Provide a [`BoxPad`] Struct for the padding
     pub fn set_padding(&mut self, ext_padding : BoxPad, int_padding : BoxPad) {
         self.int_padding = int_padding;
         self.ext_padding = ext_padding;
     }
 
-    /// Sets a fixed width for the textbox insted of dynamically sizing it to the width of the terminal
+    /// Sets a fixed width for the textbox instead of dynamically sizing it to the width of the terminal
     // Setting the Width manually
     pub fn set_width(&mut self, width : usize) {
         self.fixed_width = width;
@@ -118,7 +118,7 @@ impl Boxy {
 
     /// Sets a fixed height for the textbox. (adds in whitespace above and below the text)
     ///
-    /// !! This feature is a work in progress. it may not work with the current version of the crate
+    /// !! This feature is a work in progress. It may not work with the current version of the crate
     // Setting the Height manually
     pub fn set_height(&mut self, height : usize) {
         self.fixed_height = height;
@@ -126,7 +126,7 @@ impl Boxy {
 
     /// Sets the size-ratio between segments when using vertical divisions
     ///
-    /// !! This feature is a work in progress. it may not work with the current version of the crate
+    /// !! This feature is a work in progress. It may not work with the current version of the crate
     pub fn set_segment_ratios(&mut self, seg_index: usize, ratios: Vec<usize>) {
         if seg_index >= self.seg_v_div_ratio.len() {
             self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
@@ -169,12 +169,12 @@ impl Boxy {
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
             if i > 0 {
-                self.print_h_divider(&*self.box_col.clone(), &disp_width);
+                self.print_h_divider(&self.box_col.clone(), &disp_width);
             }
             self.display_segment(i, &disp_width);
         }
 
-        // Printing bottom segment
+        // Printing the bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
         for _ in 0..disp_width -2*self.ext_padding.right {
             print!("{}", horiz);
@@ -183,7 +183,7 @@ impl Boxy {
 
     }
 
-    // Displaying each individual segment body
+    // Displaying each segment body
     fn display_segment(&mut self, seg_index: usize, disp_width: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
@@ -206,25 +206,15 @@ impl Boxy {
                 }
             };
             // Processing data
-            let mut processed_data = String::with_capacity(self.data[seg_index][i].len()+1);
-            processed_data.push_str(self.data[seg_index][i].trim());
-            processed_data.push(' ');
-            let mut ws_indices = Vec::new();
-            // Creating a map of all whitespaces to help in text wrapping for this text segment\
-            // looping over binary segments, as all other methods create a new iterator, taking up more mem
-            let mut k = 0usize;
-            while k < processed_data.len() {
-                if processed_data.as_bytes()[k] == b' ' {
-                    ws_indices.push(k);
-                }
-                k += 1;
-            }
+            let processed_data = self.data[seg_index][i].trim().to_owned() + " ";
+                        
+            let mut ws_indices = processed_data.as_bytes().iter().enumerate().filter(|(_, b)| **b == b' ').map(|(i, _)| i).collect::<Vec<usize>>();
 
             let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &disp_width.clone(), &self.ext_padding, &self.int_padding);
 
             // Actually printing shiet
 
-            // Iterative printing. migrated form recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
+            // Iterative printing. Migrated from recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
             iter_line_prnt(&liner, map_box_type(&self.type_enum), &box_col_truecolor, &text_col_truecolor,disp_width, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line
@@ -293,7 +283,7 @@ impl Boxy {
             return;
         }
 
-        // Calculate total ratio and widths for each mini-segment
+        // Calculate the total ratio and widths for each mini-segment
         let total_ratio: usize = ratios.iter().sum();
         let printable_width = terminal_size - self.ext_padding.lr();
         let segment_widths: Vec<usize> = ratios.iter().map(|r| r * printable_width / total_ratio).collect();

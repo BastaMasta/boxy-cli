@@ -13,7 +13,7 @@ fn main() {
     box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
     box1.add_text_sgmt("Hello Theree", "#00ffff");
     println!("{:#?}", box1);
-    // Post line insert check
+    // Post-line insert check
     println!("{:?}", box1);
     println!("\nTEXTBOX:");
     let start = Instant::now();
@@ -27,7 +27,7 @@ fn main() {
     box2.display();
     let duration1 = start1.elapsed();
     println!("Time elapsed: {:?}", duration1);
-    let mut my_box = Boxy::builder()
+    Boxy::builder()
         .box_type(BoxType::Double)
         .color("#aaffff")
         .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
@@ -36,7 +36,5 @@ fn main() {
         .add_line("This is a new line.", "#32CD32")
         .add_segment("Another section", "#f19356")
         .width(50)
-        .build();
-    println!("{:#?}", my_box);
-    my_box.display();
+        .build().display();
 }
