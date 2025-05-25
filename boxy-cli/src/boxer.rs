@@ -128,7 +128,7 @@ impl Boxy {
 
     /// Sets the size-ratio between segments when using vertical divisions
     ///
-    /// This feature is still experimental, and not yet implemented fully, and hence may not work in the current version of the crate.
+    /// This feature is still experimental and not yet implemented fully, and hence may not work in the current version of the crate.
     pub fn set_segment_ratios(&mut self, seg_index: usize, ratios: Vec<usize>) {
         if seg_index >= self.seg_v_div_ratio.len() {
             self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
@@ -262,7 +262,7 @@ impl Boxy {
 
     /// Display a segment divided into mini-segments based on ratios
     ///
-    /// This feature is still experimental, and not yet implemented fully, and hence may not work in the current version of the crate.
+    /// This feature is still experimental and not yet implemented fully, and hence may not work in the current version of the crate.
     fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
         let box_col_truecolor = match HexColor::parse(&self.box_col) {
             Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
@@ -641,7 +641,7 @@ impl BoxyBuilder {
 
     /// Sets the size ratios between segments for vertical divisions.
     ///
-    /// This feature is still experimental, and not yet implemented fully, and hence may not work in the current version of the crate.
+    /// This feature is still experimental and not yet implemented fully, and hence may not work in the current version of the crate.
     pub fn segment_ratios(mut self, seg_index: usize, ratios: Vec<usize>) -> Self {
         if seg_index >= self.seg_v_div_ratio.len() {
             self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
@@ -654,7 +654,7 @@ impl BoxyBuilder {
     ///
     /// By default, when `fixed_width` is not set, the textbox width is calculated as the terminal width minus 20.
     /// This method allows you to overwrite this default offset. A positive value will make the textbox narrower,
-    /// while a negative value will make it wider (and will most likely break the TextBox if it goes out of bounds of the terminal).
+    /// while a negative value will widen it (and will most likely break the TextBox if it goes out of bounds of the terminal).
     ///
     /// ```
     /// # use boxy_cli::prelude::*;
@@ -676,7 +676,7 @@ impl BoxyBuilder {
     /// # let mut my_box = BoxyBuilder::new();
     /// my_box.build();
     /// ```
-    /// Subsequently, disply using display()
+    /// Subsequently, display using display()
     /// ```
     /// # use boxy_cli::prelude::*;
     /// # let mut my_box = BoxyBuilder::new();
