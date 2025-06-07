@@ -216,7 +216,7 @@ impl Boxy {
 
             // Actually printing shiet
 
-            // Iterative printing. Migrated from recursive to prevent stack overflows and reduce complexity, also to improve code efficiency
+            // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity, also to improve code efficiency
             iter_line_prnt(&liner, map_box_type(&self.type_enum), &box_col_truecolor, &text_col_truecolor,disp_width, &self.ext_padding, &self.int_padding, &self.align);
 
             // printing an empty line between consecutive non-terminal text line

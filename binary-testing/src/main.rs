@@ -3,7 +3,6 @@ mod tests;
 use boxy_cli::prelude::*;
 use terminal_size::terminal_size;
 use std::time::Instant;
-use boxy_cli::constructs::BoxPad;
 
 fn main() {
     let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");

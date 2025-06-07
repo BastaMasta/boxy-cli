@@ -24,7 +24,6 @@ Importing the necessary:
 
 ```rust
 use boxy_cli::prelude::*;
-use boxy_cli::constructs::BoxPad;
 ```
 
 Next, you can create the BoxyBuilder struct
@@ -73,7 +72,6 @@ First, import the crate into the current scope, using:
 
 ```rust
 use boxy_cli::prelude::*;
-use boxy_cli::constructs::BoxPad;
 ```
 
 Next you create a new boxy struct with either the ```new``` method:
