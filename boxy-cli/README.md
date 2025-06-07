@@ -103,7 +103,7 @@ Once you are done, display the TextBox:
 box1.display();
 ```
 
-*the text colour is a required argument and will be implemented into a usable feature in the very near future. But for now, it does not work*
+*The text colour is a required argument and will be implemented into a usable feature in the very near future. But for now, it does not work*
 
 ## Examples:
 
