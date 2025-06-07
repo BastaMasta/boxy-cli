@@ -577,7 +577,6 @@ impl BoxyBuilder {
     ///
     /// ```
     /// # use boxy_cli::prelude::*;
-    /// # use boxy_cli::constructs::BoxPad;
     /// # let mut my_box = BoxyBuilder::new();
     /// my_box.internal_padding(BoxPad::from_tldr(1,2,1,2));
     /// ```
@@ -590,7 +589,6 @@ impl BoxyBuilder {
     ///
     /// ```
     /// # use boxy_cli::prelude::*;
-    /// # use boxy_cli::constructs::BoxPad;
     /// # let mut my_box = BoxyBuilder::new();
     /// my_box.external_padding(BoxPad::from_tldr(3,4,3,4));
     /// ```
@@ -603,7 +601,6 @@ impl BoxyBuilder {
     ///
     /// ```
     /// # use boxy_cli::prelude::*;
-    /// # use boxy_cli::constructs::BoxPad;
     /// # let mut my_box = BoxyBuilder::new();
     /// my_box.padding(BoxPad::from_tldr(3,4,3,4), BoxPad::from_tldr(1,2,1,2));
     /// ```
@@ -658,7 +655,6 @@ impl BoxyBuilder {
     ///
     /// ```
     /// # use boxy_cli::prelude::*;
-    /// # use boxy_cli::constructs::BoxType;
     ///
     /// # let mut my_box = BoxyBuilder::new();
     /// my_box.set_terminal_width_offset(10); // Make the box 10 characters narrower than the total terminal width
