@@ -1,6 +1,6 @@
 [package]
 name = "boxy-cli"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 description = "A simple crate to create coloured textboxes in rust"
 readme = "README.md"
