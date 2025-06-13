@@ -145,7 +145,7 @@ impl Boxy {
         } else {
             let size = termsize::get();
             if let Some(terminal_size) = size {
-                (terminal_size.cols as i32 + self.terminal_width_offset) as usize
+                (terminal_size.cols as i32 - 2 + self.terminal_width_offset) as usize
             } else {
                 return;
             }
