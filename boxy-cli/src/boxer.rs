@@ -4,9 +4,6 @@ use crate::templates::*;
 use crate::constructs::*;
 
 
-//TODO: Add Documentation and exaples for each method and/or segment. Especially the display method, the setters and the macro 
-
-
 /// The main struct. Contains all the data rekevant to the TextBox
 #[derive(Debug)]
 pub struct Boxy {
@@ -18,6 +15,7 @@ pub struct Boxy {
     pub int_padding: BoxPad,
     pub ext_padding: BoxPad,
     pub align : BoxAlign,
+    pub seg_align: Vec<BoxAlign>,
     pub fixed_width: usize,
     pub fixed_height: usize,
     pub seg_v_div_count: Vec<usize>,
@@ -38,6 +36,7 @@ impl Default for Boxy {
             int_padding: BoxPad::new(),
             ext_padding: BoxPad::new(),
             align : BoxAlign::Left,
+            seg_align: Vec::<BoxAlign>::new(),
             fixed_width: 0usize,
             fixed_height: 0usize,
             seg_v_div_ratio: Vec::<Vec<usize>>::new(),
@@ -65,9 +64,10 @@ impl Boxy {
     /// Adds a new text segment/section to the textbox, separated by a horizontal divider.
     // Adding a new text segment/section to the textbox
     // also initializes the textbox with its first use -> adds main body text
-    pub fn add_text_sgmt(&mut self, data_string : &str, color : &str) {
+    pub fn add_text_sgmt(&mut self, data_string : &str, color : &str, text_align: BoxAlign) {
         self.data.push(vec![data_string.to_owned()]);
         self.colors.push(vec![String::from(color)]);
+        self.seg_align.push(text_align);
         self.sect_count+=1;
     }
 
@@ -139,6 +139,7 @@ impl Boxy {
     /// Prints/Displays the textbox into the CLI
     // Main Display Function to display the textbox
     pub fn display(&mut self) {
+
         // Initialising Display Variables
 
         let term_size = termsize::get().unwrap_or_else( ||
@@ -149,7 +150,7 @@ impl Boxy {
         ).cols as usize;
 
         let disp_width = if self.fixed_width !=0 {
-            self.fixed_width
+            self.fixed_width - 2
         } else {
             term_size - self.ext_padding.lr() - 2
         };
@@ -252,100 +253,6 @@ impl Boxy {
         }
         println!("{}", box_pieces.right_t.to_string().color(box_col_truecolor));
     }
-
-    //TODO: Set up the boxy struct to have a vec for each segment, with a cons list for each individual segment
-    // that'll make sure that all segments have a proper implementation, and no segments have mismatched data datatypes
-    
-    //TODO: have the function fetch the data for it's sub-segment only, and not repeat the same for all the segments
-
-    //TODO: Resolve the internal whiitespace padding issue which occurs when longer segments are placed beside shorter segments
-    //TODO: check if the whitespace padidng is uniform along the length, if not squish the bug.
-    
-    //TODO: Not kill yourself while doing this
-
-    /// Display a segment divided into mini-segments based on ratios
-    ///
-    /// This feature is still experimental and not yet implemented fully, and hence may not work in the current version of the crate.
-    fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
-        let box_col_truecolor = match HexColor::parse(&self.box_col) {
-            Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
-            Err(e) => {
-                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
-                Color::White // Default color
-            }
-        };
-        let box_pieces = map_box_type(&self.type_enum);
-
-        // Fetch ratios for the segment
-        let ratios = if seg_index < self.seg_v_div_ratio.len() {
-            &self.seg_v_div_ratio[seg_index]
-        } else {
-            static EMPTY_VEC: Vec<usize> = Vec::new();
-            &EMPTY_VEC
-        };
-
-        if ratios.is_empty() {
-            // If no ratios are defined, fallback to a single segment
-            self.display_segment(seg_index, terminal_size);
-            return;
-        }
-
-        // Calculate the total ratio and widths for each mini-segment
-        let total_ratio: usize = ratios.iter().sum();
-        let printable_width = terminal_size - self.ext_padding.lr();
-        let segment_widths: Vec<usize> = ratios.iter().map(|r| r * printable_width / total_ratio).collect();
-
-        // Prepare text for each mini-segment
-        let mut mini_segments: Vec<Vec<String>> = vec![Vec::new(); ratios.len()];
-        let lines = &self.data[seg_index];
-        for line in lines.iter() {
-            let mut processed_data = String::with_capacity(line.len() + 1);
-            processed_data.push_str(line.trim());
-            processed_data.push(' ');
-
-            let mut ws_indices = Vec::new();
-            let mut k = 0usize;
-            while k < processed_data.len() {
-                if processed_data.as_bytes()[k] == b' ' {
-                    ws_indices.push(k);
-                }
-                k += 1;
-            }
-
-            // Distribute text into mini-segments
-            for (j, width) in segment_widths.iter().enumerate() {
-                let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &self.int_padding);
-                mini_segments[j].extend(liner);
-            }
-        }
-
-        // Print each line of the mini-segments with vertical dividers
-        let max_lines = mini_segments.iter().map(|seg| seg.len()).max().unwrap_or(0);
-        for line_index in 0..max_lines {
-            // Print the left padding and vertical bar
-            print!("{:>width$}", box_pieces.vertical.to_string().color(box_col_truecolor), width = self.ext_padding.left + 1);
-
-            for (j, segment) in mini_segments.iter().enumerate() {
-                if line_index < segment.len() {
-                    // Print the text in the mini-segment
-                    print!("{:<pad$}", " ", pad = self.int_padding.left);
-                    print!("{:<width$}", segment[line_index], width = segment_widths[j] - self.int_padding.lr());
-                    print!("{:<pad$}", " ", pad = self.int_padding.right);
-                } else {
-                    // Print empty space if no text exists for this line
-                    print!("{:<width$}", " ", width = segment_widths[j]);
-                }
-
-                // Print vertical divider between mini-segments
-                if j < mini_segments.len() - 1 {
-                    print!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
-                }
-            }
-
-            // Print the right padding and vertical bar
-            println!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
-        }
-    }
 }
 
 // Function to find the next-most-fitting string slice for the give terminal size
@@ -439,6 +346,20 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
     }
 }
 
+fn align_offset(disp_width: &usize, term_size: &usize, align: &BoxAlign) -> usize {
+    match *align {
+        BoxAlign::Left => {
+            0
+        },
+        BoxAlign::Center => {
+            (term_size-disp_width)/2
+        },
+        BoxAlign::Right => {
+            term_size-disp_width
+        }
+    }
+}
+
 // Macro type resolution fucntions for boxy!
 
 
@@ -492,6 +413,7 @@ pub struct BoxyBuilder {
     int_padding: BoxPad,
     ext_padding: BoxPad,
     align: BoxAlign,
+    seg_align: Vec<BoxAlign>,
     fixed_width: usize,
     fixed_height: usize,
     seg_v_div_ratio: Vec<Vec<usize>>,
@@ -538,11 +460,12 @@ impl BoxyBuilder {
     /// ```
     /// # use boxy_cli::prelude::*;
     /// # let mut my_box = BoxyBuilder::new();
-    /// my_box.add_segment("Lorem ipsum dolor sit amet", "#ffffff");
+    /// my_box.add_segment("Lorem ipsum dolor sit amet", "#ffffff", BoxAlign::Left);
     /// ```
-    pub fn add_segment(mut self, text: &str, color: &str) -> Self {
+    pub fn add_segment(mut self, text: &str, color: &str, text_align: BoxAlign) -> Self {
         self.data.push(vec![text.to_owned()]);
         self.colors.push(vec![color.to_owned()]);
+        self.seg_align.push(text_align);
         self
     }
 
@@ -551,7 +474,7 @@ impl BoxyBuilder {
     /// ```
     /// # use boxy_cli::prelude::*;
     /// # let mut my_box = BoxyBuilder::new();
-    /// my_box = my_box.add_segment("Lorem ipsum dolor sit amet", "#ffffff");
+    /// my_box = my_box.add_segment("Lorem ipsum dolor sit amet", "#ffffff", BoxAlign::Center);
     /// my_box.add_line("This is a new line!!!", "#ffffff");
     /// ```
     pub fn add_line(mut self, text: &str, color: &str) -> Self {
@@ -693,6 +616,7 @@ impl BoxyBuilder {
             int_padding: self.int_padding,
             ext_padding: self.ext_padding,
             align: self.align,
+            seg_align: self.seg_align,
             fixed_width: self.fixed_width,
             fixed_height: self.fixed_height,
             seg_v_div_count: {
@@ -708,3 +632,100 @@ impl BoxyBuilder {
         }
     }
 }
+
+
+
+
+
+
+//TODO: Set up the boxy struct to have a vec for each segment, with a cons list for each individual segment
+// that'll make sure that all segments have a proper implementation, and no segments have mismatched data datatypes
+
+//TODO: have the function fetch the data for it's sub-segment only, and not repeat the same for all the segments
+
+//TODO: Resolve the internal whiitespace padding issue which occurs when longer segments are placed beside shorter segments
+//TODO: check if the whitespace padidng is uniform along the length, if not squish the bug.
+
+//TODO: Not kill yourself while doing this
+
+// Display a segment divided into mini-segments based on ratios
+// fn _display_segment_with_ratios(&mut self, seg_index: usize, terminal_size: &usize) {
+//     let box_col_truecolor = match HexColor::parse(&self.box_col) {
+//         Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
+//         Err(e) => {
+//             eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
+//             Color::White // Default color
+//         }
+//     };
+//     let box_pieces = map_box_type(&self.type_enum);
+//
+//     // Fetch ratios for the segment
+//     let ratios = if seg_index < self.seg_v_div_ratio.len() {
+//         &self.seg_v_div_ratio[seg_index]
+//     } else {
+//         static EMPTY_VEC: Vec<usize> = Vec::new();
+//         &EMPTY_VEC
+//     };
+//
+//     if ratios.is_empty() {
+//         // If no ratios are defined, fallback to a single segment
+//         self.display_segment(seg_index, terminal_size);
+//         return;
+//     }
+//
+//     // Calculate the total ratio and widths for each mini-segment
+//     let total_ratio: usize = ratios.iter().sum();
+//     let printable_width = terminal_size - self.ext_padding.lr();
+//     let segment_widths: Vec<usize> = ratios.iter().map(|r| r * printable_width / total_ratio).collect();
+//
+//     // Prepare text for each mini-segment
+//     let mut mini_segments: Vec<Vec<String>> = vec![Vec::new(); ratios.len()];
+//     let lines = &self.data[seg_index];
+//     for line in lines.iter() {
+//         let mut processed_data = String::with_capacity(line.len() + 1);
+//         processed_data.push_str(line.trim());
+//         processed_data.push(' ');
+//
+//         let mut ws_indices = Vec::new();
+//         let mut k = 0usize;
+//         while k < processed_data.len() {
+//             if processed_data.as_bytes()[k] == b' ' {
+//                 ws_indices.push(k);
+//             }
+//             k += 1;
+//         }
+//
+//         // Distribute text into mini-segments
+//         for (j, width) in segment_widths.iter().enumerate() {
+//             let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &self.int_padding);
+//             mini_segments[j].extend(liner);
+//         }
+//     }
+//
+//     // Print each line of the mini-segments with vertical dividers
+//     let max_lines = mini_segments.iter().map(|seg| seg.len()).max().unwrap_or(0);
+//     for line_index in 0..max_lines {
+//         // Print the left padding and vertical bar
+//         print!("{:>width$}", box_pieces.vertical.to_string().color(box_col_truecolor), width = self.ext_padding.left + 1);
+//
+//         for (j, segment) in mini_segments.iter().enumerate() {
+//             if line_index < segment.len() {
+//                 // Print the text in the mini-segment
+//                 print!("{:<pad$}", " ", pad = self.int_padding.left);
+//                 print!("{:<width$}", segment[line_index], width = segment_widths[j] - self.int_padding.lr());
+//                 print!("{:<pad$}", " ", pad = self.int_padding.right);
+//             } else {
+//                 // Print empty space if no text exists for this line
+//                 print!("{:<width$}", " ", width = segment_widths[j]);
+//             }
+//
+//             // Print vertical divider between mini-segments
+//             if j < mini_segments.len() - 1 {
+//                 print!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
+//             }
+//         }
+//
+//         // Print the right padding and vertical bar
+//         println!("{}", box_pieces.vertical.to_string().color(box_col_truecolor));
+//     }
+// }
