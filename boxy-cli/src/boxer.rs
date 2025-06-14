@@ -140,15 +140,18 @@ impl Boxy {
     // Main Display Function to display the textbox
     pub fn display(&mut self) {
         // Initialising Display Variables
+
+        let term_size = termsize::get().unwrap_or_else( ||
+            {
+                eprintln!("Failed to get terminal size, assuming default width of 80");
+                termsize::Size { rows: 10, cols: 80 }
+            }
+        ).cols as usize;
+
         let disp_width = if self.fixed_width !=0 {
             self.fixed_width
         } else {
-            let size = termsize::get();
-            if let Some(terminal_size) = size {
-                (terminal_size.cols as i32 - 2 + self.terminal_width_offset) as usize
-            } else {
-                return;
-            }
+            term_size - self.ext_padding.lr() - 2
         };
 
         let box_col_truecolor = match HexColor::parse(&self.box_col) {
@@ -163,7 +166,7 @@ impl Boxy {
 
         // Printing the top segment
         print!("{:>width$}", box_pieces.top_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
-        for _ in 0..(disp_width -2*self.ext_padding.right) {
+        for _ in 0..(disp_width) {
             print!("{}", horiz);
         }
         println!("{}", box_pieces.top_right.to_string().color(box_col_truecolor));
@@ -178,7 +181,7 @@ impl Boxy {
 
         // Printing the bottom segment
         print!("{:>width$}", box_pieces.bottom_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
-        for _ in 0..disp_width -2*self.ext_padding.right {
+        for _ in 0..disp_width {
             print!("{}", horiz);
         }
         println!("{}", box_pieces.bottom_right.to_string().color(box_col_truecolor));
@@ -212,7 +215,7 @@ impl Boxy {
                         
             let mut ws_indices = processed_data.as_bytes().iter().enumerate().filter(|(_, b)| **b == b' ').map(|(i, _)| i).collect::<Vec<usize>>();
 
-            let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &disp_width.clone(), &self.ext_padding, &self.int_padding);
+            let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &disp_width.clone(), &self.int_padding);
 
             // Actually printing shiet
 
@@ -221,7 +224,7 @@ impl Boxy {
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
-                println!("{1:>width$}{}{1}", " ".repeat(disp_width - self.ext_padding.lr()),
+                println!("{1:>width$}{}{1}", " ".repeat(*disp_width),
                          map_box_type(&self.type_enum)
                              .vertical.to_string()
                              .color(box_col_truecolor),
@@ -244,7 +247,7 @@ impl Boxy {
         };
         let horiz =  box_pieces.horizontal.to_string().color(box_col_truecolor);
         print!("{:>width$}", box_pieces.left_t.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
-        for _ in 0..*disp_width-self.ext_padding.lr() {
+        for _ in 0..*disp_width {
             print!("{}", horiz);
         }
         println!("{}", box_pieces.right_t.to_string().color(box_col_truecolor));
@@ -311,7 +314,7 @@ impl Boxy {
 
             // Distribute text into mini-segments
             for (j, width) in segment_widths.iter().enumerate() {
-                let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &self.ext_padding, &self.int_padding);
+                let liner = text_wrap_vec(&processed_data, &mut ws_indices, width, &self.int_padding);
                 mini_segments[j].extend(liner);
             }
         }
@@ -365,12 +368,12 @@ fn nearest_whitespace(map: &mut Vec<usize>, printable_length: &usize, start_inde
 
 // Went with recursive as that is just more modular, and I can just reuse this code for printing horizontal and vertical segments.
 
-fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad) -> Vec<String> {
+fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, int_padding: &BoxPad) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
     let mut start_index = 0;
 
     while start_index < data.len() {
-        let next_ws = nearest_whitespace(map, &(disp_width - (int_padding.lr() + ext_padding.lr()) - 2), start_index);
+        let next_ws = nearest_whitespace(map, &(disp_width - int_padding.lr() - 2), start_index);
         liner.push(data[start_index..next_ws].to_string());
         if next_ws >= data.len()-1 {break;}
         start_index = next_ws+1;
@@ -389,7 +392,7 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, ext_paddin
 
 
 fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &Color, text_col: &Color, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad, align: &BoxAlign) {
-    let printable_area = disp_width - (int_padding.lr() + ext_padding.lr());
+    let printable_area = disp_width - (int_padding.lr());
     let vertical = box_pieces.vertical.to_string().color(*box_col);
     match align {
         BoxAlign::Left => {
