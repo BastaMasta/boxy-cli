@@ -34,9 +34,9 @@ let mut my_box = Boxy::builder()
         .color("#00ffff")
         .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
         .align(BoxAlign::Center)
-        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
         .add_line("This is a new line.", "#32CD32")
-        .add_segment("Another section", "#663399")
+        .add_segment("Another section", "#663399", BoxAlign::Left)
         .width(50)
         .build();
 ```
@@ -54,9 +54,9 @@ Boxy::builder()
         .color("#aaffff")
         .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
         .align(BoxAlign::Center)
-        .add_segment("Hello, Boxy!", "#ffffff")
+        .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
         .add_line("This is a new line.", "#32CD32")
-        .add_segment("Another section", "#f19356")
+        .add_segment("Another section", "#f19356", BoxAlign::Right)
         .width(50)
         .build()
         .display();
@@ -84,11 +84,11 @@ or the macro:
 ```rust
 let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
 ```
-*for more info on the macro, view the [macro documentation](https://docs.rs/boxy-cli/0.1.0/boxy_cli/macro.boxy.html)*
+*for more info on the macro, view the [macro documentation](https://docs.rs/boxy-cli/latest/boxy_cli/macro.boxy.html)*
 
 Next, we just add in text sections:
 ```rust
-box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff");
+box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff", BoxAlign::Center);
 ```
 Add some more text to the same segment (or the latest segment):
 ```rust
@@ -97,6 +97,15 @@ box1.add_text_line("consectetur adipiscing elit", "#32CD32");
 or to a segment with a particular index:
 ```rust
 box1.add_text_line_indx(" consectetur adipiscing elit", "#32CD32", 0);
+```
+Add in padding (Internal Padding and External Padding, in that order)
+```rust
+box1.set_padding(BoxPad::from_tldr(1,2,3,4), BoxPad::uniform(0));
+```
+Change the box's Alignment (place the box to the left, in the center or the right of the display area)
+
+```rust
+box1.set_align(BoxAlign::Left); // Default alignment is left
 ```
 Once you are done, display the TextBox:
 ```rust
@@ -114,9 +123,9 @@ use boxy_cli::prelude::*;
 
 fn main() {
     let mut box1 = Boxy::new(BoxType::Double,"#bfff00");
-    box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#ffff");
-    box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
-    box1.add_text_sgmt("Hello Theree", "#ffff");
+	box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#00ffff", BoxAlign::Left);
+	box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff", BoxAlign::Center);
+	box1.add_text_sgmt("Hello Theree", "#00ffff", BoxAlign::Center);
     box1.display();
 }
 ```
@@ -128,8 +137,8 @@ use boxy_cli::prelude::*;
 
 fn main() {
     let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
-    box2.add_text_sgmt("Hello There Mateojablij trhwesoiuethj 0piswe hjgtgoise jgtowie3thj q3o-oitujpwiej toiq 0iweeh gt owjtpiewrwh WOKWRHJ JRQWE4IHYNE5R bfg oiwhf apeih aepih aepih aepihetm wf[ohgwlMRF [POWQWRF]] [OJTQEA [OJ]]OJBDGISUDBG SIUGRG OGUFOSIJGOSN SOGUIHSGIORNGR ORIRHGOSJRNGOIJRG OPIFGHRPGNPERIJG ORIRGRPIGNERPGOSJH ", "#ffff");
-    box2.add_text_line("Hello Theree", "#32CD32");
+	box2.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo ", "#ffff", BoxAlign::Left);
+	box2.add_text_line("Hello There Boi", "#32CD32");
     box2.display();
 }
 ```

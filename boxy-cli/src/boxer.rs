@@ -164,10 +164,12 @@ impl Boxy {
         };
         let box_pieces = map_box_type(&self.type_enum);
         let horiz =box_pieces.horizontal.to_string().color(box_col_truecolor);
+        
+        let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
 
         // Printing the top segment
-        print!("{:>width$}", box_pieces.top_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
-        for _ in 0..(disp_width) {
+        print!("{:>width$}", box_pieces.top_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1+align_offset);
+        for _ in 0..disp_width {
             print!("{}", horiz);
         }
         println!("{}", box_pieces.top_right.to_string().color(box_col_truecolor));
@@ -175,13 +177,13 @@ impl Boxy {
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
             if i > 0 {
-                self.print_h_divider(&self.box_col.clone(), &disp_width);
+                self.print_h_divider(&self.box_col.clone(), &disp_width, &align_offset);
             }
-            self.display_segment(i, &disp_width);
+            self.display_segment(i, &disp_width, &align_offset);
         }
 
         // Printing the bottom segment
-        print!("{:>width$}", box_pieces.bottom_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
+        print!("{:>width$}", box_pieces.bottom_left.to_string().color(box_col_truecolor), width=self.ext_padding.left+1+align_offset);
         for _ in 0..disp_width {
             print!("{}", horiz);
         }
@@ -190,7 +192,7 @@ impl Boxy {
     }
 
     // Displaying each segment body
-    fn display_segment(&mut self, seg_index: usize, disp_width: &usize) {
+    fn display_segment(&mut self, seg_index: usize, disp_width: &usize, align_offset: &usize) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
         let box_col_truecolor = match HexColor::parse(&self.box_col) {
@@ -218,10 +220,18 @@ impl Boxy {
 
             let liner: Vec<String> = text_wrap_vec(&processed_data, &mut ws_indices, &disp_width.clone(), &self.int_padding);
 
+            // Generating new External Pad based on alignment offset
+            let ext_offset = BoxPad {
+                top: self.ext_padding.top,
+                left: self.ext_padding.left + align_offset,
+                right: self.ext_padding.right,
+                down: self.ext_padding.down,
+            }; 
+            
             // Actually printing shiet
 
             // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity, also to improve code efficiency
-            iter_line_prnt(&liner, map_box_type(&self.type_enum), &box_col_truecolor, &text_col_truecolor,disp_width, &self.ext_padding, &self.int_padding, &self.align);
+            iter_line_prnt(&liner, map_box_type(&self.type_enum), &box_col_truecolor, &text_col_truecolor, (disp_width, &(self.fixed_width != 0)), (&ext_offset, &self.int_padding), &self.seg_align[seg_index]);
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
@@ -229,7 +239,7 @@ impl Boxy {
                          map_box_type(&self.type_enum)
                              .vertical.to_string()
                              .color(box_col_truecolor),
-                         width=self.ext_padding.left+1);
+                         width=self.ext_padding.left+1+align_offset);
             }
         }
         // Recursive Printing of text -> now depreciated
@@ -237,7 +247,7 @@ impl Boxy {
     }
 
     // Printing the horizontal divider.
-    fn print_h_divider(&mut self, boxcol_hex: &str, disp_width: &usize){
+    fn print_h_divider(&mut self, boxcol_hex: &str, disp_width: &usize, align_offset: &usize) {
         let box_pieces = map_box_type(&self.type_enum);
         let box_col_truecolor = match HexColor::parse(boxcol_hex) {
             Ok(color) => Color::TrueColor { r: color.r, g: color.g, b: color.b },
@@ -247,7 +257,7 @@ impl Boxy {
             }
         };
         let horiz =  box_pieces.horizontal.to_string().color(box_col_truecolor);
-        print!("{:>width$}", box_pieces.left_t.to_string().color(box_col_truecolor), width=self.ext_padding.left+1);
+        print!("{:>width$}", box_pieces.left_t.to_string().color(box_col_truecolor), width=self.ext_padding.left+1+align_offset);
         for _ in 0..*disp_width {
             print!("{}", horiz);
         }
@@ -298,15 +308,17 @@ fn text_wrap_vec(data:&str, map: &mut Vec<usize>, disp_width: &usize, int_paddin
 }
 
 
-fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &Color, text_col: &Color, disp_width: &usize, ext_padding: &BoxPad, int_padding: &BoxPad, align: &BoxAlign) {
-    let printable_area = disp_width - (int_padding.lr());
+fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &Color, text_col: &Color, disp_params: (&usize, &bool), padding: (&BoxPad, &BoxPad), align: &BoxAlign) {
+    let (ext_padding, int_padding) = padding;
+    let (disp_width, fixed_size) = disp_params;
+    let printable_area = disp_width - int_padding.lr() + 2*((int_padding.left!=0) as usize)*(!*fixed_size as usize); // IDK why this works, but it does
     let vertical = box_pieces.vertical.to_string().color(*box_col);
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:<width$}", i.color(*text_col), width=printable_area-2); // subtract 2 for the bars
+                print!("{:<width$}", i.color(*text_col), width=printable_area-(2*(!*fixed_size as usize))); // subtract 2 for the bars if on dynamic sizing
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
@@ -324,7 +336,7 @@ fn iter_line_prnt(liner : &[String], box_pieces:BoxTemplates, box_col: &Color, t
             for i in liner.iter() {
                 print!("{:>width$}", vertical, width=ext_padding.left+1);
                 print!("{:<pad$}", " ", pad=int_padding.left);
-                print!("{:>width$}", i.color(*text_col), width=printable_area-2); // subtract 2 for the bars
+                print!("{:>width$}", i.color(*text_col), width=printable_area-(2*(!*fixed_size as usize))); // subtract 2 for the bars if on dynamic sizing
                 print!("{:<pad$}", " ", pad=int_padding.right);
                 println!("{}", vertical);
             }
@@ -346,16 +358,16 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
     }
 }
 
-fn align_offset(disp_width: &usize, term_size: &usize, align: &BoxAlign) -> usize {
+fn align_offset(disp_width: &usize, term_size: &usize, align: &BoxAlign, padding: &BoxPad) -> usize {
     match *align {
         BoxAlign::Left => {
             0
         },
         BoxAlign::Center => {
-            (term_size-disp_width)/2
+            (term_size-disp_width)/2 - padding.left
         },
         BoxAlign::Right => {
-            term_size-disp_width
+            term_size-(disp_width + 2*padding.right + padding.left)
         }
     }
 }

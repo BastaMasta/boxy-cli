@@ -30,15 +30,15 @@ Next, you can create the BoxyBuilder struct
 
 ```rust
 let mut my_box = Boxy::builder()
-        .box_type(BoxType::Double)
-        .color("#00ffff")
-        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
-        .align(BoxAlign::Center)
-        .add_segment("Hello, Boxy!", "#ffffff")
-        .add_line("This is a new line.", "#32CD32")
-        .add_segment("Another section", "#663399")
-        .width(50)
-        .build();
+    .box_type(BoxType::Double)
+    .color("#00ffff")
+    .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+    .align(BoxAlign::Center)
+    .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
+    .add_line("This is a new line.", "#32CD32")
+    .add_segment("Another section", "#663399", BoxAlign::Left)
+    .width(50)
+    .build();
 ```
 
 and now, display it:
@@ -50,16 +50,16 @@ my_box.display();
 Or do both simultanrously:
 ```rust
 Boxy::builder()
-        .box_type(BoxType::Double)
-        .color("#aaffff")
-        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
-        .align(BoxAlign::Center)
-        .add_segment("Hello, Boxy!", "#ffffff")
-        .add_line("This is a new line.", "#32CD32")
-        .add_segment("Another section", "#f19356")
-        .width(50)
-        .build()
-        .display();
+    .box_type(BoxType::Double)
+    .color("#aaffff")
+    .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
+    .align(BoxAlign::Center)
+    .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
+    .add_line("This is a new line.", "#32CD32")
+    .add_segment("Another section", "#f19356", BoxAlign::Right)
+    .width(50)
+    .build()
+    .display();
 ```
 
 further, you can use the same methods as displayed above to modify the textbox before building.
@@ -88,7 +88,7 @@ let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
 
 Next, we just add in text sections:
 ```rust
-box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff");
+box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff", BoxAlign::Center);
 ```
 Add some more text to the same segment (or the latest segment):
 ```rust
@@ -115,9 +115,9 @@ use boxy_cli::prelude::*;
 
 fn main() {
     let mut box1 = Boxy::new(BoxType::Double,"#bfff00");
-    box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#ffff");
-    box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
-    box1.add_text_sgmt("Hello Theree", "#ffff");
+    box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#ffff", BoxAlign::Left);
+    box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff", BoxAlign::Left);
+    box1.add_text_sgmt("Hello Theree", "#ffff", BoxAlign::Left);
     box1.display();
 }
 ```
@@ -131,9 +131,9 @@ use boxy_cli::prelude::*;
 
 fn main() {
     let mut box1 = Boxy::new(BoxType::Bold,"#00ffff");
-    box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#ffff");
-    box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
-    box1.add_text_sgmt("Hello Theree", "#ffff");
+    box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#ffff", BoxAlign::Left);
+    box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff", BoxAlign::Left);
+    box1.add_text_sgmt("Hello Theree", "#ffff", BoxAlign::Left);
     box1.display();
 }
 ```
