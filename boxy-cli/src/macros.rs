@@ -1,3 +1,5 @@
+//! The boxy! macro
+
 /// Macro for creating a new Boxy struct
 ///
 /// Currently, it has the following accepting fields:
