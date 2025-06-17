@@ -131,10 +131,6 @@ Once you are done, display the TextBox:
 box1.display();
 ```
 
-### Using the Macro
-
-You can also use the `boxy!` macro for quick box creation:
-
 
 ## Examples:
 
