@@ -1,4 +1,4 @@
-
+//! The structs for the box border characters
 #[allow(dead_code)]
 pub(crate)  struct BoxTemplates {
     pub(crate) top_left : char,

@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "boxy-cli"
-version = "1.0.3"
+version = "2.0.0"
 dependencies = [
  "colored",
  "hex_color",

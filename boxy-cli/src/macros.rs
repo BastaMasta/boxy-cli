@@ -1,3 +1,5 @@
+//! The boxy! macro
+
 /// Macro for creating a new Boxy struct
 ///
 /// Currently, it has the following accepting fields:
@@ -20,9 +22,9 @@
 /// let mut boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left, segcount: 3);
 ///
 /// // Adding text segments
-/// boxy.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "#ffff");
-/// boxy.add_text_sgmt("et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff");
-/// boxy.add_text_sgmt("Hello Theree", "#ffff");
+/// boxy.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "#ffff", BoxAlign::Center);
+/// boxy.add_text_sgmt("et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff", BoxAlign::Left);
+/// boxy.add_text_sgmt("Hello Theree", "#ffff", BoxAlign::Right);
 /// boxy.display();
 /// # }
 /// ```
