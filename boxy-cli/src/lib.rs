@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! # Boxy CLI
 //!
 //! A Rust library for creating beautifully styled text boxes in command-line interfaces.
