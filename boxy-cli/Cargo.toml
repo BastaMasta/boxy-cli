@@ -1,6 +1,6 @@
 [package]
 name = "boxy-cli"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2024"
 description = "A simple crate to create coloured textboxes in rust"
 readme = "README.md"
@@ -11,7 +11,7 @@ categories = ["command-line-interface", "development-tools"]
 build = false
 
 [badges]
-maintenance = { status = "experimental" }
+maintenance = { status = "stable" }
 
 [dependencies]
 colored = "3.0.0"
