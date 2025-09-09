@@ -41,8 +41,9 @@
 //!
 //! See the [README](https://github.com/BastaMasta/boxy-cli) for more examples and usage information.
 
+#[allow(dead_code)]
 pub mod boxer;
-pub mod templates;
+pub(crate) mod templates;
 pub mod macros;
 pub mod constructs;
 pub mod prelude;

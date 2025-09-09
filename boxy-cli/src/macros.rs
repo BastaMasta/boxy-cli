@@ -34,15 +34,15 @@
 #[macro_export]
 macro_rules! boxy {
     ($($key:ident: $value:expr),* $(,)?) => {{
-        let mut boxy = Boxy::default();
+        let mut boxy = $crate::boxer::Boxy::default();
         $(
             match stringify!($key) {
-                "type" => boxy.type_enum = resolve_type($value.to_string()),
-                "color" => boxy.box_col = resolve_col($value.to_string()),
-                "internal_pad" => boxy.int_padding = resolve_pad($value.to_string()),
-                "external_pad" => boxy.ext_padding = resolve_pad($value.to_string()),
-                "alignment" => boxy.align = resolve_align($value.to_string()),
-                "segcount" => boxy.tot_seg = resolve_segments($value.to_string()),
+                "type" => boxy.set_type($crate::boxer::resolve_type($value.to_string())),
+                "color" => boxy.set_color(&$crate::boxer::resolve_col($value.to_string())),
+                "internal_pad" => boxy.set_int_padding($crate::boxer::resolve_pad($value.to_string())),
+                "external_pad" => boxy.set_ext_padding($crate::boxer::resolve_pad($value.to_string())),
+                "alignment" => boxy.set_align($crate::boxer::resolve_align($value.to_string())),
+                "segcount" => boxy.set_total_segments($crate::boxer::resolve_segments($value.to_string())),
                 _ => panic!("Unknown field: {}", stringify!($key)),
             }
         )*

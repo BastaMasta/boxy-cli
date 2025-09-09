@@ -24,21 +24,21 @@ use crate::constructs::*;
 /// ```
 #[derive(Debug)]
 pub struct Boxy<'a> {
-    pub type_enum: BoxType,
-    pub data : Vec<Vec<Cow<'a, str>>>,
-    pub sect_count: usize,
-    pub box_col : String,
-    pub colors : Vec<Vec<Cow<'a, str>>>,
-    pub int_padding: BoxPad,
-    pub ext_padding: BoxPad,
-    pub align : BoxAlign,
-    pub seg_align: Vec<BoxAlign>,
-    pub fixed_width: usize,
-    pub fixed_height: usize,
-    pub seg_v_div_count: Vec<usize>,
-    pub seg_v_div_ratio: Vec<Vec<usize>>,
-    pub tot_seg: usize,
-    pub terminal_width_offset: i32,
+    type_enum: BoxType,
+    data: Vec<Vec<Cow<'a, str>>>,
+    sect_count: usize,
+    box_col: String,
+    colors: Vec<Vec<Cow<'a, str>>>,
+    int_padding: BoxPad,
+    ext_padding: BoxPad,
+    align: BoxAlign,
+    seg_align: Vec<BoxAlign>,
+    fixed_width: usize,
+    fixed_height: usize,
+    seg_v_div_count: Vec<usize>,
+    seg_v_div_ratio: Vec<Vec<usize>>,
+    tot_seg: usize,
+    terminal_width_offset: i32,
 }
 
 // Default struct values for the textbox
@@ -339,6 +339,22 @@ impl<'a> Boxy<'a> {
         self.fixed_height = height;
     }
 
+    /// Sets the border type (box style).
+    pub fn set_type(&mut self, box_type: BoxType) {
+        self.type_enum = box_type;
+    }
+
+    /// Sets the border color using a hex string (e.g., "#00ffff").
+    pub fn set_color(&mut self, color: &str) {
+        self.box_col = color.to_string();
+    }
+
+    /// Sets the total segment count used by the macro; does not allocate content.
+    /// This mirrors the previous macro behavior which only updated the count field.
+    pub fn set_total_segments(&mut self, total: usize) {
+        self.tot_seg = total;
+    }
+
     /// Sets the size-ratio between segments when using vertical divisions
     ///
     /// This feature is still experimental and not yet implemented fully, and hence may not work in the current version of the crate.
@@ -454,7 +470,7 @@ impl<'a> Boxy<'a> {
             // Actually printing shiet
 
             // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity, also to improve code efficiency
-            iter_line_prnt(&liner, box_pieces, &box_col_truecolor, &text_col_truecolor, (&disp_width, &(self.fixed_width != 0)), (&ext_offset, &self.int_padding), &self.seg_align[seg_index]);
+            iter_line_prnt(&liner, box_pieces, box_col_truecolor, &text_col_truecolor, (&disp_width, &(self.fixed_width != 0)), (&ext_offset, &self.int_padding), &self.seg_align[seg_index]);
 
             // printing an empty line between consecutive non-terminal text line
             if i < self.data[seg_index].len() - 1 {
@@ -574,14 +590,22 @@ fn align_offset(disp_width: &usize, term_size: &usize, align: &BoxAlign, padding
 
 
 /// Macro type-resolution function
+// These helpers are public so the macro can access them across crate boundaries via $crate::boxer::...
+// They are hidden from docs and not intended for direct user consumption.
+#[doc(hidden)]
+#[allow(dead_code)]
 pub fn resolve_col(dat : String) -> String {
     dat
 }
 /// Macro type-resolution function
+#[doc(hidden)]
+#[allow(dead_code)]
 pub fn resolve_pad(dat : String) -> BoxPad {
     BoxPad::uniform(dat.parse::<usize>().unwrap_or(0usize))
 }
 /// Macro type-resolution function
+#[doc(hidden)]
+#[allow(dead_code)]
 pub fn resolve_align(dat : String) -> BoxAlign {
     match &*dat {
         "center" => BoxAlign::Center,
@@ -591,6 +615,8 @@ pub fn resolve_align(dat : String) -> BoxAlign {
     }
 }
 /// Macro type-resolution function
+#[doc(hidden)]
+#[allow(dead_code)]
 pub fn resolve_type(dat : String) -> BoxType{
     match &*dat {
         "classic" => BoxType::Classic,
@@ -605,6 +631,8 @@ pub fn resolve_type(dat : String) -> BoxType{
     }
 }
 /// Macro type-resolution function
+#[doc(hidden)]
+#[allow(dead_code)]
 pub fn resolve_segments(dat : String) -> usize {
     dat.parse().expect("failed to parse total segment number")
 }
