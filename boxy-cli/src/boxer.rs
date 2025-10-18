@@ -569,6 +569,7 @@ fn map_box_type (boxtype : &BoxType) -> BoxTemplates{
         BoxType::Bold => BOLD_TEMPLATE,
         BoxType::Rounded => ROUNDED_TEMPLATE,
         BoxType::BoldCorners => BOLD_CORNERS_TEMPLATE,
+        BoxType::Empty => EMPTY_TEMPLATE,
     }
 }
 
@@ -589,7 +590,6 @@ fn align_offset(disp_width: &usize, term_size: &usize, align: &BoxAlign, padding
 // Macro type resolution fucntions for boxy!
 
 
-/// Macro type-resolution function
 // These helpers are public so the macro can access them across crate boundaries via $crate::boxer::...
 // They are hidden from docs and not intended for direct user consumption.
 #[doc(hidden)]
@@ -597,13 +597,13 @@ fn align_offset(disp_width: &usize, term_size: &usize, align: &BoxAlign, padding
 pub fn resolve_col(dat : String) -> String {
     dat
 }
-/// Macro type-resolution function
+// Macro type-resolution function
 #[doc(hidden)]
 #[allow(dead_code)]
 pub fn resolve_pad(dat : String) -> BoxPad {
     BoxPad::uniform(dat.parse::<usize>().unwrap_or(0usize))
 }
-/// Macro type-resolution function
+// Macro type-resolution function
 #[doc(hidden)]
 #[allow(dead_code)]
 pub fn resolve_align(dat : String) -> BoxAlign {
@@ -614,23 +614,24 @@ pub fn resolve_align(dat : String) -> BoxAlign {
         _ => BoxAlign::Left,
     }
 }
-/// Macro type-resolution function
+// Macro type-resolution function
 #[doc(hidden)]
 #[allow(dead_code)]
 pub fn resolve_type(dat : String) -> BoxType{
     match &*dat {
-        "classic" => BoxType::Classic,
-        "single" => BoxType::Single,
-        "double_horizontal" => BoxType::DoubleHorizontal,
-        "double_vertical" => BoxType::DoubleVertical,
-        "double" => BoxType::Double,
-        "bold" => BoxType::Bold,
-        "rounded" => BoxType::Rounded,
-        "bold_corners" => BoxType::BoldCorners,
+        "classic" | "c" => BoxType::Classic,
+        "single" | "s" => BoxType::Single,
+        "double_horizontal" | "dh" => BoxType::DoubleHorizontal,
+        "double_vertical" | "dv" => BoxType::DoubleVertical,
+        "double" | "d" => BoxType::Double,
+        "bold" | "b" => BoxType::Bold,
+        "rounded" | "r" => BoxType::Rounded,
+        "bold_corners" | "bc" => BoxType::BoldCorners,
+        "empty" | "e" => BoxType::Empty,
         _ => BoxType::Single,
     }
 }
-/// Macro type-resolution function
+// Macro type-resolution function
 #[doc(hidden)]
 #[allow(dead_code)]
 pub fn resolve_segments(dat : String) -> usize {

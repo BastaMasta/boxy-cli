@@ -33,7 +33,9 @@ pub enum BoxType{
     /// Box with rounded corners
     Rounded,
     /// Box with bold corners and normal edges
-    BoldCorners
+    BoldCorners,
+    /// Box with no borders (invisible)
+    Empty,
 }
 
 // Added Display Fucntion to resolve type errors in the macro
@@ -48,6 +50,7 @@ impl Display for BoxType{
             BoxType::Bold => "bold".to_string(),
             BoxType::Rounded => "rounded".to_string(),
             BoxType::BoldCorners => "bold_corners".to_string(),
+            BoxType::Empty => "empty".to_string(),
         };
         write!(f, "{}", str)
     }
