@@ -439,20 +439,16 @@ impl<'a> Boxy<'a> {
 
     }
 
-    fn print_cols(&self, seg_index: usize) {
+    fn print_cols(&self, seg_index: usize, term_size: usize, box_pieces: BoxTemplates, box_col_tc: Color::TrueColor) {
         let mut curr_line = 0;
         let mut data_counts : Vec<usize> = Vec::new();
-        let curr_width = termsize::get().unwrap_or_else( ||
-            {
-                eprintln!("Failed to get terminal size, assuming default width of 80");
-                termsize::Size { rows: 10, cols: 80 }
-            }
-        ).cols as usize;
+        let mut width = term_size;
         loop {
 
             for i in 0..self.seg_cols_count[seg_index] {
                 // print lines
-                
+                print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
+                display_col_segment_line(); //TODO: create this function, which takes a usize for last wordindex and resumes each segment from the last word on the next line
             }
 
             curr_line+=1;
