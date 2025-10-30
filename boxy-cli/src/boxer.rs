@@ -35,8 +35,8 @@ pub struct Boxy<'a> {
     seg_align: Vec<BoxAlign>,
     fixed_width: usize,
     fixed_height: usize,
-    seg_v_div_count: Vec<usize>,
-    seg_v_div_ratio: Vec<Vec<usize>>,
+    seg_cols_count: Vec<usize>,
+    seg_cols_ratio: Vec<Vec<usize>>,
     tot_seg: usize,
     terminal_width_offset: i32,
 }
@@ -56,8 +56,8 @@ impl Default for Boxy<'_> {
             seg_align: Vec::<BoxAlign>::new(),
             fixed_width: 0usize,
             fixed_height: 0usize,
-            seg_v_div_ratio: Vec::<Vec<usize>>::new(),
-            seg_v_div_count: Vec::<usize>::new(),
+            seg_cols_ratio: Vec::<Vec<usize>>::new(),
+            seg_cols_count: Vec::<usize>::new(),
             tot_seg: 0usize,
             terminal_width_offset: -20
         }
@@ -359,10 +359,10 @@ impl<'a> Boxy<'a> {
     ///
     /// This feature is still experimental and not yet implemented fully, and hence may not work in the current version of the crate.
     pub fn set_segment_ratios(&mut self, seg_index: usize, ratios: Vec<usize>) {
-        if seg_index >= self.seg_v_div_ratio.len() {
-            self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
+        if seg_index >= self.seg_cols_ratio.len() {
+            self.seg_cols_ratio.resize(seg_index + 1, Vec::new());
         }
-        self.seg_v_div_ratio[seg_index] = ratios;
+        self.seg_cols_ratio[seg_index] = ratios;
     }
 
     /// Renders and displays the textbox in the terminal.
@@ -439,10 +439,34 @@ impl<'a> Boxy<'a> {
 
     }
 
+    fn print_cols(&self, seg_index: usize) {
+        let mut curr_line = 0;
+        let mut data_counts : Vec<usize> = Vec::new();
+        let curr_width = termsize::get().unwrap_or_else( ||
+            {
+                eprintln!("Failed to get terminal size, assuming default width of 80");
+                termsize::Size { rows: 10, cols: 80 }
+            }
+        ).cols as usize;
+        loop {
+
+            for i in 0..self.seg_cols_count[seg_index] {
+                // print lines
+                
+            }
+
+            curr_line+=1;
+            
+        }
+       
+    }
+
     // Displaying each segment body
     fn display_segment(&mut self, seg_index: usize, disp_width: usize, align_offset: usize, box_pieces: &BoxTemplates, box_col_truecolor: &Color) {
 
         // TODO: Add functionality to create segments while displaying the textbox i.e. columns
+
+
 
         // Loop for all text lines
         for i in 0..self.data[seg_index].len() {
@@ -675,7 +699,7 @@ pub struct BoxyBuilder <'a> {
     seg_align: Vec<BoxAlign>,
     fixed_width: usize,
     fixed_height: usize,
-    seg_v_div_ratio: Vec<Vec<usize>>,
+    seg_cols_ratio: Vec<Vec<usize>>,
     terminal_width_offset: i32,
 }
 
@@ -1101,10 +1125,10 @@ impl <'a> BoxyBuilder <'a> {
     /// ```
     ///
     pub fn segment_ratios(mut self, seg_index: usize, ratios: Vec<usize>) -> Self {
-        if seg_index >= self.seg_v_div_ratio.len() {
-            self.seg_v_div_ratio.resize(seg_index + 1, Vec::new());
+        if seg_index >= self.seg_cols_ratio.len() {
+            self.seg_cols_ratio.resize(seg_index + 1, Vec::new());
         }
-        self.seg_v_div_ratio[seg_index] = ratios;
+        self.seg_cols_ratio[seg_index] = ratios;
         self
     }
 
@@ -1185,14 +1209,14 @@ impl <'a> BoxyBuilder <'a> {
             seg_align: self.seg_align,
             fixed_width: self.fixed_width,
             fixed_height: self.fixed_height,
-            seg_v_div_count: {
-                let mut seg_v_div_count = Vec::new();
-                for seg in &self.seg_v_div_ratio {
-                    seg_v_div_count.push(seg.len());
+            seg_cols_count: {
+                let mut seg_cols_count = Vec::new();
+                for seg in &self.seg_cols_ratio {
+                    seg_cols_count.push(seg.len());
                 }
-                seg_v_div_count
+                seg_cols_count
             },
-            seg_v_div_ratio: self.seg_v_div_ratio,
+            seg_cols_ratio: self.seg_cols_ratio,
             terminal_width_offset: self.terminal_width_offset,
 
         }
