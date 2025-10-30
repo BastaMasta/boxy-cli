@@ -460,7 +460,7 @@ impl<'a> Boxy<'a> {
     // Displaying each segment body
     fn display_segment(&mut self, seg_index: usize, disp_width: usize, align_offset: usize, box_pieces: &BoxTemplates, box_col_truecolor: &Color) {
 
-        // TODO: Add functionality to create segments while displaying the textbox i.e. columns
+        // TODO: Insert column printing branch here
 
 
 
