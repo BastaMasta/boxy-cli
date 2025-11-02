@@ -439,7 +439,7 @@ impl<'a> Boxy<'a> {
 
     }
 
-    fn print_cols(&self, seg_index: usize, term_size: usize, box_pieces: BoxTemplates, box_col_tc: Color::TrueColor) {
+    fn print_cols(&self, seg_index: usize, term_size: usize, box_pieces: BoxTemplates, box_col_tc: Color) {
         let mut curr_line = 0;
         let mut data_counts : Vec<usize> = Vec::new();
         let mut width = term_size;
