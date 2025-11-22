@@ -16,7 +16,7 @@ use std::fmt::Display;
 /// let mut box3 = Boxy::new(BoxType::Bold, "#00ffff");
 /// ```
 #[derive(Debug, Default)]
-pub enum BoxType{
+pub enum BoxType {
     /// Simple ASCII-style box using `+` for corners and `-` for borders
     Classic,
     /// Default style using single-line Unicode box drawing characters
@@ -39,7 +39,7 @@ pub enum BoxType{
 }
 
 // Added Display Fucntion to resolve type errors in the macro
-impl Display for BoxType{
+impl Display for BoxType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match &self {
             BoxType::Classic => "classic".to_string(),
@@ -101,7 +101,6 @@ impl Display for BoxAlign {
     }
 }
 
-
 /// Represents padding values for the text box in all four directions.
 ///
 /// `BoxPad` is used to specify padding between:
@@ -152,11 +151,11 @@ impl BoxPad {
     /// // Equivalent to BoxPad { top: 0, down: 0, left: 0, right: 0 }
     /// ```
     pub fn new() -> Self {
-        BoxPad{
+        BoxPad {
             top: 0,
             down: 0,
             left: 0,
-            right: 0
+            right: 0,
         }
     }
     /// Creates a new `BoxPad` with specific values for each side.
@@ -180,11 +179,11 @@ impl BoxPad {
     /// // top: 2, left: 4, down: 2, right: 4
     /// ```
     pub fn from_tldr(top: usize, left: usize, down: usize, right: usize) -> Self {
-        BoxPad{
+        BoxPad {
             top,
             down,
             left,
-            right
+            right,
         }
     }
 
@@ -203,12 +202,12 @@ impl BoxPad {
     /// let padding = BoxPad::uniform(3);
     /// // Equivalent to BoxPad { top: 3, down: 3, left: 3, right: 3 }
     /// ```
-    pub fn uniform(pad: usize) -> Self{
-        BoxPad{
+    pub fn uniform(pad: usize) -> Self {
+        BoxPad {
             top: pad,
             down: pad,
             left: pad,
-            right: pad
+            right: pad,
         }
     }
     /// Creates a new `BoxPad` with separate values for vertical and horizontal padding.
@@ -230,16 +229,16 @@ impl BoxPad {
     /// let padding = BoxPad::vh(1, 3);
     /// // Equivalent to BoxPad { top: 1, down: 1, left: 3, right: 3 }
     /// ```
-    pub fn vh(vertical: usize, horizontal: usize) -> Self{
-        BoxPad{
+    pub fn vh(vertical: usize, horizontal: usize) -> Self {
+        BoxPad {
             top: vertical,
             down: vertical,
             left: horizontal,
-            right: horizontal
+            right: horizontal,
         }
     }
     /// returns the total padidng on either side. used for text wrapping and display time calculations
-    pub fn lr(&self) -> usize{
+    pub fn lr(&self) -> usize {
         self.right + self.left
     }
 }

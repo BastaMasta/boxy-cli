@@ -13,5 +13,5 @@
 //! ```
 
 pub use crate::boxer::*;
-pub use crate::constructs::{BoxType, BoxAlign, BoxPad};
 pub use crate::boxy;
+pub use crate::constructs::{BoxAlign, BoxPad, BoxType};

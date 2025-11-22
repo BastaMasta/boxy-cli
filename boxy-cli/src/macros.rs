@@ -29,7 +29,7 @@
 /// # }
 /// ```
 /// ! The segcount sets the number of segments in the box. If text for only two segments is provided, the third segment will be displayed empty.
-/// 
+///
 /// ! The padding values here are taken to be for uniform padding on all sides.
 #[macro_export]
 macro_rules! boxy {
