@@ -6,3 +6,4 @@
 /binary-testing/target/
 /secrets
 /.vscode
+/boxy-macro/target
