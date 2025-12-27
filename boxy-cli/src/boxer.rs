@@ -536,7 +536,8 @@ impl<'a> Boxy<'a> {
 
             // Actually printing shiet
 
-            // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity, also to improve code efficiency
+            // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
+            // also to improve code efficiency
             iter_line_prnt(
                 &liner,
                 box_pieces,
