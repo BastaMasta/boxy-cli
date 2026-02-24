@@ -130,6 +130,13 @@ impl<'a> Boxy<'a> {
         self.colors.push(vec![Cow::from(String::from(color))]);
         self.seg_align.push(text_align);
         self.sect_count += 1;
+        self.seg_cols_count.push(1);
+    }
+    
+    // TODO: Add content and documentation to this:
+    pub fn add_col_text_sgmt(&mut self, column_count : usize){
+        self.sect_count += 1;
+        self.seg_cols_count[self.sect_count] = column_count;
     }
 
     /// Adds a new text line to the segment with a specific index.
@@ -462,16 +469,44 @@ impl<'a> Boxy<'a> {
     ) {
         let mut curr_line = 0;
         let mut data_counts: Vec<usize> = Vec::new();
-        let mut width = term_size;
-        let mut col_word_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
+        let mut col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
+
+        // TODO: improve this function ->  add in number rounding instead of just flooring it.
+
+        // get final terminal width ratios -> divide with floor, whatever's left goes to last segment
+        let mut col_seg_widths: Vec<usize> = Vec::new();
+
+        let total_width_ratio: usize = self.seg_cols_ratio[seg_index].iter().sum();
+        let printable = term_size.saturating_sub(self.seg_cols_count[seg_index] - 1);
+        let mut allocated = 0usize;
+
+        for (i, ratio) in self.seg_cols_ratio[seg_index].iter().enumerate() {
+            let width = if i == self.seg_cols_count[seg_index] - 1 {
+                printable.saturating_sub(allocated)
+            } else {
+                ((*ratio as f64 / total_width_ratio as f64) * printable as f64).floor() as usize
+            };
+            allocated += width;
+            col_seg_widths.push(width);
+        }
+        // ^^^ a little complicated, but will work on improving it ^^^
+        
+        
+        for i in 0..self.seg_cols_count[seg_index]{
+            
+            // TODO: Add data fields for columns -> separate field, and separate constructors.
+            
+            text_wrap_vec_fast(&self.data[seg_index][i], col_seg_widths[i], &BoxPad::from_tldr(0, 0, 0, 0));
+        }
+
         loop {
             for i in 0..self.seg_cols_count[seg_index] {
                 // print lines
                 print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
                 self.display_col_segment_line(
                     i,
-                    &col_word_indices,
-                    width,
+                    &col_word_prev_indices,
+                    &term_size,
                     &box_pieces,
                     &box_col_tc,
                 );
@@ -485,11 +520,11 @@ impl<'a> Boxy<'a> {
         &self,
         col_index: usize,
         last_word_index: &Vec<usize>,
-        width: usize,
+        width: &usize,
         box_pieces: &BoxTemplates,
         box_col_tc: &Color,
     ) {
-        // Implement logic to display column segment line based on line_index
+        //
     }
 
     // Displaying each segment body
@@ -587,6 +622,7 @@ impl<'a> Boxy<'a> {
 }
 
 // Faster non-allocating whitespace scanning text wrapper
+// Returns wrapped text, line by line in a vec
 fn text_wrap_vec_fast(data: &str, disp_width: usize, int_padding: &BoxPad) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
     let max_len = disp_width.saturating_sub(int_padding.lr() + 2);
