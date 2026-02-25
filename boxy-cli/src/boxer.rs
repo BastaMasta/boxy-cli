@@ -621,7 +621,7 @@ impl<'a> Boxy<'a> {
 
         loop {
             for i in 0..self.seg_cols_count[seg_index] {
-                // Print each line with verticl dividers in between
+                // TODO: Print each line with verticl dividers in between
                 print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
                 self.display_col_segment_line(
                     i,
