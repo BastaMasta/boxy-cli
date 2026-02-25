@@ -132,9 +132,9 @@ impl<'a> Boxy<'a> {
         self.sect_count += 1;
         self.seg_cols_count.push(1);
     }
-    
+
     // TODO: Add content and documentation to this:
-    pub fn add_col_text_sgmt(&mut self, column_count : usize){
+    pub fn add_col_text_sgmt(&mut self, column_count: usize) {
         self.sect_count += 1;
         self.seg_cols_count[self.sect_count] = column_count;
     }
@@ -392,6 +392,7 @@ impl<'a> Boxy<'a> {
     pub fn display(&mut self) {
         // Initialising Display Variables
 
+        // get terminal size, or dafault to 80 width
         let term_size = termsize::get()
             .unwrap_or_else(|| {
                 eprintln!("Failed to get terminal size, assuming default width of 80");
@@ -399,6 +400,7 @@ impl<'a> Boxy<'a> {
             })
             .cols as usize;
 
+        // Fix width to accomodate for boc characters
         let disp_width = if self.fixed_width != 0 {
             self.fixed_width - 2
         } else {
@@ -417,10 +419,12 @@ impl<'a> Boxy<'a> {
                 Color::White // Default color
             }
         };
+
         // Resolve template once per display
         let box_pieces = map_box_type(&self.type_enum);
         let horiz = box_pieces.horizontal.to_string().color(box_col_truecolor);
 
+        // get alignment-based offset
         let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
 
         // Printing the top segment
@@ -490,13 +494,15 @@ impl<'a> Boxy<'a> {
             col_seg_widths.push(width);
         }
         // ^^^ a little complicated, but will work on improving it ^^^
-        
-        
-        for i in 0..self.seg_cols_count[seg_index]{
-            
+
+        for i in 0..self.seg_cols_count[seg_index] {
             // TODO: Add data fields for columns -> separate field, and separate constructors.
-            
-            text_wrap_vec_fast(&self.data[seg_index][i], col_seg_widths[i], &BoxPad::from_tldr(0, 0, 0, 0));
+
+            text_wrap_vec_fast(
+                &self.data[seg_index][i],
+                col_seg_widths[i],
+                &BoxPad::from_tldr(0, 0, 0, 0),
+            );
         }
 
         loop {
