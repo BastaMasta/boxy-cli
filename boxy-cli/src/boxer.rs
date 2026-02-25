@@ -24,7 +24,7 @@ use std::borrow::Cow;
 #[derive(Debug)]
 pub struct Boxy<'a> {
     type_enum: BoxType,
-    data: Vec<Vec<Cow<'a, str>>>,
+    data: Vec<SegType<'a>>,
     sect_count: usize,
     box_col: String,
     colors: Vec<Vec<Cow<'a, str>>>,
@@ -45,7 +45,7 @@ impl Default for Boxy<'_> {
     fn default() -> Self {
         Self {
             type_enum: BoxType::Single,
-            data: Vec::<Vec<Cow<str>>>::new(),
+            data: Vec::<SegType>::new(),
             sect_count: 0usize,
             box_col: "#ffffff".to_string(),
             colors: Vec::<Vec<Cow<str>>>::new(),
@@ -126,7 +126,8 @@ impl<'a> Boxy<'a> {
     /// my_box.add_text_sgmt("Content section", "#ffffff", BoxAlign::Left);
     /// ```
     pub fn add_text_sgmt(&mut self, data_string: &str, color: &str, text_align: BoxAlign) {
-        self.data.push(vec![Cow::from(data_string.to_owned())]);
+        self.data
+            .push(SegType::Single(vec![Cow::from(data_string.to_owned())]));
         self.colors.push(vec![Cow::from(String::from(color))]);
         self.seg_align.push(text_align);
         self.sect_count += 1;
@@ -167,7 +168,10 @@ impl<'a> Boxy<'a> {
     ///
     /// Panics if `seg_index` is out of bounds.
     pub fn add_text_line_indx(&mut self, data_string: &str, color: &str, seg_index: usize) {
-        self.data[seg_index].push(Cow::from(data_string.to_owned()));
+        match &mut self.data[seg_index] {
+            SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
+            SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
+        }
         self.colors[seg_index].push(Cow::from(String::from(color)));
     }
 
@@ -195,7 +199,11 @@ impl<'a> Boxy<'a> {
     ///
     /// Panics if no segments have been added yet.
     pub fn add_text_line(&mut self, data_string: &str, color: &str) {
-        self.data[self.sect_count - 1].push(Cow::from(data_string.to_owned()));
+        match &mut self.data[self.sect_count - 1] {
+            SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
+            SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
+        }
+
         self.colors[self.sect_count - 1].push(Cow::from(String::from(color)));
     }
 
@@ -464,6 +472,104 @@ impl<'a> Boxy<'a> {
         );
     }
 
+    // Displaying each segment body
+    fn display_segment(
+        &mut self,
+        seg_index: usize,
+        disp_width: usize,
+        align_offset: usize,
+        box_pieces: &BoxTemplates,
+        box_col_truecolor: &Color,
+    ) {
+        // TODO: Insert column printing branch here
+
+        let lines = match &self.data[seg_index] {
+            SegType::Single(lines) => lines,
+            SegType::Columnar(_) => return,
+        };
+
+        // Loop for all text lines
+        for i in 0..lines.len() {
+            // obtaining text colour truevalues
+            let text_col_truecolor = match HexColor::parse(&self.colors[seg_index][i]) {
+                Ok(color) => Color::TrueColor {
+                    r: color.r,
+                    g: color.g,
+                    b: color.b,
+                },
+                Err(e) => {
+                    eprintln!(
+                        "Error parsing text color '{}': {}",
+                        &self.colors[seg_index][i], e
+                    );
+                    Color::White // Default color
+                }
+            };
+            // Processing data
+            let processed_data = lines[i].trim().to_owned() + " ";
+
+            let liner: Vec<String> =
+                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding);
+
+            // Generating new External Pad based on alignment offset
+            let ext_offset = BoxPad {
+                top: self.ext_padding.top,
+                left: self.ext_padding.left + align_offset,
+                right: self.ext_padding.right,
+                down: self.ext_padding.down,
+            };
+
+            // Actually printing shiet
+
+            // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
+            // also to improve code efficiency
+            iter_line_prnt(
+                &liner,
+                box_pieces,
+                box_col_truecolor,
+                &text_col_truecolor,
+                (&disp_width, &(self.fixed_width != 0)),
+                (&ext_offset, &self.int_padding),
+                &self.seg_align[seg_index],
+            );
+
+            // printing an empty line between consecutive non-terminal text line
+            if i < lines.len() - 1 {
+                println!(
+                    "{1:>width$}{}{1}",
+                    " ".repeat(disp_width),
+                    box_pieces.vertical.to_string().color(*box_col_truecolor),
+                    width = self.ext_padding.left + 1 + align_offset
+                );
+            }
+        }
+        // Recursive Printing of text -> now depreciated
+        // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
+    }
+
+    // Printing the horizontal divider.
+    fn print_h_divider(
+        &self,
+        box_col_truecolor: &Color,
+        disp_width: usize,
+        align_offset: usize,
+        box_pieces: &BoxTemplates,
+    ) {
+        let horiz = box_pieces.horizontal.to_string().color(*box_col_truecolor);
+        print!(
+            "{:>width$}",
+            box_pieces.left_t.to_string().color(*box_col_truecolor),
+            width = self.ext_padding.left + 1 + align_offset
+        );
+        for _ in 0..disp_width {
+            print!("{}", horiz);
+        }
+        println!(
+            "{}",
+            box_pieces.right_t.to_string().color(*box_col_truecolor)
+        );
+    }
+
     fn print_cols(
         &self,
         seg_index: usize,
@@ -498,11 +604,20 @@ impl<'a> Boxy<'a> {
         for i in 0..self.seg_cols_count[seg_index] {
             // TODO: Add data fields for columns -> separate field, and separate constructors.
 
-            text_wrap_vec_fast(
-                &self.data[seg_index][i],
-                col_seg_widths[i],
-                &BoxPad::from_tldr(0, 0, 0, 0),
-            );
+            let col_data = match &self.data[seg_index] {
+                SegType::Columnar(cols) => &cols[i], // remove this join part to process each line in the column spearately
+                SegType::Single(_) => return,
+            };
+
+            let mut col_wrapped: Vec<Vec<String>> = Vec::new();
+
+            for line in col_data {
+                col_wrapped.push(text_wrap_vec_fast(
+                    line.as_ref(),
+                    col_seg_widths[i],
+                    &BoxPad::from_tldr(0, 0, 0, 0),
+                ));
+            }
         }
 
         loop {
@@ -531,99 +646,6 @@ impl<'a> Boxy<'a> {
         box_col_tc: &Color,
     ) {
         //
-    }
-
-    // Displaying each segment body
-    fn display_segment(
-        &mut self,
-        seg_index: usize,
-        disp_width: usize,
-        align_offset: usize,
-        box_pieces: &BoxTemplates,
-        box_col_truecolor: &Color,
-    ) {
-        // TODO: Insert column printing branch here
-
-        // Loop for all text lines
-        for i in 0..self.data[seg_index].len() {
-            // obtaining text colour truevalues
-            let text_col_truecolor = match HexColor::parse(&self.colors[seg_index][i]) {
-                Ok(color) => Color::TrueColor {
-                    r: color.r,
-                    g: color.g,
-                    b: color.b,
-                },
-                Err(e) => {
-                    eprintln!(
-                        "Error parsing text color '{}': {}",
-                        &self.colors[seg_index][i], e
-                    );
-                    Color::White // Default color
-                }
-            };
-            // Processing data
-            let processed_data = self.data[seg_index][i].trim().to_owned() + " ";
-
-            let liner: Vec<String> =
-                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding);
-
-            // Generating new External Pad based on alignment offset
-            let ext_offset = BoxPad {
-                top: self.ext_padding.top,
-                left: self.ext_padding.left + align_offset,
-                right: self.ext_padding.right,
-                down: self.ext_padding.down,
-            };
-
-            // Actually printing shiet
-
-            // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
-            // also to improve code efficiency
-            iter_line_prnt(
-                &liner,
-                box_pieces,
-                box_col_truecolor,
-                &text_col_truecolor,
-                (&disp_width, &(self.fixed_width != 0)),
-                (&ext_offset, &self.int_padding),
-                &self.seg_align[seg_index],
-            );
-
-            // printing an empty line between consecutive non-terminal text line
-            if i < self.data[seg_index].len() - 1 {
-                println!(
-                    "{1:>width$}{}{1}",
-                    " ".repeat(disp_width),
-                    box_pieces.vertical.to_string().color(*box_col_truecolor),
-                    width = self.ext_padding.left + 1 + align_offset
-                );
-            }
-        }
-        // Recursive Printing of text -> now depreciated
-        // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
-    }
-
-    // Printing the horizontal divider.
-    fn print_h_divider(
-        &self,
-        box_col_truecolor: &Color,
-        disp_width: usize,
-        align_offset: usize,
-        box_pieces: &BoxTemplates,
-    ) {
-        let horiz = box_pieces.horizontal.to_string().color(*box_col_truecolor);
-        print!(
-            "{:>width$}",
-            box_pieces.left_t.to_string().color(*box_col_truecolor),
-            width = self.ext_padding.left + 1 + align_offset
-        );
-        for _ in 0..disp_width {
-            print!("{}", horiz);
-        }
-        println!(
-            "{}",
-            box_pieces.right_t.to_string().color(*box_col_truecolor)
-        );
     }
 }
 

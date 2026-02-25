@@ -1,6 +1,6 @@
 //! The main datatypes and enums used by the `Boxy` struct.
 
-use std::fmt::Display;
+use std::{borrow::Cow, fmt::Display};
 
 /// Defines the border style for the text box.
 ///
@@ -241,4 +241,10 @@ impl BoxPad {
     pub fn lr(&self) -> usize {
         self.right + self.left
     }
+}
+
+#[derive(Debug)]
+pub enum SegType <'a>{
+    Single(Vec<Cow<'a, str>>),
+    Columnar(Vec<Vec<Cow<'a, str>>>)
 }
