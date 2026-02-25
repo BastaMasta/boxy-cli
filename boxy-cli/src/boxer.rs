@@ -577,6 +577,7 @@ impl<'a> Boxy<'a> {
         box_pieces: BoxTemplates,
         box_col_tc: Color,
     ) {
+        // Need lotsa work here
         let mut curr_line = 0;
         let mut data_counts: Vec<usize> = Vec::new();
         let mut col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
