@@ -603,8 +603,6 @@ impl<'a> Boxy<'a> {
         // ^^^ a little complicated, but will work on improving it ^^^
 
         for i in 0..self.seg_cols_count[seg_index] {
-            // TODO: Add data fields for columns -> separate field, and separate constructors.
-
             let col_data = match &self.data[seg_index] {
                 SegType::Columnar(cols) => &cols[i], // remove this join part to process each line in the column spearately
                 SegType::Single(_) => return,
@@ -623,7 +621,7 @@ impl<'a> Boxy<'a> {
 
         loop {
             for i in 0..self.seg_cols_count[seg_index] {
-                // print lines
+                // Print each line with verticl dividers in between
                 print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
                 self.display_col_segment_line(
                     i,
