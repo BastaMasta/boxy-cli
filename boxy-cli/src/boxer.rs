@@ -856,7 +856,7 @@ pub fn resolve_segments(dat: String) -> usize {
 #[derive(Debug, Default)]
 pub struct BoxyBuilder<'a> {
     type_enum: BoxType,
-    data: Vec<Vec<Cow<'a, str>>>,
+    data: Vec<SegType<'a>>,
     box_col: String,
     colors: Vec<Vec<Cow<'a, str>>>,
     int_padding: BoxPad,
@@ -1001,7 +1001,8 @@ impl<'a> BoxyBuilder<'a> {
     ///     .build();
     /// ```
     pub fn add_segment(mut self, text: &str, color: &str, text_align: BoxAlign) -> Self {
-        self.data.push(vec![Cow::Owned(text.to_owned())]);
+        self.data
+            .push(SegType::Single(vec![Cow::from(text.to_owned())]));
         self.colors.push(vec![Cow::Owned(color.to_owned())]);
         self.seg_align.push(text_align);
         self
@@ -1037,14 +1038,15 @@ impl<'a> BoxyBuilder<'a> {
     ///     .build();
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if no segments have been added yet.
     pub fn add_line(mut self, text: &str, color: &str) -> Self {
         if let Some(last_segment) = self.data.last_mut() {
-            last_segment.push(Cow::Owned(text.to_owned()));
+            match last_segment {
+                SegType::Single(lines) => lines.push(Cow::from(text.to_owned())),
+                SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
+            }
         } else {
-            self.data.push(vec![Cow::Owned(text.to_owned())]);
+            self.data
+                .push(SegType::Single(vec![Cow::from(text.to_owned())]));
         }
         self.colors[self.data.len() - 1].push(Cow::Owned(color.to_owned()));
         self
