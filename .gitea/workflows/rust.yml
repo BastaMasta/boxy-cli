@@ -28,6 +28,16 @@ jobs:
           cd boxy-cli
           cargo test --verbose
 
+      - name: Format check
+        run: |
+          cd boxy-cli
+          cargo fmt --check
+
+      - name: Security audit
+        run: |
+          cd boxy-cli
+          cargo audit
+
   build-binary:
     needs: build-library
     runs-on: rust
