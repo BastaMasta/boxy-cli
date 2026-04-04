@@ -43,10 +43,10 @@
 
 #[allow(dead_code)]
 pub mod boxer;
-pub(crate) mod templates;
-pub mod macros;
 pub mod constructs;
+pub mod macros;
 pub mod prelude;
+pub(crate) mod templates;
 
 // Re-export prelude at crate root
 pub use prelude::*;
