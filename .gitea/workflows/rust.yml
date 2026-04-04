@@ -1,0 +1,51 @@
+name: Rust CLI Build Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build_library:
+    runs_on: rust
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build library
+      run: |
+        cd boxy-cli
+        cargo build --verbose
+    - name: Test library
+      run: |
+        cd boxy-cli
+        cargo test --verbose
+  
+  build_binary:
+    needs: build-library
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build binary tests
+      run: |
+        cd binary-testing
+        cargo build --verbose
+
+  test-binary:
+    needs: build-binary
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run binary tests
+      run: |
+        cd binary-testing
+        cargo test --verbose
+  
+  test-docs:
+    needs: build-library
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile Docs
+      run: |
+        cd boxy-cli
+        cargo doc
