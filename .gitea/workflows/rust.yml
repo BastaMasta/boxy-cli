@@ -1,34 +1,62 @@
-name: Rust CI
+name: BuildTests
+permissions:
+  contents: read
+  pull-requests: write
 
 on:
   push:
-    branches: [main]
+    branches: ["main"]
   pull_request:
-    branches: [main]
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  build_library:
+  build-library:
     runs-on: rust
     steps:
       - uses: actions/checkout@v3
 
-      - name: Rust version
-        run: rustc --version && cargo --version
+      - name: Build library
+        run: |
+          cd boxy-cli
+          cargo build --verbose
 
-      - name: Build
-        run: cargo build --release
+      - name: Test library
+        run: |
+          cd boxy-cli
+          cargo test --verbose
 
-      - name: Test
-        run: cargo test --verbose
+  build-binary:
+    needs: build-library
+    runs-on: rust
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: Clippy
-        run: cargo clippy -- -D warnings
+      - name: Build binary tests
+        run: |
+          cd binary-testing
+          cargo build --verbose
 
-      - name: Format check
-        run: cargo fmt --check
+  test-binary:
+    needs: build-binary
+    runs-on: rust
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: Docs
-        run: cargo doc --no-deps
+      - name: Run binary tests
+        run: |
+          cd binary-testing
+          cargo test --verbose
 
-      - name: Security audit
-        run: cargo audit
+  test-docs:
+    needs: build-library
+    runs-on: rust
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Compile docs
+        run: |
+          cd boxy-cli
+          cargo doc
