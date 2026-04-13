@@ -395,7 +395,10 @@ impl<'a> Boxy<'a> {
         let disp_width = if self.fixed_width != 0 {
             self.fixed_width.saturating_sub(2).max(1)
         } else {
-            term_size.saturating_sub(self.ext_padding.lr()).saturating_sub(2).max(1)
+            term_size
+                .saturating_sub(self.ext_padding.lr())
+                .saturating_sub(2)
+                .max(1)
         };
 
         // Parse box color only once per display
