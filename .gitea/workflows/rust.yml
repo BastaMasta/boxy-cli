@@ -49,12 +49,6 @@ jobs:
           cd binary-testing
           cargo build --verbose
 
-  test-binary:
-    needs: build-binary
-    runs-on: rust
-    steps:
-      - uses: actions/checkout@v4
-
       - name: Run binary tests
         run: |
           cd binary-testing
