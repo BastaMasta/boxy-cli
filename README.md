@@ -8,7 +8,6 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/BastaMasta/boxy-cli/rust.yml?branch=main&style=flat-square)](https://github.com/BastaMasta/boxy-cli/actions/workflows/rust.yml?query=branch%3Amain)
 
 
-test_str
 **A Crate to create boxes in command-line interfaces with Rust**
 
 Dual-licensed under [Apache 2.0](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-APACHE) or [MIT](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-MIT).
