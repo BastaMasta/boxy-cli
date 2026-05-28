@@ -400,13 +400,29 @@ impl<'a> Boxy<'a> {
     pub fn display(&mut self) {
         // Initialising Display Variables
 
-        // get terminal size, or dafault to 80 width
-        let term_size = termsize::get()
-            .unwrap_or_else(|| {
-                eprintln!("Failed to get terminal size, assuming default width of 80");
-                termsize::Size { rows: 10, cols: 80 }
-            })
-            .cols as usize;
+        let term_size = match termsize::get() {
+            Some(s) => s.cols as usize,
+            None => {
+                // no tty, so just dunp raw text, no need to pollute stream with pipes and dividers
+                for seg in &self.data {
+                    match seg {
+                        SegType::Single(lines) => {
+                            for line in lines {
+                                println!("{}", line.trim());
+                            }
+                        }
+                        SegType::Columnar(cols) => {
+                            for col in cols {
+                                for line in col {
+                                    println!("{}", line.trim());
+                                }
+                            }
+                        }
+                    }
+                }
+                return;
+            }
+        };
 
         // Fix width to accomodate for boc characters
         let disp_width = if self.fixed_width != 0 {
