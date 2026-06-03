@@ -63,6 +63,13 @@ impl Default for Boxy<'_> {
     }
 }
 
+const DEFUALT_PAD: BoxPad = BoxPad {
+    top: 1,
+    left: 1,
+    down: 1,
+    right: 1,
+};
+
 impl<'a> Boxy<'a> {
     /// Creates a new instance of the `Boxy` struct with the specified border type and color.
     ///
@@ -424,7 +431,7 @@ impl<'a> Boxy<'a> {
             }
         };
 
-        // Fix width to accomodate for boc characters
+        // Fix width to accommodate for box characters
         let disp_width = if self.fixed_width != 0 {
             self.fixed_width - 2
         } else {
@@ -563,7 +570,7 @@ impl<'a> Boxy<'a> {
         // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
     }
 
-    // Printing the horizontal divider.
+    // Printing the horizontal divider. - i dont think this is needed?
     fn print_h_divider(
         &self,
         box_col_truecolor: &Color,
@@ -589,29 +596,31 @@ impl<'a> Boxy<'a> {
     fn print_cols(
         &self,
         seg_index: usize,
-        term_size: usize,
+        disp_width: usize, //disp width here, cuz need to take ext_padding into account
         box_pieces: BoxTemplates,
         box_col_tc: Color,
     ) {
         // Need lotsa work here
         let mut curr_line = 0;
-        let mut data_counts: Vec<usize> = Vec::new();
-        let mut col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
+        let col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
         let mut columnar_data: Vec<Vec<String>> = Vec::new();
-
-        // TODO: improve this function ->  add in number rounding instead of just flooring it.
+        let mut col_height_max = 1;
 
         // get final terminal width ratios -> divide with floor, whatever's left goes to last segment
         let mut col_seg_widths: Vec<usize> = Vec::new();
 
         let total_width_ratio: usize = self.seg_cols_ratio[seg_index].iter().sum();
-        let printable = term_size.saturating_sub(self.seg_cols_count[seg_index] - 1);
+
+        // accommodate for the vertical dividers between the segments
+        let printable = disp_width.saturating_sub(self.seg_cols_count[seg_index] - 1);
         let mut allocated = 0usize;
 
+        // iteratively allocate column widths (w/o dividers, i.e. pure text printing areas)
         for (i, ratio) in self.seg_cols_ratio[seg_index].iter().enumerate() {
             let width = if i == self.seg_cols_count[seg_index] - 1 {
-                printable.saturating_sub(allocated)
+                printable.saturating_sub(allocated) // saturating_sub to prevent underflow panics
             } else {
+                // TODO: improve this part of the calculation ->  add in number rounding instead of just flooring it.
                 ((*ratio as f64 / total_width_ratio as f64) * printable as f64).floor() as usize
             };
             allocated += width;
@@ -631,21 +640,28 @@ impl<'a> Boxy<'a> {
                 col_wrapped.append(&mut text_wrap_vec_fast(
                     line.as_ref(),
                     col_seg_widths[i],
-                    &BoxPad::from_tldr(0, 0, 0, 0),
+                    &DEFUALT_PAD, // keep the standard, default padding
                 ));
             }
 
+            if col_height_max < col_wrapped.len() {
+                col_height_max = col_wrapped.len();
+            }
             columnar_data.push(col_wrapped);
         }
 
-        loop {
+        'col_print_loop: loop {
+            if curr_line > col_height_max {
+                break 'col_print_loop;
+            }
             for i in 0..self.seg_cols_count[seg_index] {
                 // TODO: Print each line with vertical dividers in between
                 print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
-                print!("{}", columnar_data[i][curr_line]);
-                // TODO: need to add printing based on padding.
-                // TODO: need to create a system  to print blank lines in case one column is done, but another isnt
-                // TODO: also need to create a way to break the loop -> find largest line index, and break on reaching
+                if let Some(content) = columnar_data[i].get(curr_line) {
+                    print!(" {:>width$}", content, width = col_seg_widths[i] - 1usize); // a -1 here to accommodate for the extra space I put in for the left padding
+                } else {
+                    print!("{:>width$}", "", width = col_seg_widths[i] - 1usize);
+                }
             }
             curr_line += 1;
         }
