@@ -45,6 +45,7 @@
 pub mod boxer;
 mod constructs;
 mod macros;
+mod wrapper;
 pub mod prelude;
 pub(crate) mod templates;
 

@@ -27,7 +27,7 @@ pub struct Boxy<'a> {
     data: Vec<SegType<'a>>,
     sect_count: usize,
     box_col: String,
-    colors: Vec<Vec<Cow<'a, str>>>,
+    colors: Vec<SegType<'a>>,
     int_padding: BoxPad,
     ext_padding: BoxPad,
     align: BoxAlign,
@@ -48,7 +48,7 @@ impl Default for Boxy<'_> {
             data: Vec::<SegType>::new(),
             sect_count: 0usize,
             box_col: "#ffffff".to_string(),
-            colors: Vec::<Vec<Cow<str>>>::new(),
+            colors: Vec::<SegType>::new(),
             int_padding: BoxPad::new(),
             ext_padding: BoxPad::new(),
             align: BoxAlign::Left,
@@ -135,7 +135,7 @@ impl<'a> Boxy<'a> {
     pub fn add_text_sgmt(&mut self, data_string: &str, color: &str, text_align: BoxAlign) {
         self.data
             .push(SegType::Single(vec![Cow::from(data_string.to_owned())]));
-        self.colors.push(vec![Cow::from(String::from(color))]);
+        self.colors.push(SegType::Single(vec![Cow::from(String::from(color))]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(1);
@@ -506,6 +506,11 @@ impl<'a> Boxy<'a> {
     ) {
         // TODO: Insert column printing branch here
 
+        if let SegType::Columnar(_) = &self.data[seg_index] {
+            self.print_cols(seg_index, disp_width, box_pieces, box_col_truecolor);
+            return;
+        }
+
         let lines = match &self.data[seg_index] {
             SegType::Single(lines) => lines,
             SegType::Columnar(_) => return,
@@ -514,7 +519,7 @@ impl<'a> Boxy<'a> {
         // Loop for all text lines
         for i in 0..lines.len() {
             // obtaining text colour truevalues
-            let text_col_truecolor = match HexColor::parse(&self.colors[seg_index][i]) {
+            let text_col_truecolor = match HexColor::parse(self.colors[seg_index].get_single(i).unwrap()) {
                 Ok(color) => Color::TrueColor {
                     r: color.r,
                     g: color.g,
@@ -523,7 +528,7 @@ impl<'a> Boxy<'a> {
                 Err(e) => {
                     eprintln!(
                         "Error parsing text color '{}': {}",
-                        &self.colors[seg_index][i], e
+                        &self.colors[seg_index].get_single(i).unwrap(), e // can just use get_single. this wint run if it's a columnar segemnt
                     );
                     Color::White // Default color
                 }
@@ -597,8 +602,8 @@ impl<'a> Boxy<'a> {
         &self,
         seg_index: usize,
         disp_width: usize, //disp width here, cuz need to take ext_padding into account
-        box_pieces: BoxTemplates,
-        box_col_tc: Color,
+        box_pieces: &BoxTemplates,
+        box_col_tc: &Color,
     ) {
         // Need lotsa work here
         let mut curr_line = 0;
@@ -656,7 +661,7 @@ impl<'a> Boxy<'a> {
             }
             for i in 0..self.seg_cols_count[seg_index] {
                 // TODO: Print each line with vertical dividers in between
-                print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
+                print!("{}", box_pieces.vertical.to_string().color(*box_col_tc));
                 if let Some(content) = columnar_data[i].get(curr_line) {
                     print!(" {:>width$}", content, width = col_seg_widths[i] - 1usize); // a -1 here to accommodate for the extra space I put in for the left padding
                 } else {
@@ -892,7 +897,7 @@ pub struct BoxyBuilder<'a> {
     type_enum: BoxType,
     data: Vec<SegType<'a>>,
     box_col: String,
-    colors: Vec<Vec<Cow<'a, str>>>,
+    colors: Vec<SegType<'a>>,
     int_padding: BoxPad,
     ext_padding: BoxPad,
     align: BoxAlign,
@@ -1037,7 +1042,7 @@ impl<'a> BoxyBuilder<'a> {
     pub fn add_segment(mut self, text: &str, color: &str, text_align: BoxAlign) -> Self {
         self.data
             .push(SegType::Single(vec![Cow::from(text.to_owned())]));
-        self.colors.push(vec![Cow::Owned(color.to_owned())]);
+        self.colors.push(SegType::Single(vec![Cow::Owned(color.to_owned())]));
         self.seg_align.push(text_align);
         self
     }

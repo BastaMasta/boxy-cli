@@ -243,8 +243,35 @@ impl BoxPad {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum SegType <'a>{
     Single(Vec<Cow<'a, str>>),
     Columnar(Vec<Vec<Cow<'a, str>>>)
+}
+
+#[allow(dead_code)]
+impl<'a> SegType<'a> {
+    pub(crate) fn push(&mut self, p0: Cow<'a, str>) {
+        match self {
+            SegType::Single(vec) => vec.push(p0),
+            SegType::Columnar(vec) => {
+                if let Some(vec) = vec.last_mut() {
+                    vec.push(p0);
+                }
+            }
+        }
+    }
+    pub(crate) fn get_single(&self, index: usize) -> Option<&Cow<'a, str>> {
+        match self {
+            SegType::Single(vec) => vec.get(index),
+            _ => None
+        }
+    }
+    pub(crate) fn get_columnar(&self, index: usize) -> Option<&Vec<Cow<'a, str>>> {
+        match self {
+            SegType::Columnar(vec) => vec.get(index),
+            _ => None
+        }
+    }
 }
