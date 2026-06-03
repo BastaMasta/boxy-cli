@@ -63,7 +63,7 @@ impl Default for Boxy<'_> {
     }
 }
 
-const DEFUALT_PAD: BoxPad = BoxPad {
+const DEFAULT_PAD: BoxPad = BoxPad {
     top: 1,
     left: 1,
     down: 1,
@@ -405,7 +405,7 @@ impl<'a> Boxy<'a> {
     ///
     /// The appearance may vary depending on terminal support for colors and Unicode characters.
     pub fn display(&mut self) {
-        // Initialising Display Variables
+        // Initializing Display Variables
 
         let term_size = match termsize::get() {
             Some(s) => s.cols as usize,
@@ -570,7 +570,7 @@ impl<'a> Boxy<'a> {
         // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
     }
 
-    // Printing the horizontal divider. - i dont think this is needed?
+    // Printing the horizontal divider. - I don't think this is needed?
     fn print_h_divider(
         &self,
         box_col_truecolor: &Color,
@@ -602,7 +602,7 @@ impl<'a> Boxy<'a> {
     ) {
         // Need lotsa work here
         let mut curr_line = 0;
-        let col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
+        let _col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
         let mut columnar_data: Vec<Vec<String>> = Vec::new();
         let mut col_height_max = 1;
 
@@ -640,7 +640,7 @@ impl<'a> Boxy<'a> {
                 col_wrapped.append(&mut text_wrap_vec_fast(
                     line.as_ref(),
                     col_seg_widths[i],
-                    &DEFUALT_PAD, // keep the standard, default padding
+                    &DEFAULT_PAD, // keep the standard, default padding
                 ));
             }
 
@@ -669,11 +669,11 @@ impl<'a> Boxy<'a> {
 
     fn display_col_segment_line(
         &self,
-        col_index: usize,
-        last_word_index: &Vec<usize>,
-        width: &usize,
-        box_pieces: &BoxTemplates,
-        box_col_tc: &Color,
+        _col_index: usize,
+        _last_word_index: &Vec<usize>,
+        _width: &usize,
+        _box_pieces: &BoxTemplates,
+        _box_col_tc: &Color,
     ) {
         //
     }
@@ -812,7 +812,7 @@ fn align_offset(
     }
 }
 
-// Macro type resolution fucntions for boxy!
+// Macro type resolution functions for boxy!
 
 // These helpers are public so the macro can access them across crate boundaries via $crate::boxer::...
 // They are hidden from docs and not intended for direct user consumption.
