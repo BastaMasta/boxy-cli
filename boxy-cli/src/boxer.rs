@@ -597,6 +597,7 @@ impl<'a> Boxy<'a> {
         let mut curr_line = 0;
         let mut data_counts: Vec<usize> = Vec::new();
         let mut col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
+        let mut columnar_data: Vec<Vec<String>> = Vec::new();
 
         // TODO: improve this function ->  add in number rounding instead of just flooring it.
 
@@ -620,34 +621,32 @@ impl<'a> Boxy<'a> {
 
         for i in 0..self.seg_cols_count[seg_index] {
             let col_data = match &self.data[seg_index] {
-                SegType::Columnar(cols) => &cols[i], // remove this join part to process each line in the column spearately
+                SegType::Columnar(cols) => &cols[i], // remove this join part to process each line in the column separately
                 SegType::Single(_) => return,
             };
 
-            let mut col_wrapped: Vec<Vec<String>> = Vec::new();
+            let mut col_wrapped: Vec<String> = Vec::new();
 
             for line in col_data {
-                col_wrapped.push(text_wrap_vec_fast(
+                col_wrapped.append(&mut text_wrap_vec_fast(
                     line.as_ref(),
                     col_seg_widths[i],
                     &BoxPad::from_tldr(0, 0, 0, 0),
                 ));
             }
+
+            columnar_data.push(col_wrapped);
         }
 
         loop {
             for i in 0..self.seg_cols_count[seg_index] {
-                // TODO: Print each line with verticl dividers in between
+                // TODO: Print each line with vertical dividers in between
                 print!("{}", box_pieces.vertical.to_string().color(box_col_tc));
-                self.display_col_segment_line(
-                    i,
-                    &col_word_prev_indices,
-                    &term_size,
-                    &box_pieces,
-                    &box_col_tc,
-                );
+                print!("{}", columnar_data[i][curr_line]);
+                // TODO: need to add printing based on padding.
+                // TODO: need to create a system  to print blank lines in case one column is done, but another isnt
+                // TODO: also need to create a way to break the loop -> find largest line index, and break on reaching
             }
-
             curr_line += 1;
         }
     }
@@ -666,6 +665,7 @@ impl<'a> Boxy<'a> {
 
 // Faster non-allocating whitespace scanning text wrapper
 // Returns wrapped text, line by line in a vec
+#[doc(hidden)]
 fn text_wrap_vec_fast(data: &str, disp_width: usize, int_padding: &BoxPad) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
     let max_len = disp_width.saturating_sub(int_padding.lr() + 2);
@@ -703,6 +703,7 @@ fn text_wrap_vec_fast(data: &str, disp_width: usize, int_padding: &BoxPad) -> Ve
     liner
 }
 
+#[doc(hidden)]
 fn iter_line_prnt(
     liner: &[String],
     box_pieces: &BoxTemplates,
@@ -766,6 +767,7 @@ fn iter_line_prnt(
 }
 
 // returns the box template for the given enum
+#[doc(hidden)]
 fn map_box_type(boxtype: &BoxType) -> BoxTemplates {
     match boxtype {
         BoxType::Classic => CLASSIC_TEMPLATE,
@@ -780,6 +782,7 @@ fn map_box_type(boxtype: &BoxType) -> BoxTemplates {
     }
 }
 
+#[doc(hidden)]
 fn align_offset(
     disp_width: &usize,
     term_size: &usize,
