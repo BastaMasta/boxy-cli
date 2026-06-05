@@ -16,7 +16,7 @@ jobs:
   build-library:
     runs-on: rust
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build library
         run: |
@@ -42,7 +42,7 @@ jobs:
     needs: build-library
     runs-on: rust
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build binary tests
         run: |
@@ -58,7 +58,7 @@ jobs:
     needs: build-library
     runs-on: rust
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Compile docs
         run: |
