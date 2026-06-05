@@ -16,7 +16,7 @@ jobs:
   build-library:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Build library
       run: |
         cd boxy-cli
@@ -30,7 +30,7 @@ jobs:
     needs: build-library
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Build binary tests
       run: |
         cd binary-testing
@@ -40,7 +40,7 @@ jobs:
     needs: build-binary
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Run binary tests
       run: |
         cd binary-testing
@@ -50,7 +50,7 @@ jobs:
     needs: build-library
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Compile Docs
       run: |
         cd boxy-cli
