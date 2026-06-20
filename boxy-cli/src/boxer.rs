@@ -135,7 +135,8 @@ impl<'a> Boxy<'a> {
     pub fn add_text_sgmt(&mut self, data_string: &str, color: &str, text_align: BoxAlign) {
         self.data
             .push(SegType::Single(vec![Cow::from(data_string.to_owned())]));
-        self.colors.push(SegType::Single(vec![Cow::from(String::from(color))]));
+        self.colors
+            .push(SegType::Single(vec![Cow::from(String::from(color))]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(1);
@@ -507,7 +508,13 @@ impl<'a> Boxy<'a> {
         // TODO: Insert column printing branch here
 
         if let SegType::Columnar(_) = &self.data[seg_index] {
-            self.print_cols(seg_index, disp_width, box_pieces, box_col_truecolor);
+            self.print_cols(
+                seg_index,
+                disp_width,
+                box_pieces,
+                align_offset,
+                box_col_truecolor,
+            );
             return;
         }
 
@@ -519,20 +526,22 @@ impl<'a> Boxy<'a> {
         // Loop for all text lines
         for i in 0..lines.len() {
             // obtaining text colour truevalues
-            let text_col_truecolor = match HexColor::parse(self.colors[seg_index].get_single(i).unwrap()) {
-                Ok(color) => Color::TrueColor {
-                    r: color.r,
-                    g: color.g,
-                    b: color.b,
-                },
-                Err(e) => {
-                    eprintln!(
-                        "Error parsing text color '{}': {}",
-                        &self.colors[seg_index].get_single(i).unwrap(), e // can just use get_single. this wint run if it's a columnar segemnt
-                    );
-                    Color::White // Default color
-                }
-            };
+            let text_col_truecolor =
+                match HexColor::parse(self.colors[seg_index].get_single(i).unwrap()) {
+                    Ok(color) => Color::TrueColor {
+                        r: color.r,
+                        g: color.g,
+                        b: color.b,
+                    },
+                    Err(e) => {
+                        eprintln!(
+                            "Error parsing text color '{}': {}",
+                            &self.colors[seg_index].get_single(i).unwrap(),
+                            e // can just use get_single. this wint run if it's a columnar segemnt
+                        );
+                        Color::White // Default color
+                    }
+                };
             // Processing data
             let processed_data = lines[i].trim().to_owned() + " ";
 
@@ -603,26 +612,23 @@ impl<'a> Boxy<'a> {
         seg_index: usize,
         disp_width: usize, //disp width here, cuz need to take ext_padding into account
         box_pieces: &BoxTemplates,
+        align_offset: usize,
         box_col_tc: &Color,
     ) {
         // Need lotsa work here
-        let mut curr_line = 0;
         let _col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
-        let mut columnar_data: Vec<Vec<String>> = Vec::new();
-        let mut col_height_max = 1;
+
+        let col_count = self.seg_cols_count[seg_index];
+        let total_width_ratio: usize = self.seg_cols_ratio[seg_index].iter().sum();
+        // accommodate for the vertical dividers between the segments
+        let printable = disp_width.saturating_sub(self.seg_cols_count[seg_index] - 1);
 
         // get final terminal width ratios -> divide with floor, whatever's left goes to last segment
         let mut col_seg_widths: Vec<usize> = Vec::new();
-
-        let total_width_ratio: usize = self.seg_cols_ratio[seg_index].iter().sum();
-
-        // accommodate for the vertical dividers between the segments
-        let printable = disp_width.saturating_sub(self.seg_cols_count[seg_index] - 1);
         let mut allocated = 0usize;
-
         // iteratively allocate column widths (w/o dividers, i.e. pure text printing areas)
         for (i, ratio) in self.seg_cols_ratio[seg_index].iter().enumerate() {
-            let width = if i == self.seg_cols_count[seg_index] - 1 {
+            let width = if i == col_count - 1 {
                 printable.saturating_sub(allocated) // saturating_sub to prevent underflow panics
             } else {
                 // TODO: improve this part of the calculation ->  add in number rounding instead of just flooring it.
@@ -633,14 +639,14 @@ impl<'a> Boxy<'a> {
         }
         // ^^^ a little complicated, but will work on improving it ^^^
 
-        for i in 0..self.seg_cols_count[seg_index] {
+        let mut columnar_data: Vec<Vec<String>> = Vec::new();
+        let mut col_height_max = 1;
+        for i in 0..col_count {
             let col_data = match &self.data[seg_index] {
                 SegType::Columnar(cols) => &cols[i], // remove this join part to process each line in the column separately
                 SegType::Single(_) => return,
             };
-
             let mut col_wrapped: Vec<String> = Vec::new();
-
             for line in col_data {
                 col_wrapped.append(&mut text_wrap_vec_fast(
                     line.as_ref(),
@@ -648,26 +654,38 @@ impl<'a> Boxy<'a> {
                     &DEFAULT_PAD, // keep the standard, default padding
                 ));
             }
-
-            if col_height_max < col_wrapped.len() {
-                col_height_max = col_wrapped.len();
-            }
+            col_height_max = col_height_max.max(col_wrapped.len());
             columnar_data.push(col_wrapped);
         }
 
+        let vertical = box_pieces.vertical.to_string().color(*box_col_tc);
+
+        for curr_line in 0..col_height_max {
+            print!(
+                "{:>width$}",
+                vertical,
+                width = self.ext_padding.left + 1 + align_offset
+            );
+            for (i, col) in columnar_data.iter().enumerate() {
+                if i > 0 {
+                    print!("{}", vertical);
+                }
+                let content = col.get(curr_line).map(String::as_str).unwrap_or("");
+                print!(
+                    "{:<width$}",
+                    content,
+                    width = col_seg_widths[i].saturating_sub(1)
+                );
+            }
+            print!("{}", vertical,);
+        }
+
+        let mut curr_line = 0;
         'col_print_loop: loop {
             if curr_line > col_height_max {
                 break 'col_print_loop;
             }
-            for i in 0..self.seg_cols_count[seg_index] {
-                // TODO: Print each line with vertical dividers in between
-                print!("{}", box_pieces.vertical.to_string().color(*box_col_tc));
-                if let Some(content) = columnar_data[i].get(curr_line) {
-                    print!(" {:>width$}", content, width = col_seg_widths[i] - 1usize); // a -1 here to accommodate for the extra space I put in for the left padding
-                } else {
-                    print!("{:>width$}", "", width = col_seg_widths[i] - 1usize);
-                }
-            }
+
             curr_line += 1;
         }
     }
@@ -1042,7 +1060,8 @@ impl<'a> BoxyBuilder<'a> {
     pub fn add_segment(mut self, text: &str, color: &str, text_align: BoxAlign) -> Self {
         self.data
             .push(SegType::Single(vec![Cow::from(text.to_owned())]));
-        self.colors.push(SegType::Single(vec![Cow::Owned(color.to_owned())]));
+        self.colors
+            .push(SegType::Single(vec![Cow::Owned(color.to_owned())]));
         self.seg_align.push(text_align);
         self
     }
