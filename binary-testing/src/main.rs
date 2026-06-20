@@ -11,9 +11,7 @@ fn main() {
     box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff", BoxAlign::Center);
     box1.add_text_sgmt("Hello Theree", "#00ffff", BoxAlign::Center);
     box1.set_padding(BoxPad::from_tldr(1, 2, 3, 4), BoxPad::uniform(0));
-    println!("{:#?}", box1);
-    // Post-line insert check
-    println!("{:?}", box1);
+    // println!("{:?}", box1);
     println!("\nTEXTBOX:");
     let start = Instant::now();
     box1.display();
