@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "boxy-cli",
+    "binary-testing",
+]
+
+resolver = "3"
