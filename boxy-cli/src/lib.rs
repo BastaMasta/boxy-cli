@@ -45,9 +45,12 @@
 pub mod boxer;
 mod constructs;
 mod macros;
-mod wrapper;
 pub mod prelude;
 pub(crate) mod templates;
+mod wrapper;
+
+// crate tests
+mod tests;
 
 // Re-export prelude at crate root
 pub use prelude::*;
