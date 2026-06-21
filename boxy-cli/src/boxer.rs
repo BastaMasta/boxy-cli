@@ -1,11 +1,11 @@
 //! The main crate logic
 
+use crate::BoxType::Empty;
 use crate::constructs::*;
 use crate::templates::*;
 use colored::{Color, Colorize};
 use hex_color::HexColor;
 use std::borrow::Cow;
-use std::panic;
 
 /// The main struct that represents a text box for CLI display.
 ///
@@ -141,17 +141,19 @@ impl<'a> Boxy<'a> {
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(0);
+        self.seg_cols_ratio.push(vec![1]);
     }
 
     // TODO: Add content and documentation to this:
     pub fn add_col_text_sgmt(&mut self, text_align: BoxAlign, color: &str, column_count: usize) {
         self.data
-            .push(SegType::Columnar(Vec::with_capacity(column_count)));
+            .push(SegType::Columnar(vec![Vec::new(); column_count]));
         self.colors
             .push(SegType::Single(vec![Cow::from(String::from(color))]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(column_count);
+        self.seg_cols_ratio.push(vec![1, column_count]); // default to equal width
     }
 
     /// Adds a new text line to the segment with a specific index.
@@ -200,7 +202,7 @@ impl<'a> Boxy<'a> {
                 panic!("Failed to add columnar text data to SegType::Single segment!")
             }
             SegType::Columnar(data) => {
-                if self.seg_cols_count[*seg_index] < *col_index {
+                if *col_index >= self.seg_cols_count[*seg_index] {
                     panic!("failed to add columnar data: INVALID COLUMN INDEX");
                 }
                 data[*col_index].push(Cow::from(data_string.to_owned()))
@@ -500,9 +502,9 @@ impl<'a> Boxy<'a> {
 
         // pre-emptively get the dividers map:
         let mut col_divider_segwise: Vec<Vec<usize>> = Vec::new();
-        for i in 0..self.tot_seg {
+        for i in 0..self.sect_count {
             if let SegType::Single(_) = self.data[i] {
-                col_divider_segwise.push(vec![0]);
+                col_divider_segwise.push(Vec::new());
             } else {
                 col_divider_segwise.push(self.col_widths(&i, &disp_width));
             }
@@ -525,7 +527,6 @@ impl<'a> Boxy<'a> {
             } else {
                 self.print_cols(
                     i,
-                    disp_width,
                     align_offset,
                     &box_pieces,
                     &box_col_truecolor,
@@ -640,11 +641,11 @@ impl<'a> Boxy<'a> {
             box_pieces.left_t.to_string().color(*box_col_truecolor),
             width = self.ext_padding.left + 1 + align_offset
         );
+        let empty = Vec::new();
+        let above = self.col_boundaries(prev_seg.unwrap_or(&empty));
+        let below = self.col_boundaries(next_seg.unwrap_or(&empty));
         for i in 0..disp_width {
-            let ch = match (
-                prev_seg.unwrap_or(&Vec::new()).contains(&i),
-                next_seg.unwrap_or(&Vec::new()).contains(&i),
-            ) {
+            let ch = match (above.contains(&i), below.contains(&i)) {
                 (true, true) => box_pieces.cross,
                 (false, true) => box_pieces.upper_t,
                 (true, false) => box_pieces.lower_t,
@@ -697,19 +698,15 @@ impl<'a> Boxy<'a> {
     fn print_cols(
         &self,
         seg_index: usize,
-        disp_width: usize, //disp width here, cuz need to take ext_padding into account
         align_offset: usize,
         box_pieces: &BoxTemplates,
         box_col_truecolor: &Color,
         col_seg_widths: &Vec<usize>,
     ) {
-        // Need lotsa work here
-        let _col_word_prev_indices: Vec<usize> = vec![0; self.seg_cols_count[seg_index]];
-
         let col_count = self.seg_cols_count[seg_index];
 
         let mut columnar_data: Vec<Vec<String>> = Vec::new();
-        let mut col_height_max = 1;
+        let mut col_height_max = 0;
         for i in 0..col_count {
             let col_data = match &self.data[seg_index] {
                 SegType::Columnar(cols) => &cols[i], // remove this join part to process each line in the column separately
@@ -741,21 +738,12 @@ impl<'a> Boxy<'a> {
                 }
                 let content = col.get(curr_line).map(String::as_str).unwrap_or("");
                 print!(
-                    "{:<width$}",
+                    " {:<width$}",
                     content,
                     width = col_seg_widths[i].saturating_sub(1)
                 );
             }
-            print!("{}", vertical,);
-        }
-
-        let mut curr_line = 0;
-        'col_print_loop: loop {
-            if curr_line > col_height_max {
-                break 'col_print_loop;
-            }
-
-            curr_line += 1;
+            println!("{}", vertical,);
         }
     }
 }
