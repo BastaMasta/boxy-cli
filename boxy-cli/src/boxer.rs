@@ -496,8 +496,8 @@ impl<'a> Boxy<'a> {
         }
 
         // Printing the top segment
-        match self.data.first().unwrap() {
-            &SegType::Single(_) => {
+        match self.data.first() {
+            None | Some(&SegType::Single(_)) => {
                 print!(
                     "{:>width$}",
                     box_pieces.top_left.to_string().color(box_col_truecolor),
@@ -511,7 +511,7 @@ impl<'a> Boxy<'a> {
                     box_pieces.top_right.to_string().color(box_col_truecolor)
                 );
             }
-            &SegType::Columnar(_) => {
+            Some(&SegType::Columnar(_)) => {
                 print!(
                     "{:>width$}",
                     box_pieces.top_left.to_string().color(box_col_truecolor),
@@ -564,8 +564,8 @@ impl<'a> Boxy<'a> {
         }
 
         // Printing the bottom segment
-        match self.data.last().unwrap() {
-            &SegType::Single(_) => {
+        match self.data.last() {
+            None | Some(&SegType::Single(_)) => {
                 print!(
                     "{:>width$}",
                     box_pieces.bottom_left.to_string().color(box_col_truecolor),
@@ -579,7 +579,7 @@ impl<'a> Boxy<'a> {
                     box_pieces.bottom_right.to_string().color(box_col_truecolor)
                 );
             }
-            &SegType::Columnar(_) => {
+            Some(&SegType::Columnar(_)) => {
                 print!(
                     "{:>width$}",
                     box_pieces.bottom_left.to_string().color(box_col_truecolor),
