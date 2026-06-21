@@ -23,6 +23,7 @@ fn main() {
     box2.set_padding(BoxPad::from_tldr(1, 2, 3, 4), BoxPad::uniform(7));
     box2.add_col_text_sgmt(BoxAlign::Center, "#32CD32", 4);
     box2.add_col_text_line_indx("datastring1", &1usize, &0usize);
+    box2.set_segment_ratios(1, vec![1, 2, 3, 4]);
     let start1 = Instant::now();
     box2.display();
     let duration1 = start1.elapsed();

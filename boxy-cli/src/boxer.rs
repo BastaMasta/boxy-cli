@@ -1,6 +1,5 @@
 //! The main crate logic
 
-use crate::BoxType::Empty;
 use crate::constructs::*;
 use crate::templates::*;
 use colored::{Color, Colorize};
@@ -487,28 +486,57 @@ impl<'a> Boxy<'a> {
         let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
 
         // pre-emptively get the dividers map:
-        let mut col_divider_segwise: Vec<Vec<usize>> = Vec::new();
+        let mut col_widths_segwise: Vec<Vec<usize>> = Vec::new();
         for i in 0..self.sect_count {
             if let SegType::Single(_) = self.data[i] {
-                col_divider_segwise.push(Vec::new());
+                col_widths_segwise.push(Vec::new());
             } else {
-                col_divider_segwise.push(self.col_widths(&i, &disp_width));
+                col_widths_segwise.push(self.col_widths(&i, &disp_width));
             }
         }
 
         // Printing the top segment
-        print!(
-            "{:>width$}",
-            box_pieces.top_left.to_string().color(box_col_truecolor),
-            width = self.ext_padding.left + 1 + align_offset
-        );
-        for _ in 0..disp_width {
-            print!("{}", horiz);
+        match self.data.first().unwrap() {
+            &SegType::Single(_) => {
+                print!(
+                    "{:>width$}",
+                    box_pieces.top_left.to_string().color(box_col_truecolor),
+                    width = self.ext_padding.left + 1 + align_offset
+                );
+                for _ in 0..disp_width {
+                    print!("{}", horiz);
+                }
+                println!(
+                    "{}",
+                    box_pieces.top_right.to_string().color(box_col_truecolor)
+                );
+            }
+            &SegType::Columnar(_) => {
+                print!(
+                    "{:>width$}",
+                    box_pieces.top_left.to_string().color(box_col_truecolor),
+                    width = self.ext_padding.left + 1 + align_offset
+                );
+                let below = self.col_boundaries(&col_widths_segwise[0]);
+                for i in 0..disp_width {
+                    match below.contains(&i) {
+                        true => {
+                            print!(
+                                "{}",
+                                box_pieces.upper_t.to_string().color(box_col_truecolor)
+                            )
+                        }
+                        false => {
+                            print!("{}", horiz);
+                        }
+                    };
+                }
+                println!(
+                    "{}",
+                    box_pieces.top_right.to_string().color(box_col_truecolor)
+                );
+            }
         }
-        println!(
-            "{}",
-            box_pieces.top_right.to_string().color(box_col_truecolor)
-        );
 
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
@@ -518,8 +546,8 @@ impl<'a> Boxy<'a> {
                     disp_width,
                     align_offset,
                     &box_pieces,
-                    &col_divider_segwise.get(i - 1),
-                    &col_divider_segwise.get(i),
+                    &col_widths_segwise.get(i - 1),
+                    &col_widths_segwise.get(i),
                 );
             }
             if let SegType::Single(_) = self.data[i] {
@@ -530,24 +558,57 @@ impl<'a> Boxy<'a> {
                     align_offset,
                     &box_pieces,
                     &box_col_truecolor,
-                    &col_divider_segwise[i],
+                    &col_widths_segwise[i],
                 );
             }
         }
 
         // Printing the bottom segment
-        print!(
-            "{:>width$}",
-            box_pieces.bottom_left.to_string().color(box_col_truecolor),
-            width = self.ext_padding.left + 1 + align_offset
-        );
-        for _ in 0..disp_width {
-            print!("{}", horiz);
+        match self.data.last().unwrap() {
+            &SegType::Single(_) => {
+                print!(
+                    "{:>width$}",
+                    box_pieces.bottom_left.to_string().color(box_col_truecolor),
+                    width = self.ext_padding.left + 1 + align_offset
+                );
+                for _ in 0..disp_width {
+                    print!("{}", horiz);
+                }
+                println!(
+                    "{}",
+                    box_pieces.bottom_right.to_string().color(box_col_truecolor)
+                );
+            }
+            &SegType::Columnar(_) => {
+                print!(
+                    "{:>width$}",
+                    box_pieces.bottom_left.to_string().color(box_col_truecolor),
+                    width = self.ext_padding.left + 1 + align_offset
+                );
+                let above = self.col_boundaries(
+                    &col_widths_segwise
+                        .last()
+                        .expect("failed to get last element"),
+                );
+                for i in 0..disp_width {
+                    match above.contains(&i) {
+                        true => {
+                            print!(
+                                "{}",
+                                box_pieces.lower_t.to_string().color(box_col_truecolor)
+                            )
+                        }
+                        false => {
+                            print!("{}", horiz);
+                        }
+                    };
+                }
+                println!(
+                    "{}",
+                    box_pieces.bottom_right.to_string().color(box_col_truecolor)
+                );
+            }
         }
-        println!(
-            "{}",
-            box_pieces.bottom_right.to_string().color(box_col_truecolor)
-        );
     }
 
     // Displaying each segment body
@@ -682,12 +743,12 @@ impl<'a> Boxy<'a> {
         col_seg_widths
     }
 
-    fn col_boundaries(&self, col_width: &Vec<usize>) -> Vec<usize> {
+    fn col_boundaries(&self, col_widths: &Vec<usize>) -> Vec<usize> {
         let mut boundaries: Vec<usize> = Vec::new();
         let mut x = 0;
-        for (i, w) in col_width.iter().enumerate() {
+        for (i, w) in col_widths.iter().enumerate() {
             x += w;
-            if i < col_width.len() - 1 {
+            if i < col_widths.len() - 1 {
                 boundaries.push(x);
                 x += 1;
             }
