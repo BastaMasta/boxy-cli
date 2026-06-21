@@ -29,4 +29,37 @@ mod tests {
         assert!(validate_runtime(duration).is_ok());
         assert!(validate_runtime(duration1).is_ok());
     }
+
+    #[test]
+    fn columnar_api_test() {
+        // exercises add_col_text_sgmt, add_col_text_line_indx, add_col_text_line,
+        // and set_segment_ratios together, across more than 2 columns (regression
+        // coverage for the column-count/ratio-length mismatch bug)
+        let mut box1 = Boxy::new(BoxType::Single, "#ff00ff");
+        box1.add_col_text_sgmt(BoxAlign::Left, 3);
+        box1.add_col_text_line_indx("Column A line 1", "#ff0000", &0usize, &0usize);
+        box1.add_col_text_line("Column B line 1", "#00ff00", &1usize);
+        box1.add_col_text_line("Column C line 1", "#0000ff", &2usize);
+        box1.set_segment_ratios(0, vec![1, 2, 1]);
+
+        let start = Instant::now();
+        box1.display();
+        let duration = start.elapsed();
+        assert!(validate_runtime(duration).is_ok());
+    }
+
+    #[test]
+    #[should_panic(expected = "column_count must be at least 1")]
+    fn zero_column_segment_panics() {
+        let mut box1 = Boxy::new(BoxType::Single, "#ff00ff");
+        box1.add_col_text_sgmt(BoxAlign::Left, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "ratios were given")]
+    fn mismatched_ratio_length_panics() {
+        let mut box1 = Boxy::new(BoxType::Single, "#ff00ff");
+        box1.add_col_text_sgmt(BoxAlign::Left, 3);
+        box1.set_segment_ratios(0, vec![1, 2]); // only 2 ratios for 3 columns
+    }
 }

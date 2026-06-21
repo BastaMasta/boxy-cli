@@ -19,7 +19,7 @@
 /// # use boxy_cli::prelude::*;
 /// # fn main() {
 /// // use the boxy macro
-/// let mut boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left, segcount: 3);
+/// let mut boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left);
 ///
 /// // Adding text segments
 /// boxy.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit.", "#ffff", BoxAlign::Center);
@@ -42,7 +42,6 @@ macro_rules! boxy {
                 "internal_pad" => boxy.set_int_padding($crate::boxer::resolve_pad($value.to_string())),
                 "external_pad" => boxy.set_ext_padding($crate::boxer::resolve_pad($value.to_string())),
                 "alignment" => boxy.set_align($crate::boxer::resolve_align($value.to_string())),
-                "segcount" => boxy.set_total_segments($crate::boxer::resolve_segments($value.to_string())),
                 _ => panic!("Unknown field: {}", stringify!($key)),
             }
         )*
