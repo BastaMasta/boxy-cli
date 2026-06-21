@@ -140,15 +140,18 @@ impl<'a> Boxy<'a> {
             .push(SegType::Single(vec![Cow::from(String::from(color))]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
-        self.seg_cols_count.push(1);
+        self.seg_cols_count.push(0);
     }
 
     // TODO: Add content and documentation to this:
-    pub fn add_col_text_sgmt(&mut self, text_align: BoxAlign, column_count: usize) {
-        self.data.push(SegType::Columnar(Vec::with_capacity(column_count)));
+    pub fn add_col_text_sgmt(&mut self, text_align: BoxAlign, color: &str, column_count: usize) {
+        self.data
+            .push(SegType::Columnar(Vec::with_capacity(column_count)));
+        self.colors
+            .push(SegType::Single(vec![Cow::from(String::from(color))]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
-        self.seg_cols_count[self.sect_count] = column_count;
+        self.seg_cols_count.push(column_count);
     }
 
     /// Adds a new text line to the segment with a specific index.
@@ -200,7 +203,8 @@ impl<'a> Boxy<'a> {
                 if self.seg_cols_count[*seg_index] < *col_index {
                     panic!("failed to add columnar data: INVALID COLUMN INDEX");
                 }
-                data[*col_index].push(Cow::from(data_string.to_owned()))},
+                data[*col_index].push(Cow::from(data_string.to_owned()))
+            }
         }
     }
 
@@ -498,7 +502,7 @@ impl<'a> Boxy<'a> {
         let mut col_divider_segwise: Vec<Vec<usize>> = Vec::new();
         for i in 0..self.tot_seg {
             if let SegType::Single(_) = self.data[i] {
-                col_divider_segwise.push(Vec::new());
+                col_divider_segwise.push(vec![0]);
             } else {
                 col_divider_segwise.push(self.col_widths(&i, &disp_width));
             }
@@ -512,8 +516,8 @@ impl<'a> Boxy<'a> {
                     disp_width,
                     align_offset,
                     &box_pieces,
-                    &col_divider_segwise[i - 1],
-                    &col_divider_segwise[i],
+                    &col_divider_segwise.get(i - 1),
+                    &col_divider_segwise.get(i),
                 );
             }
             if let SegType::Single(_) = self.data[i] {
@@ -627,8 +631,8 @@ impl<'a> Boxy<'a> {
         disp_width: usize,
         align_offset: usize,
         box_pieces: &BoxTemplates,
-        prev_seg: &Vec<usize>,
-        next_seg: &Vec<usize>,
+        prev_seg: &Option<&Vec<usize>>,
+        next_seg: &Option<&Vec<usize>>,
     ) {
         // print left segment
         print!(
@@ -637,7 +641,10 @@ impl<'a> Boxy<'a> {
             width = self.ext_padding.left + 1 + align_offset
         );
         for i in 0..disp_width {
-            let ch = match (prev_seg.contains(&i), next_seg.contains(&i)) {
+            let ch = match (
+                prev_seg.unwrap_or(&Vec::new()).contains(&i),
+                next_seg.unwrap_or(&Vec::new()).contains(&i),
+            ) {
                 (true, true) => box_pieces.cross,
                 (false, true) => box_pieces.upper_t,
                 (true, false) => box_pieces.lower_t,

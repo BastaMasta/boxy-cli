@@ -21,22 +21,24 @@ fn main() {
     box2.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo ", "#ffff", BoxAlign::Left);
     box2.add_text_line("Hello There Boi", "#32CD32");
     box2.set_padding(BoxPad::from_tldr(1, 2, 3, 4), BoxPad::uniform(7));
+    box2.add_col_text_sgmt(BoxAlign::Center, "#32CD32", 2);
+    box2.add_col_text_line_indx("datastring1", &1usize, &0usize);
     let start1 = Instant::now();
     box2.display();
     let duration1 = start1.elapsed();
     println!("Time elapsed: {:?}", duration1);
-    let start2 = Instant::now();
-    Boxy::builder()
-        .box_type(BoxType::Double)
-        .color("#f4f5f3")
-        .padding(BoxPad::uniform(20), BoxPad::from_tldr(2, 2, 1, 1))
-        .align(BoxAlign::Center)
-        .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
-        .add_line("This is a new line.", "#32CD32")
-        .add_segment("Another section", "#f19356", BoxAlign::Right)
-        .width(50)
-        .build()
-        .display();
-    let duration2 = start2.elapsed();
-    println!("Time elapsed: {:?}", duration2);
+    // let start2 = Instant::now();
+    // Boxy::builder()
+    //     .box_type(BoxType::Double)
+    //     .color("#f4f5f3")
+    //     .padding(BoxPad::uniform(20), BoxPad::from_tldr(2, 2, 1, 1))
+    //     .align(BoxAlign::Center)
+    //     .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
+    //     .add_line("This is a new line.", "#32CD32")
+    //     .add_segment("Another section", "#f19356", BoxAlign::Right)
+    //     .width(50)
+    //     .build()
+    //     .display();
+    // let duration2 = start2.elapsed();
+    // println!("Time elapsed: {:?}", duration2);
 }
