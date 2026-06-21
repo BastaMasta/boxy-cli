@@ -601,7 +601,6 @@ impl<'a> Boxy<'a> {
 
         // Resolve template once per display
         let box_pieces = map_box_type(&self.type_enum);
-        let horiz = box_pieces.horizontal.to_string().color(box_col_truecolor);
 
         // get alignment-based offset
         let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
@@ -617,47 +616,38 @@ impl<'a> Boxy<'a> {
         }
 
         // Printing the top segment
+        let mut top_seg: String = String::new();
         match self.data.first() {
             None | Some(&SegType::Single(_)) => {
-                print!(
+                top_seg.push_str(&format!(
                     "{:>width$}",
-                    box_pieces.top_left.to_string().color(box_col_truecolor),
+                    box_pieces.top_left,
                     width = self.ext_padding.left + 1 + align_offset
-                );
-                for _ in 0..disp_width {
-                    print!("{}", horiz);
-                }
-                println!(
-                    "{}",
-                    box_pieces.top_right.to_string().color(box_col_truecolor)
-                );
+                ));
+                top_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
+                top_seg.push(box_pieces.top_right);
             }
             Some(&SegType::Columnar(_)) => {
-                print!(
+                top_seg.push_str(&format!(
                     "{:>width$}",
-                    box_pieces.top_left.to_string().color(box_col_truecolor),
+                    box_pieces.top_left,
                     width = self.ext_padding.left + 1 + align_offset
-                );
+                ));
                 let below = self.col_boundaries(&col_widths_segwise[0]);
                 for i in 0..disp_width {
                     match below.contains(&i) {
                         true => {
-                            print!(
-                                "{}",
-                                box_pieces.upper_t.to_string().color(box_col_truecolor)
-                            )
+                            top_seg.push(box_pieces.upper_t);
                         }
                         false => {
-                            print!("{}", horiz);
+                            top_seg.push(box_pieces.horizontal);
                         }
                     };
                 }
-                println!(
-                    "{}",
-                    box_pieces.top_right.to_string().color(box_col_truecolor)
-                );
+                top_seg.push(box_pieces.top_right);
             }
         }
+        println!("{}", top_seg.color(box_col_truecolor));
 
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
@@ -685,27 +675,23 @@ impl<'a> Boxy<'a> {
         }
 
         // Printing the bottom segment
+        let mut bot_seg: String = String::new();
         match self.data.last() {
             None | Some(&SegType::Single(_)) => {
-                print!(
+                bot_seg.push_str(&format!(
                     "{:>width$}",
-                    box_pieces.bottom_left.to_string().color(box_col_truecolor),
+                    box_pieces.bottom_left,
                     width = self.ext_padding.left + 1 + align_offset
-                );
-                for _ in 0..disp_width {
-                    print!("{}", horiz);
-                }
-                println!(
-                    "{}",
-                    box_pieces.bottom_right.to_string().color(box_col_truecolor)
-                );
+                ));
+                bot_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
+                bot_seg.push(box_pieces.bottom_right);
             }
             Some(&SegType::Columnar(_)) => {
-                print!(
+                bot_seg.push_str(&format!(
                     "{:>width$}",
-                    box_pieces.bottom_left.to_string().color(box_col_truecolor),
+                    box_pieces.bottom_left,
                     width = self.ext_padding.left + 1 + align_offset
-                );
+                ));
                 let above = self.col_boundaries(
                     &col_widths_segwise
                         .last()
@@ -714,22 +700,17 @@ impl<'a> Boxy<'a> {
                 for i in 0..disp_width {
                     match above.contains(&i) {
                         true => {
-                            print!(
-                                "{}",
-                                box_pieces.lower_t.to_string().color(box_col_truecolor)
-                            )
+                            bot_seg.push(box_pieces.lower_t);
                         }
                         false => {
-                            print!("{}", horiz);
+                            bot_seg.push(box_pieces.horizontal);
                         }
                     };
                 }
-                println!(
-                    "{}",
-                    box_pieces.bottom_right.to_string().color(box_col_truecolor)
-                );
+                bot_seg.push(box_pieces.bottom_right);
             }
         }
+        println!("{}", bot_seg.color(box_col_truecolor));
     }
 
     // Displaying each segment body
@@ -817,12 +798,13 @@ impl<'a> Boxy<'a> {
         prev_seg: &Option<&Vec<usize>>,
         next_seg: &Option<&Vec<usize>>,
     ) {
-        // print left segment
-        print!(
+        // push left segment
+        let mut div: String = String::new();
+        div.push_str(&format!(
             "{:>width$}",
-            box_pieces.left_t.to_string().color(*box_col_truecolor),
+            box_pieces.left_t.to_string(),
             width = self.ext_padding.left + 1 + align_offset
-        );
+        ));
         let empty = Vec::new();
         let above = self.col_boundaries(prev_seg.unwrap_or(&empty));
         let below = self.col_boundaries(next_seg.unwrap_or(&empty));
@@ -833,13 +815,13 @@ impl<'a> Boxy<'a> {
                 (true, false) => box_pieces.lower_t,
                 (false, false) => box_pieces.horizontal,
             };
-            print!("{}", ch.to_string().color(*box_col_truecolor));
+            div.push(ch);
         }
-        // print right segment
-        println!(
-            "{}",
-            box_pieces.right_t.to_string().color(*box_col_truecolor)
-        );
+        // push right segment
+        div.push(box_pieces.right_t);
+
+        // print this shit
+        println!("{}", div.color(*box_col_truecolor));
     }
 
     fn col_widths(&self, seg_index: &usize, disp_width: &usize) -> Vec<usize> {
@@ -935,26 +917,32 @@ impl<'a> Boxy<'a> {
         let vertical = box_pieces.vertical.to_string().color(*box_col_truecolor);
 
         for curr_line in 0..col_height_max {
-            print!(
+            let mut currline = String::new();
+            currline.push_str(&format!(
                 "{:>width$}",
                 vertical,
                 width = self.ext_padding.left + 1 + align_offset
-            );
+            ));
             for (i, col) in columnar_data.iter().enumerate() {
                 if i > 0 {
-                    print!("{}", vertical);
+                    currline.push_str(&format!("{}", vertical));
                 }
                 let width = col_seg_widths[i].saturating_sub(1);
                 match col.get(curr_line) {
                     Some((content, color)) => {
-                        print!(" {:<width$}", content.color(*color), width = width);
+                        currline.push_str(&format!(
+                            " {:<width$}",
+                            content.color(*color),
+                            width = width
+                        ));
                     }
                     None => {
-                        print!(" {:<width$}", "", width = width);
+                        currline.push_str(&format!(" {:<width$}", "", width = width));
                     }
                 }
             }
-            println!("{}", vertical,);
+            currline.push_str(&format!("{}", vertical));
+            println!("{}", currline);
         }
     }
 }
@@ -1017,46 +1005,64 @@ fn iter_line_prnt(
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
-                print!("{:>width$}", vertical, width = ext_padding.left + 1);
-                print!("{:<pad$}", " ", pad = int_padding.left);
-                print!(
+                let mut currline = String::new();
+                currline.push_str(&format!(
+                    "{:>width$}",
+                    vertical,
+                    width = ext_padding.left + 1
+                ));
+                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.left));
+                currline.push_str(&format!(
                     "{:<width$}",
                     i.color(*text_col),
-                    width = printable_area - (2 * (!*fixed_size as usize))
-                ); // subtract 2 for the bars if on dynamic sizing
-                print!("{:<pad$}", " ", pad = int_padding.right);
-                println!("{}", vertical);
+                    width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
+                ));
+                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.right));
+                currline.push_str(&format!("{}", vertical));
+                println!("{}", currline);
             }
         }
         BoxAlign::Center => {
             for i in liner.iter() {
-                print!("{:>width$}", vertical, width = ext_padding.left + 1);
-                print!(
+                let mut currline = String::new();
+                currline.push_str(&format!(
+                    "{:>width$}",
+                    vertical,
+                    width = ext_padding.left + 1
+                ));
+                currline.push_str(&format!(
                     "{:<pad$}",
                     " ",
                     pad = int_padding.left + ((printable_area - i.len()) / 2)
-                );
-                print!("{}", i.color(*text_col));
-                print!(
+                ));
+                currline.push_str(&format!("{}", i.color(*text_col)));
+                currline.push_str(&format!(
                     "{:<pad$}",
                     " ",
                     pad = int_padding.right + (printable_area - i.len())
                         - ((printable_area - i.len()) / 2)
-                );
-                println!("{}", vertical);
+                ));
+                currline.push_str(&format!("{}", vertical));
+                println!("{}", currline);
             }
         }
         BoxAlign::Right => {
             for i in liner.iter() {
-                print!("{:>width$}", vertical, width = ext_padding.left + 1);
-                print!("{:<pad$}", " ", pad = int_padding.left);
-                print!(
+                let mut currline = String::new();
+                currline.push_str(&format!(
+                    "{:>width$}",
+                    vertical,
+                    width = ext_padding.left + 1
+                ));
+                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.left));
+                currline.push_str(&format!(
                     "{:>width$}",
                     i.color(*text_col),
-                    width = printable_area - (2 * (!*fixed_size as usize))
-                ); // subtract 2 for the bars if on dynamic sizing
-                print!("{:<pad$}", " ", pad = int_padding.right);
-                println!("{}", vertical);
+                    width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
+                ));
+                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.right));
+                currline.push_str(&format!("{}", vertical));
+                println!("{}", currline)
             }
         }
     }
