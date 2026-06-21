@@ -21,8 +21,12 @@ fn main() {
     box2.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo ", "#ffff", BoxAlign::Left);
     box2.add_text_line("Hello There Boi", "#32CD32");
     box2.set_padding(BoxPad::from_tldr(1, 2, 3, 4), BoxPad::uniform(7));
-    box2.add_col_text_sgmt(BoxAlign::Center, "#32CD32", 4);
-    box2.add_col_text_line_indx("datastring1", &1usize, &0usize);
+    box2.add_col_text_sgmt(BoxAlign::Center, 4);
+    box2.add_col_text_line_indx("datastring1", "#32CD32", &1usize, &0usize);
+    box2.add_col_text_line("col1 row1", "#ff5555", &0usize);
+    box2.add_col_text_line("col2 row1", "#55ff55", &1usize);
+    box2.add_col_text_line("col3 row1", "#5555ff", &2usize);
+    box2.add_col_text_line("col4 row1", "#ffff55", &3usize);
     box2.set_segment_ratios(1, vec![1, 2, 3, 4]);
     let start1 = Instant::now();
     box2.display();
