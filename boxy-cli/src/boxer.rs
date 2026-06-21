@@ -5,6 +5,7 @@ use crate::templates::*;
 use colored::{Color, Colorize};
 use hex_color::HexColor;
 use std::borrow::Cow;
+use std::fmt::Write;
 
 /// The main struct that represents a text box for CLI display.
 ///
@@ -619,20 +620,24 @@ impl<'a> Boxy<'a> {
         let mut top_seg: String = String::new();
         match self.data.first() {
             None | Some(&SegType::Single(_)) => {
-                top_seg.push_str(&format!(
+                write!(
+                    top_seg,
                     "{:>width$}",
                     box_pieces.top_left,
                     width = self.ext_padding.left + 1 + align_offset
-                ));
+                )
+                .unwrap();
                 top_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
                 top_seg.push(box_pieces.top_right);
             }
             Some(&SegType::Columnar(_)) => {
-                top_seg.push_str(&format!(
+                write!(
+                    top_seg,
                     "{:>width$}",
                     box_pieces.top_left,
                     width = self.ext_padding.left + 1 + align_offset
-                ));
+                )
+                .unwrap();
                 let below = self.col_boundaries(&col_widths_segwise[0]);
                 for i in 0..disp_width {
                     match below.contains(&i) {
@@ -678,20 +683,24 @@ impl<'a> Boxy<'a> {
         let mut bot_seg: String = String::new();
         match self.data.last() {
             None | Some(&SegType::Single(_)) => {
-                bot_seg.push_str(&format!(
+                write!(
+                    bot_seg,
                     "{:>width$}",
                     box_pieces.bottom_left,
                     width = self.ext_padding.left + 1 + align_offset
-                ));
+                )
+                .unwrap();
                 bot_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
                 bot_seg.push(box_pieces.bottom_right);
             }
             Some(&SegType::Columnar(_)) => {
-                bot_seg.push_str(&format!(
+                write!(
+                    bot_seg,
                     "{:>width$}",
                     box_pieces.bottom_left,
                     width = self.ext_padding.left + 1 + align_offset
-                ));
+                )
+                .unwrap();
                 let above = self.col_boundaries(
                     &col_widths_segwise
                         .last()
@@ -800,11 +809,13 @@ impl<'a> Boxy<'a> {
     ) {
         // push left segment
         let mut div: String = String::new();
-        div.push_str(&format!(
+        write!(
+            div,
             "{:>width$}",
             box_pieces.left_t.to_string(),
             width = self.ext_padding.left + 1 + align_offset
-        ));
+        )
+        .unwrap();
         let empty = Vec::new();
         let above = self.col_boundaries(prev_seg.unwrap_or(&empty));
         let below = self.col_boundaries(next_seg.unwrap_or(&empty));
@@ -918,30 +929,34 @@ impl<'a> Boxy<'a> {
 
         for curr_line in 0..col_height_max {
             let mut currline = String::new();
-            currline.push_str(&format!(
+            write!(
+                currline,
                 "{:>width$}",
                 vertical,
                 width = self.ext_padding.left + 1 + align_offset
-            ));
+            )
+            .unwrap();
             for (i, col) in columnar_data.iter().enumerate() {
                 if i > 0 {
-                    currline.push_str(&format!("{}", vertical));
+                    write!(currline, "{}", vertical).unwrap();
                 }
                 let width = col_seg_widths[i].saturating_sub(1);
                 match col.get(curr_line) {
                     Some((content, color)) => {
-                        currline.push_str(&format!(
+                        write!(
+                            currline,
                             " {:<width$}",
                             content.color(*color),
                             width = width
-                        ));
+                        )
+                        .unwrap();
                     }
                     None => {
-                        currline.push_str(&format!(" {:<width$}", "", width = width));
+                        write!(currline, " {:<width$}", "", width = width).unwrap();
                     }
                 }
             }
-            currline.push_str(&format!("{}", vertical));
+            write!(currline, "{}", vertical).unwrap();
             println!("{}", currline);
         }
     }
@@ -1006,62 +1021,76 @@ fn iter_line_prnt(
         BoxAlign::Left => {
             for i in liner.iter() {
                 let mut currline = String::new();
-                currline.push_str(&format!(
+                write!(
+                    currline,
                     "{:>width$}",
                     vertical,
                     width = ext_padding.left + 1
-                ));
-                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.left));
-                currline.push_str(&format!(
+                )
+                .unwrap();
+                write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
+                write!(
+                    currline,
                     "{:<width$}",
                     i.color(*text_col),
                     width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
-                ));
-                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.right));
-                currline.push_str(&format!("{}", vertical));
+                )
+                .unwrap();
+                write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
+                write!(currline, "{}", vertical).unwrap();
                 println!("{}", currline);
             }
         }
         BoxAlign::Center => {
             for i in liner.iter() {
                 let mut currline = String::new();
-                currline.push_str(&format!(
+                write!(
+                    currline,
                     "{:>width$}",
                     vertical,
                     width = ext_padding.left + 1
-                ));
-                currline.push_str(&format!(
+                )
+                .unwrap();
+                write!(
+                    currline,
                     "{:<pad$}",
                     " ",
                     pad = int_padding.left + ((printable_area - i.len()) / 2)
-                ));
-                currline.push_str(&format!("{}", i.color(*text_col)));
-                currline.push_str(&format!(
+                )
+                .unwrap();
+                write!(currline, "{}", i.color(*text_col)).unwrap();
+                write!(
+                    currline,
                     "{:<pad$}",
                     " ",
                     pad = int_padding.right + (printable_area - i.len())
                         - ((printable_area - i.len()) / 2)
-                ));
-                currline.push_str(&format!("{}", vertical));
+                )
+                .unwrap();
+                write!(currline, "{}", vertical).unwrap();
                 println!("{}", currline);
             }
         }
         BoxAlign::Right => {
             for i in liner.iter() {
                 let mut currline = String::new();
-                currline.push_str(&format!(
+                write!(
+                    currline,
                     "{:>width$}",
                     vertical,
                     width = ext_padding.left + 1
-                ));
-                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.left));
-                currline.push_str(&format!(
+                )
+                .unwrap();
+                write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
+                write!(
+                    currline,
                     "{:>width$}",
                     i.color(*text_col),
                     width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
-                ));
-                currline.push_str(&format!("{:<pad$}", " ", pad = int_padding.right));
-                currline.push_str(&format!("{}", vertical));
+                )
+                .unwrap();
+                write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
+                write!(currline, "{}", vertical).unwrap();
                 println!("{}", currline)
             }
         }
