@@ -153,7 +153,7 @@ impl<'a> Boxy<'a> {
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(column_count);
-        self.seg_cols_ratio.push(vec![1, column_count]); // default to equal width
+        self.seg_cols_ratio.push(vec![1; column_count]); // default to equal width
     }
 
     /// Adds a new text line to the segment with a specific index.
@@ -486,6 +486,16 @@ impl<'a> Boxy<'a> {
         // get alignment-based offset
         let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
 
+        // pre-emptively get the dividers map:
+        let mut col_divider_segwise: Vec<Vec<usize>> = Vec::new();
+        for i in 0..self.sect_count {
+            if let SegType::Single(_) = self.data[i] {
+                col_divider_segwise.push(Vec::new());
+            } else {
+                col_divider_segwise.push(self.col_widths(&i, &disp_width));
+            }
+        }
+
         // Printing the top segment
         print!(
             "{:>width$}",
@@ -499,16 +509,6 @@ impl<'a> Boxy<'a> {
             "{}",
             box_pieces.top_right.to_string().color(box_col_truecolor)
         );
-
-        // pre-emptively get the dividers map:
-        let mut col_divider_segwise: Vec<Vec<usize>> = Vec::new();
-        for i in 0..self.sect_count {
-            if let SegType::Single(_) = self.data[i] {
-                col_divider_segwise.push(Vec::new());
-            } else {
-                col_divider_segwise.push(self.col_widths(&i, &disp_width));
-            }
-        }
 
         // Iteratively print all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {

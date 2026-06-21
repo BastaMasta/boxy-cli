@@ -21,7 +21,7 @@ fn main() {
     box2.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo ", "#ffff", BoxAlign::Left);
     box2.add_text_line("Hello There Boi", "#32CD32");
     box2.set_padding(BoxPad::from_tldr(1, 2, 3, 4), BoxPad::uniform(7));
-    box2.add_col_text_sgmt(BoxAlign::Center, "#32CD32", 2);
+    box2.add_col_text_sgmt(BoxAlign::Center, "#32CD32", 4);
     box2.add_col_text_line_indx("datastring1", &1usize, &0usize);
     let start1 = Instant::now();
     box2.display();
