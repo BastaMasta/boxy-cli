@@ -2,6 +2,8 @@
 
 use std::{borrow::Cow, fmt::Display};
 
+use colored::Color;
+
 /// Defines the border style for the text box.
 ///
 /// Each variant represents a different visual style for the box borders.
@@ -245,9 +247,9 @@ impl BoxPad {
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub enum SegType <'a>{
+pub enum SegType<'a> {
     Single(Vec<Cow<'a, str>>),
-    Columnar(Vec<Vec<Cow<'a, str>>>)
+    Columnar(Vec<Vec<Cow<'a, str>>>),
 }
 
 #[allow(dead_code)]
@@ -265,13 +267,38 @@ impl<'a> SegType<'a> {
     pub(crate) fn get_single(&self, index: usize) -> Option<&Cow<'a, str>> {
         match self {
             SegType::Single(vec) => vec.get(index),
-            _ => None
+            _ => None,
         }
     }
     pub(crate) fn get_columnar(&self, index: usize) -> Option<&Vec<Cow<'a, str>>> {
         match self {
             SegType::Columnar(vec) => vec.get(index),
-            _ => None
+            _ => None,
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SegColor {
+    Single(Vec<Color>),
+    Columnar(Vec<Vec<Color>>),
+}
+
+use hex_color::HexColor;
+
+impl SegColor {
+    pub(crate) fn parse_hexcolor(hex: &str) -> Color {
+        let box_col = match HexColor::parse(hex) {
+            Ok(color) => Color::TrueColor {
+                r: color.r,
+                g: color.g,
+                b: color.b,
+            },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", hex, e);
+                Color::White // Default color
+            }
+        };
+        box_col
     }
 }

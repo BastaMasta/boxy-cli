@@ -1,9 +1,9 @@
 //! The main crate logic
 
+use crate::constructs::SegColor;
 use crate::constructs::*;
 use crate::templates::*;
 use colored::{Color, Colorize};
-use hex_color::HexColor;
 use std::borrow::Cow;
 use std::fmt::Write;
 
@@ -27,8 +27,8 @@ pub struct Boxy<'a> {
     type_enum: BoxType,
     data: Vec<SegType<'a>>,
     sect_count: usize,
-    box_col: String,
-    colors: Vec<SegType<'a>>,
+    box_col: Color,
+    colors: Vec<SegColor>,
     int_padding: BoxPad,
     ext_padding: BoxPad,
     align: BoxAlign,
@@ -47,8 +47,8 @@ impl Default for Boxy<'_> {
             type_enum: BoxType::Single,
             data: Vec::<SegType>::new(),
             sect_count: 0usize,
-            box_col: "#ffffff".to_string(),
-            colors: Vec::<SegType>::new(),
+            box_col: SegColor::parse_hexcolor("#ffffff"),
+            colors: Vec::<SegColor>::new(),
             int_padding: BoxPad::new(),
             ext_padding: BoxPad::new(),
             align: BoxAlign::Left,
@@ -87,7 +87,7 @@ impl<'a> Boxy<'a> {
     pub fn new(box_type: BoxType, box_color: &str) -> Self {
         Boxy {
             type_enum: box_type,
-            box_col: box_color.to_string(),
+            box_col: SegColor::parse_hexcolor(box_color),
             ..Self::default()
         }
     }
@@ -135,7 +135,7 @@ impl<'a> Boxy<'a> {
         self.data
             .push(SegType::Single(vec![Cow::from(data_string.to_owned())]));
         self.colors
-            .push(SegType::Single(vec![Cow::from(String::from(color))]));
+            .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(0);
@@ -180,7 +180,7 @@ impl<'a> Boxy<'a> {
             .push(SegType::Columnar(vec![Vec::new(); column_count]));
         //colors are shaped to mirror data: one color-per-line, per columns
         self.colors
-            .push(SegType::Columnar(vec![Vec::new(); column_count]));
+            .push(SegColor::Columnar(vec![Vec::new(); column_count]));
         self.seg_align.push(text_align);
         self.sect_count += 1;
         self.seg_cols_count.push(column_count);
@@ -219,7 +219,10 @@ impl<'a> Boxy<'a> {
             SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
             SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
         }
-        self.colors[seg_index].push(Cow::from(String::from(color)));
+        match &mut self.colors[seg_index] {
+            SegColor::Single(cols) => cols.push(SegColor::parse_hexcolor(color)),
+            SegColor::Columnar(_) => panic!("color mismatch: expected Single"),
+        }
     }
 
     /// Adds a new line of text to a specific column within a specific columnar segment.
@@ -272,8 +275,8 @@ impl<'a> Boxy<'a> {
             }
         }
         match &mut self.colors[*seg_index] {
-            SegType::Columnar(cols) => cols[*col_index].push(Cow::from(color.to_owned())),
-            SegType::Single(_) => unreachable!(
+            SegColor::Columnar(cols) => cols[*col_index].push(SegColor::parse_hexcolor(color)),
+            SegColor::Single(_) => panic!(
                 "colors shape mismatch: a columnar data segment should always have columnar colors"
             ),
         }
@@ -307,8 +310,10 @@ impl<'a> Boxy<'a> {
             SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
             SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
         }
-
-        self.colors[self.sect_count - 1].push(Cow::from(String::from(color)));
+        match &mut self.colors[self.sect_count - 1] {
+            SegColor::Single(cols) => cols.push(SegColor::parse_hexcolor(color)),
+            SegColor::Columnar(_) => panic!("color mismatch: expected Single"),
+        }
     }
 
     /// Adds a new line of text to a specific column within the most recently added segment.
@@ -495,7 +500,7 @@ impl<'a> Boxy<'a> {
 
     /// Sets the border color using a hex string (e.g., "#00ffff").
     pub fn set_color(&mut self, color: &str) {
-        self.box_col = color.to_string();
+        self.box_col = SegColor::parse_hexcolor(color);
     }
 
     /// Sets the size-ratio between columns for an existing columnar segment.
@@ -588,21 +593,9 @@ impl<'a> Boxy<'a> {
         };
 
         // Parse box color only once per display
-        let box_col_truecolor = match HexColor::parse(&self.box_col) {
-            Ok(color) => Color::TrueColor {
-                r: color.r,
-                g: color.g,
-                b: color.b,
-            },
-            Err(e) => {
-                eprintln!("Error parsing box color '{}': {}", &self.box_col, e);
-                Color::White // Default color
-            }
-        };
-
+        let box_col_truecolor = self.box_col;
         // Resolve template once per display
         let box_pieces = map_box_type(&self.type_enum);
-
         // get alignment-based offset
         let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
 
@@ -739,22 +732,10 @@ impl<'a> Boxy<'a> {
         // Loop for all text lines
         for i in 0..lines.len() {
             // obtaining text colour truevalues
-            let text_col_truecolor =
-                match HexColor::parse(self.colors[seg_index].get_single(i).unwrap()) {
-                    Ok(color) => Color::TrueColor {
-                        r: color.r,
-                        g: color.g,
-                        b: color.b,
-                    },
-                    Err(e) => {
-                        eprintln!(
-                            "Error parsing text color '{}': {}",
-                            &self.colors[seg_index].get_single(i).unwrap(),
-                            e // can just use get_single. this wint run if it's a columnar segemnt
-                        );
-                        Color::White // Default color
-                    }
-                };
+            let text_col_truecolor = match &self.colors[seg_index] {
+                SegColor::Single(cols) => cols[i],
+                SegColor::Columnar(_) => Color::White, // shouldn't happen in display_segment
+            };
             // Processing data
             let processed_data = lines[i].trim().to_owned() + " ";
 
@@ -859,7 +840,7 @@ impl<'a> Boxy<'a> {
     }
 
     fn col_boundaries(&self, col_widths: &Vec<usize>) -> Vec<usize> {
-        let mut boundaries: Vec<usize> = Vec::new();
+        let mut boundaries: Vec<usize> = Vec::with_capacity(col_widths.len());
         let mut x = 0;
         for (i, w) in col_widths.iter().enumerate() {
             x += w;
@@ -889,30 +870,14 @@ impl<'a> Boxy<'a> {
                 SegType::Single(_) => return,
             };
             let col_colors = match &self.colors[seg_index] {
-                SegType::Columnar(cols) => &cols[i],
-                SegType::Single(_) => return,
+                SegColor::Columnar(cols) => &cols[i],
+                SegColor::Single(_) => return,
             };
             let mut col_wrapped: Vec<(String, Color)> = Vec::new();
             for (line_idx, line) in col_data.iter().enumerate() {
                 // obtaining text colour truevalue for this line, falling back to white on
                 // a missing/unparseable color (mirrors display_segment's handling)
-                let text_col_truecolor = match col_colors.get(line_idx) {
-                    Some(hex) => match HexColor::parse(hex) {
-                        Ok(color) => Color::TrueColor {
-                            r: color.r,
-                            g: color.g,
-                            b: color.b,
-                        },
-                        Err(e) => {
-                            eprintln!(
-                                "Error parsing text color '{}' for column {} line {}: {}",
-                                hex, i, line_idx, e
-                            );
-                            Color::White
-                        }
-                    },
-                    None => Color::White,
-                };
+                let text_col_truecolor = col_colors.get(line_idx).copied().unwrap_or(Color::White);
                 for wrapped_line in text_wrap_vec_fast(
                     line.as_ref(),
                     col_seg_widths[i],
@@ -1202,12 +1167,12 @@ pub fn resolve_segments(dat: String) -> usize {
 ///     .build()
 ///     .display();
 /// ```
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BoxyBuilder<'a> {
     type_enum: BoxType,
     data: Vec<SegType<'a>>,
-    box_col: String,
-    colors: Vec<SegType<'a>>,
+    box_col: Color,
+    colors: Vec<SegColor>,
     int_padding: BoxPad,
     ext_padding: BoxPad,
     align: BoxAlign,
@@ -1216,9 +1181,28 @@ pub struct BoxyBuilder<'a> {
     fixed_height: usize,
     seg_cols_ratio: Vec<Vec<usize>>,
     terminal_width_offset: i32,
+    seg_col_count: Vec<usize>,
 }
 
 impl<'a> BoxyBuilder<'a> {
+    fn default() -> Self {
+        Self {
+            type_enum: BoxType::Single,
+            data: Vec::new(),
+            box_col: Color::White,
+            colors: Vec::new(),
+            int_padding: BoxPad::new(),
+            ext_padding: BoxPad::new(),
+            align: BoxAlign::Left,
+            seg_align: Vec::new(),
+            fixed_width: 0,
+            fixed_height: 0,
+            seg_cols_ratio: Vec::new(),
+            terminal_width_offset: -20,
+            seg_col_count: Vec::new(),
+        }
+    }
+
     /// Creates a new `BoxyBuilder` with default values.
     ///
     /// This creates a builder with the following default values:
@@ -1317,7 +1301,7 @@ impl<'a> BoxyBuilder<'a> {
     ///
     /// The actual appearance depends on terminal support for colors.
     pub fn color(mut self, box_color: &str) -> Self {
-        self.box_col = box_color.to_string();
+        self.box_col = SegColor::parse_hexcolor(box_color);
         self
     }
 
@@ -1353,8 +1337,10 @@ impl<'a> BoxyBuilder<'a> {
         self.data
             .push(SegType::Single(vec![Cow::from(text.to_owned())]));
         self.colors
-            .push(SegType::Single(vec![Cow::Owned(color.to_owned())]));
+            .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
         self.seg_align.push(text_align);
+        self.seg_col_count.push(0); // Single segment, no columns
+        self.seg_cols_ratio.push(vec![1]); // placeholder, mirrors add_text_sgmt
         self
     }
 
@@ -1389,16 +1375,28 @@ impl<'a> BoxyBuilder<'a> {
     /// ```
     ///
     pub fn add_line(mut self, text: &str, color: &str) -> Self {
-        if let Some(last_segment) = self.data.last_mut() {
-            match last_segment {
+        if let Some(last) = self.data.last_mut() {
+            match last {
                 SegType::Single(lines) => lines.push(Cow::from(text.to_owned())),
-                SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
+                SegType::Columnar(_) => panic!("add_line called on Columnar segment"),
+            }
+            match self
+                .colors
+                .last_mut()
+                .expect("colors out of sync with data")
+            {
+                SegColor::Single(cols) => cols.push(SegColor::parse_hexcolor(color)),
+                SegColor::Columnar(_) => panic!("add_line called on Columnar segment"),
             }
         } else {
+            // no segment yet — create one, mirroring add_segment
             self.data
                 .push(SegType::Single(vec![Cow::from(text.to_owned())]));
+            self.colors
+                .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
+            self.seg_col_count.push(0);
+            self.seg_cols_ratio.push(vec![1]);
         }
-        self.colors[self.data.len() - 1].push(Cow::Owned(color.to_owned()));
         self
     }
 
