@@ -98,11 +98,11 @@ Where column boundaries from adjacent segments coincide, `boxy-cli` renders the 
 junction character automatically:
 
 ```
-┌─────────────────────────────────────────────────┐
+┌─────────────────┬─────────────────┬─────────────┐
 │   Project       | Status          │ Purpose     |
 ├─────────────────┼─────────────────┴─────────────┤   <- ┼ where both have a boundary
 │ Lumio V2        │ Shipped           Internship  │      ┴ where only the top segment does
-└─────────────────────────────────────────────────┘
+└─────────────────┴───────────────────────────────┘
 ```
 
 ```rust
