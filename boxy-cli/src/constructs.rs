@@ -84,7 +84,7 @@ impl Display for BoxType {
 pub enum BoxAlign {
     /// Align the box to the left in the terminal, or align text to the left within a segment
     Left,
-    /// Centre the box in the terminal, or centre text within a segment.
+    /// center the box in the terminal, or center text within a segment.
     /// When used as box alignment with external padding, the padding values
     /// affect box width but not position — see [`Boxy::set_align`](crate::boxer::Boxy::set_align).
     #[default]

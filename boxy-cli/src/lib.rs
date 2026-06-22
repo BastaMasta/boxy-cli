@@ -69,7 +69,6 @@ mod constructs;
 mod macros;
 pub mod prelude;
 pub(crate) mod templates;
-mod wrapper;
 
 // crate tests
 mod tests;

@@ -28,6 +28,7 @@ fn main() {
     box2.add_col_text_line("col3 row1", "#5555ff", &2usize);
     box2.add_col_text_line("col4 row1", "#ffff55", &3usize);
     box2.set_segment_ratios(1, vec![1, 2, 3, 4]);
+    box2.set_align(BoxAlign::Center);
     let start1 = Instant::now();
     box2.display();
     let duration1 = start1.elapsed();
