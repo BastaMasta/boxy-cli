@@ -2,7 +2,7 @@
 name = "boxy-cli"
 version = "2.1.0"
 edition = "2024"
-description = "A simple crate to create coloured textboxes in rust"
+description = "Styled terminal boxes with multi-segment layouts, columnar grids, true-color borders, Unicode box-drawing, and word wrapping."
 readme = "README.md"
 repository = "https://github.com/BastaMasta/boxy-cli"
 license = "MIT OR Apache-2.0"

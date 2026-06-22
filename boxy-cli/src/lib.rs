@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 //! # boxy-cli
 //!
 //! A Rust library for creating beautifully styled, multi-segment text boxes in terminal

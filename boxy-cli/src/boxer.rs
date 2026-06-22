@@ -220,7 +220,7 @@ impl<'a> Boxy<'a> {
     pub fn add_text_line_indx(&mut self, data_string: &str, color: &str, seg_index: usize) {
         match &mut self.data[seg_index] {
             SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
-            SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
+            SegType::Columnar(_) => panic!("add_text_line_indx called on Columnar segment!"),
         }
         match &mut self.colors[seg_index] {
             SegColor::Single(cols) => cols.push(SegColor::parse_hexcolor(color)),
@@ -321,7 +321,7 @@ impl<'a> Boxy<'a> {
     pub fn add_text_line(&mut self, data_string: &str, color: &str) {
         match &mut self.data[self.sect_count - 1] {
             SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
-            SegType::Columnar(_) => panic!("add_test_line_indx called on Columnar segment!"),
+            SegType::Columnar(_) => panic!("add_text_line_indx called on Columnar segment!"),
         }
         match &mut self.colors[self.sect_count - 1] {
             SegColor::Single(cols) => cols.push(SegColor::parse_hexcolor(color)),
@@ -937,7 +937,6 @@ impl<'a> Boxy<'a> {
             let width = if i == col_count - 1 {
                 printable.saturating_sub(allocated) // saturating_sub to prevent underflow panics
             } else {
-                // TODO: improve this part of the calculation ->  add in number rounding instead of just flooring it.
                 ((*ratio as f64 / total_width_ratio as f64) * printable as f64).floor() as usize
             };
             allocated += width;
