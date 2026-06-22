@@ -101,7 +101,7 @@ junction character automatically:
 ┌─────────────────────────────────────────────────┐
 │                  Project Status                 │
 ├─────────────────┼─────────────────┴─────────────┤   <- ┼ where both have a boundary
-│ Lumio V2        │ Shipped         Internship     │      ┴ where only the top segment does
+│ Lumio V2        │ Shipped         Internship    │      ┴ where only the top segment does
 └─────────────────────────────────────────────────┘
 ```
 
