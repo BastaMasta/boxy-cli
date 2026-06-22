@@ -1,45 +1,67 @@
-//! # Boxy CLI
+//! # boxy-cli
 //!
-//! A Rust library for creating beautifully styled text boxes in command-line interfaces.
-//!
-//! `boxy-cli` provides an easy way to create and display text boxes with various [border styles](./constructs/enum.BoxType.html),
-//! [colors](https://docs.rs/colored/latest/colored/), and [alignment](./constructs/enum.BoxAlign.html) options. It's perfect for creating eye-catching CLI applications,
-//! status displays, or simply organizing text output in a visually appealing way.
+//! A Rust library for creating beautifully styled, multi-segment text boxes in terminal
+//! applications — with full Unicode border support, true-color text, word-wrapping, columnar
+//! layouts, and automatic terminal-width awareness.
 //!
 //! ## Features
 //!
-//! - Multiple [border styles](./constructs/enum.BoxType.html) (single, double, bold, rounded, etc.)
-//! - Colored borders and text using [hex color codes](https://docs.rs/colored/latest/colored/)
-//! - Customizable [internal and external padding](./constructs/struct.BoxPad.html)
-//! - Text [alignment](./constructs/enum.BoxAlign.html) options (left, center, right)
-//! - Support for [multiple text segments](./boxer/struct.Boxy.html#method.add_text_sgmt) with dividers
-//! - Builder pattern for fluent API usage
-//! - Dynamic sizing based on terminal dimensions
+//! - **9 border styles** — classic ASCII, single, double, bold, rounded, and more
+//! - **True-color support** — hex color codes for both borders and per-line text
+//! - **Multi-segment boxes** — stack multiple sections separated by smart dividers
+//! - **Columnar layouts** — side-by-side columns inside a single box, with per-segment
+//!   ratio control and correct `┼`/`┬`/`┴` junction characters where column boundaries meet
+//! - **Word wrapping** — automatic wrapping to terminal width with internal padding awareness
+//! - **Text alignment** — left, center, or right per segment
+//! - **Terminal-aware sizing** — auto-sizes to terminal width, or use a fixed width
+//! - **Two APIs** — imperative ([`Boxy`](crate::boxer::Boxy)) and fluent builder
+//!   ([`BoxyBuilder`](crate::boxer::BoxyBuilder))
+//! - **Macro support** — [`boxy!`] for quick one-liner
 //!
 //! ## Quick Start
 //!
 //! ```rust
 //! use boxy_cli::prelude::*;
 //!
-//! fn main() {
-//!     // Create a text box with fluent builder API
-//!     Boxy::builder()
-//!         .box_type(BoxType::Double)
-//!         .color("#00ffff")
-//!         .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
-//!         .add_segment("A beautiful CLI box library", "#32CD32", BoxAlign::Center)
-//!         .padding(BoxPad::uniform(1), BoxPad::vh(1, 2))
-//!         .build()
-//!         .display();
-//! }
+//! // Fluent builder API
+//! Boxy::builder()
+//!     .box_type(BoxType::Double)
+//!     .color("#00ffff")
+//!     .add_segment("Hello, boxy-cli!", "#ffffff", BoxAlign::Center)
+//!     .add_segment("A terminal box library for Rust", "#32CD32", BoxAlign::Center)
+//!     .padding(BoxPad::uniform(1), BoxPad::vh(1, 2))
+//!     .build()
+//!     .display();
 //! ```
 //!
-//! # Detailed docs
-//! See the [Boxy](./boxer/struct.Boxy.html) struct or the [BoxyBuilder](./boxer/struct.BoxyBuilder.html) struct for more information.
+//! ## Columnar Layout
 //!
-//! ## Usage Examples
+//! Columnar segments let you place content side-by-side inside one box. Column widths are
+//! controlled by ratio values — `vec![1, 2, 1]` gives the middle column twice the space.
 //!
-//! See the [README](https://github.com/BastaMasta/boxy-cli) for more examples and usage information.
+//! ```rust
+//! use boxy_cli::prelude::*;
+//!
+//! let mut b = Boxy::new(BoxType::Single, "#00ffff");
+//! b.add_text_sgmt("Project Status", "#ffffff", BoxAlign::Center);
+//! b.add_col_text_sgmt(BoxAlign::Left, 3);
+//! b.add_col_text_line("Name",     "#aaaaaa", &0usize);
+//! b.add_col_text_line("Status",   "#aaaaaa", &1usize);
+//! b.add_col_text_line("Notes",    "#aaaaaa", &2usize);
+//! b.add_col_text_line("Lumio V2", "#ffffff", &0usize);
+//! b.add_col_text_line("Shipped",  "#32CD32", &1usize);
+//! b.add_col_text_line("Internship project", "#ffffff", &2usize);
+//! b.set_segment_ratios(1, vec![1, 1, 2]);
+//! b.display();
+//! ```
+//!
+//! ## Further Reading
+//!
+//! - [`Boxy`](crate::boxer::Boxy) — imperative API reference
+//! - [`BoxyBuilder`](crate::boxer::BoxyBuilder) — builder API reference
+//! - [`BoxType`] — all available border styles
+//! - [`boxy!`] — macro reference
+//! - [GitHub README](https://github.com/BastaMasta/boxy-cli) — more examples and screenshots
 
 #[allow(dead_code)]
 pub mod boxer;

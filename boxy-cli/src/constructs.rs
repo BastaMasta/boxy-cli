@@ -239,7 +239,19 @@ impl BoxPad {
             right: horizontal,
         }
     }
-    /// returns the total padidng on either side. used for text wrapping and display time calculations
+
+    /// Returns the total horizontal padding (left + right).
+    ///
+    /// Used internally for text wrapping and width calculations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let pad = BoxPad::vh(1, 3);
+    /// assert_eq!(pad.lr(), 6); // left (3) + right (3)
+    /// ```
     pub fn lr(&self) -> usize {
         self.right + self.left
     }
@@ -247,13 +259,22 @@ impl BoxPad {
 
 #[allow(dead_code)]
 #[derive(Debug)]
+/// Represents the data layout of a single segment in a [`Boxy`](crate::boxer::Boxy) box.
+///
+/// Each segment is either a [`Single`](SegType::Single) (plain text, one line per entry)
+/// or a [`Columnar`](SegType::Columnar) (side-by-side columns, each with their own lines).
 pub enum SegType<'a> {
+    /// A plain text segment. Each `Cow<str>` is one line of text content.
     Single(Vec<Cow<'a, str>>),
+    /// A columnar segment. The outer `Vec` is the list of columns; each inner `Vec` is
+    /// the lines of text within that column.
     Columnar(Vec<Vec<Cow<'a, str>>>),
 }
 
 #[allow(dead_code)]
 impl<'a> SegType<'a> {
+    /// Pushes a line into this segment. For [`Columnar`](SegType::Columnar), pushes into
+    /// the last column.
     pub(crate) fn push(&mut self, p0: Cow<'a, str>) {
         match self {
             SegType::Single(vec) => vec.push(p0),
@@ -279,14 +300,24 @@ impl<'a> SegType<'a> {
 }
 
 #[derive(Debug, Clone)]
+/// Stores pre-parsed text colors for each segment, mirroring the shape of [`SegType`].
+///
+/// Colors are parsed from hex strings once at segment-creation time and stored as
+/// [`Color`](colored::Color) values, so [`display()`](crate::boxer::Boxy::display) never
+/// needs to re-parse them.
 pub enum SegColor {
+    /// Colors for a [`SegType::Single`] segment — one `Color` per line of text.
     Single(Vec<Color>),
+    /// Colors for a [`SegType::Columnar`] segment — one `Vec<Color>` per column,
+    /// with one `Color` per line within that column.
     Columnar(Vec<Vec<Color>>),
 }
 
 use hex_color::HexColor;
 
 impl SegColor {
+    /// Parses a hex color string (e.g. `"#00ffff"`) into a [`Color::TrueColor`](colored::Color).
+    /// Falls back to [`Color::White`](colored::Color::White) and prints a warning on parse failure.
     pub(crate) fn parse_hexcolor(hex: &str) -> Color {
         let box_col = match HexColor::parse(hex) {
             Ok(color) => Color::TrueColor {

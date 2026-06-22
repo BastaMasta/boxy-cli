@@ -617,7 +617,7 @@ impl<'a> Boxy<'a> {
                     top_seg,
                     "{:>width$}",
                     box_pieces.top_left,
-                    width = self.ext_padding.left + 1 + align_offset
+                    width = self.ext_padding.left + align_offset
                 )
                 .unwrap();
                 top_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
@@ -628,7 +628,7 @@ impl<'a> Boxy<'a> {
                     top_seg,
                     "{:>width$}",
                     box_pieces.top_left,
-                    width = self.ext_padding.left + 1 + align_offset
+                    width = self.ext_padding.left + align_offset
                 )
                 .unwrap();
                 let below = self.col_boundaries(&col_widths_segwise[0]);
@@ -680,7 +680,7 @@ impl<'a> Boxy<'a> {
                     bot_seg,
                     "{:>width$}",
                     box_pieces.bottom_left,
-                    width = self.ext_padding.left + 1 + align_offset
+                    width = self.ext_padding.left + align_offset
                 )
                 .unwrap();
                 bot_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
@@ -691,7 +691,7 @@ impl<'a> Boxy<'a> {
                     bot_seg,
                     "{:>width$}",
                     box_pieces.bottom_left,
-                    width = self.ext_padding.left + 1 + align_offset
+                    width = self.ext_padding.left + align_offset
                 )
                 .unwrap();
                 let above = self.col_boundaries(
@@ -770,7 +770,7 @@ impl<'a> Boxy<'a> {
                     "{1:>width$}{}{1}",
                     " ".repeat(disp_width),
                     box_pieces.vertical.to_string().color(*box_col_truecolor),
-                    width = self.ext_padding.left + 1 + align_offset
+                    width = self.ext_padding.left + align_offset
                 );
             }
         }
@@ -794,7 +794,7 @@ impl<'a> Boxy<'a> {
             div,
             "{:>width$}",
             box_pieces.left_t.to_string(),
-            width = self.ext_padding.left + 1 + align_offset
+            width = self.ext_padding.left + align_offset
         )
         .unwrap();
         let empty = Vec::new();
@@ -898,7 +898,7 @@ impl<'a> Boxy<'a> {
                 currline,
                 "{:>width$}",
                 vertical,
-                width = self.ext_padding.left + 1 + align_offset
+                width = self.ext_padding.left + align_offset
             )
             .unwrap();
             for (i, col) in columnar_data.iter().enumerate() {
@@ -986,19 +986,13 @@ fn iter_line_prnt(
         BoxAlign::Left => {
             for i in liner.iter() {
                 let mut currline = String::new();
-                write!(
-                    currline,
-                    "{:>width$}",
-                    vertical,
-                    width = ext_padding.left + 1
-                )
-                .unwrap();
+                write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
                 write!(
                     currline,
                     "{:<width$}",
                     i.color(*text_col),
-                    width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
+                    width = printable_area - (2 * (!(*fixed_size) as usize)) // subtract 2 for the bars if on dynamic sizing
                 )
                 .unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
@@ -1009,13 +1003,7 @@ fn iter_line_prnt(
         BoxAlign::Center => {
             for i in liner.iter() {
                 let mut currline = String::new();
-                write!(
-                    currline,
-                    "{:>width$}",
-                    vertical,
-                    width = ext_padding.left + 1
-                )
-                .unwrap();
+                write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(
                     currline,
                     "{:<pad$}",
@@ -1030,6 +1018,8 @@ fn iter_line_prnt(
                     " ",
                     pad = int_padding.right + (printable_area - i.len())
                         - ((printable_area - i.len()) / 2)
+                        - (2 * (int_padding.right != 0) as usize)
+                        + (2 * (*fixed_size as usize))
                 )
                 .unwrap();
                 write!(currline, "{}", vertical).unwrap();
@@ -1039,13 +1029,7 @@ fn iter_line_prnt(
         BoxAlign::Right => {
             for i in liner.iter() {
                 let mut currline = String::new();
-                write!(
-                    currline,
-                    "{:>width$}",
-                    vertical,
-                    width = ext_padding.left + 1
-                )
-                .unwrap();
+                write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
                 write!(
                     currline,
@@ -1345,6 +1329,32 @@ impl<'a> BoxyBuilder<'a> {
     }
 
     /// Adds a new columnar segment to the box.
+    /// Adds a new columnar segment to the box with `column_count` side-by-side columns.
+    ///
+    /// Columns start empty and are populated with [`add_col_line`](Self::add_col_line) or
+    /// [`add_col_line_indx`](Self::add_col_line_indx). All columns default to equal width;
+    /// use [`segment_ratios`](Self::segment_ratios) to customize.
+    ///
+    /// # Arguments
+    ///
+    /// * `text_align` - Alignment applied to text within each column
+    /// * `column_count` - Number of columns (must be at least 1)
+    ///
+    /// # Panics
+    ///
+    /// Panics if `column_count` is 0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let my_box = Boxy::builder()
+    ///     .add_col_segment(BoxAlign::Left, 2)
+    ///     .add_col_line("Left column", "#ffffff", 0)
+    ///     .add_col_line("Right column", "#ffffff", 1)
+    ///     .build();
+    /// ```
     pub fn add_col_segment(mut self, text_align: BoxAlign, column_count: usize) -> Self {
         assert!(
             column_count > 0,
@@ -1418,6 +1428,36 @@ impl<'a> BoxyBuilder<'a> {
     }
 
     /// Adds a line of text to a specific column of the most recently added columnar segment.
+    ///
+    /// Convenience method — no need to specify the segment index. Mirrors
+    /// [`add_col_line_indx`](Self::add_col_line_indx) for when you're building top-to-bottom.
+    ///
+    /// # Arguments
+    ///
+    /// * `text` - The text content to add
+    /// * `color` - Hex color code for this line (e.g. `"#ffffff"`)
+    /// * `col_index` - Zero-based index of the column to add this line into
+    ///
+    /// # Panics
+    ///
+    /// Panics if no segment exists, if the last segment is not columnar, or if `col_index`
+    /// is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let my_box = Boxy::builder()
+    ///     .add_col_segment(BoxAlign::Left, 3)
+    ///     .add_col_line("Name",     "#aaaaaa", 0)
+    ///     .add_col_line("Status",   "#aaaaaa", 1)
+    ///     .add_col_line("Notes",    "#aaaaaa", 2)
+    ///     .add_col_line("Lumio V2", "#ffffff", 0)
+    ///     .add_col_line("Shipped",  "#32CD32", 1)
+    ///     .add_col_line("Done",     "#ffffff", 2)
+    ///     .build();
+    /// ```
     pub fn add_col_line(mut self, text: &str, color: &str, col_index: usize) -> Self {
         let seg_index = self.data.len() - 1;
         match &mut self.data[seg_index] {
@@ -1438,6 +1478,35 @@ impl<'a> BoxyBuilder<'a> {
     }
 
     /// Adds a line of text to a specific column of a specific columnar segment by index.
+    ///
+    /// Use this when you need to populate segments out of order or return to an earlier
+    /// segment. For sequential top-to-bottom building, prefer
+    /// [`add_col_line`](Self::add_col_line).
+    ///
+    /// # Arguments
+    ///
+    /// * `text` - The text content to add
+    /// * `color` - Hex color code for this line (e.g. `"#ffffff"`)
+    /// * `seg_index` - Zero-based index of the columnar segment
+    /// * `col_index` - Zero-based index of the column within that segment
+    ///
+    /// # Panics
+    ///
+    /// Panics if `seg_index` is out of bounds, if that segment is not columnar, or if
+    /// `col_index` is out of bounds for that segment's column count.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let my_box = Boxy::builder()
+    ///     .add_segment("Header", "#ffffff", BoxAlign::Center)
+    ///     .add_col_segment(BoxAlign::Left, 2)
+    ///     .add_col_line_indx("Left",  "#ffffff", 1, 0)
+    ///     .add_col_line_indx("Right", "#ffffff", 1, 1)
+    ///     .build();
+    /// ```
     pub fn add_col_line_indx(
         mut self,
         text: &str,
