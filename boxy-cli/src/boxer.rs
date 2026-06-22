@@ -1344,6 +1344,22 @@ impl<'a> BoxyBuilder<'a> {
         self
     }
 
+    /// Adds a new columnar segment to the box.
+    pub fn add_col_segment(mut self, text_align: BoxAlign, column_count: usize) -> Self {
+        assert!(
+            column_count > 0,
+            "add_col_segment: column_count must be at least 1"
+        );
+        self.data
+            .push(SegType::Columnar(vec![Vec::new(); column_count]));
+        self.colors
+            .push(SegColor::Columnar(vec![Vec::new(); column_count]));
+        self.seg_align.push(text_align);
+        self.seg_col_count.push(column_count);
+        self.seg_cols_ratio.push(vec![1; column_count]); // equal widths by default
+        self
+    }
+
     /// Adds a new line of text to the most recently added segment.
     ///
     /// This method adds a line of text to the last segment that was created.
@@ -1394,8 +1410,54 @@ impl<'a> BoxyBuilder<'a> {
                 .push(SegType::Single(vec![Cow::from(text.to_owned())]));
             self.colors
                 .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
+            self.seg_align.push(BoxAlign::Left);
             self.seg_col_count.push(0);
             self.seg_cols_ratio.push(vec![1]);
+        }
+        self
+    }
+
+    /// Adds a line of text to a specific column of the most recently added columnar segment.
+    pub fn add_col_line(mut self, text: &str, color: &str, col_index: usize) -> Self {
+        let seg_index = self.data.len() - 1;
+        match &mut self.data[seg_index] {
+            SegType::Columnar(cols) => {
+                assert!(
+                    col_index < cols.len(),
+                    "add_col_line: col_index out of bounds"
+                );
+                cols[col_index].push(Cow::from(text.to_owned()));
+            }
+            SegType::Single(_) => panic!("add_col_line called on a Single segment"),
+        }
+        match &mut self.colors[seg_index] {
+            SegColor::Columnar(cols) => cols[col_index].push(SegColor::parse_hexcolor(color)),
+            SegColor::Single(_) => panic!("colors shape mismatch"),
+        }
+        self
+    }
+
+    /// Adds a line of text to a specific column of a specific columnar segment by index.
+    pub fn add_col_line_indx(
+        mut self,
+        text: &str,
+        color: &str,
+        seg_index: usize,
+        col_index: usize,
+    ) -> Self {
+        match &mut self.data[seg_index] {
+            SegType::Columnar(cols) => {
+                assert!(
+                    col_index < cols.len(),
+                    "add_col_line_indx: col_index out of bounds"
+                );
+                cols[col_index].push(Cow::from(text.to_owned()));
+            }
+            SegType::Single(_) => panic!("add_col_line_indx called on a Single segment"),
+        }
+        match &mut self.colors[seg_index] {
+            SegColor::Columnar(cols) => cols[col_index].push(SegColor::parse_hexcolor(color)),
+            SegColor::Single(_) => panic!("colors shape mismatch"),
         }
         self
     }
@@ -1723,13 +1785,7 @@ impl<'a> BoxyBuilder<'a> {
             seg_align: self.seg_align,
             fixed_width: self.fixed_width,
             fixed_height: self.fixed_height,
-            seg_cols_count: {
-                let mut seg_cols_count = Vec::new();
-                for seg in &self.seg_cols_ratio {
-                    seg_cols_count.push(seg.len());
-                }
-                seg_cols_count
-            },
+            seg_cols_count: self.seg_col_count,
             seg_cols_ratio: self.seg_cols_ratio,
             terminal_width_offset: self.terminal_width_offset,
         }

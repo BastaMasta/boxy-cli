@@ -32,18 +32,30 @@ fn main() {
     box2.display();
     let duration1 = start1.elapsed();
     println!("Time elapsed: {:?}", duration1);
-    // let start2 = Instant::now();
-    // Boxy::builder()
-    //     .box_type(BoxType::Double)
-    //     .color("#f4f5f3")
-    //     .padding(BoxPad::uniform(20), BoxPad::from_tldr(2, 2, 1, 1))
-    //     .align(BoxAlign::Center)
-    //     .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
-    //     .add_line("This is a new line.", "#32CD32")
-    //     .add_segment("Another section", "#f19356", BoxAlign::Right)
-    //     .width(50)
-    //     .build()
-    //     .display();
-    // let duration2 = start2.elapsed();
-    // println!("Time elapsed: {:?}", duration2);
+    let start2 = Instant::now();
+    Boxy::builder()
+        .box_type(BoxType::Double)
+        .color("#f4f5f3")
+        .padding(BoxPad::uniform(20), BoxPad::from_tldr(2, 2, 1, 1))
+        .align(BoxAlign::Center)
+        .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
+        .add_line("This is a new line.", "#32CD32")
+        .add_segment("Another section", "#f19356", BoxAlign::Right)
+        .width(50)
+        .build()
+        .display();
+    let duration2 = start2.elapsed();
+    println!("Time elapsed: {:?}", duration2);
+    Boxy::builder()
+        .add_segment("Status Report", "#ffffff", BoxAlign::Center)
+        .add_col_segment(BoxAlign::Left, 3)
+        .add_col_line("Name", "#ffffff", 0)
+        .add_col_line("Status", "#ffffff", 1)
+        .add_col_line("Notes", "#ffffff", 2)
+        .add_col_line("Lumio V2", "#ffffff", 0)
+        .add_col_line("Shipped", "#ffffff", 1)
+        .add_col_line("Internship project", "#ffffff", 2)
+        .segment_ratios(1, vec![1, 1, 2])
+        .build()
+        .display();
 }
