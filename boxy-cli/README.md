@@ -60,8 +60,6 @@ Boxy::builder()
     .display();
 ```
 
-![Builder pattern box, double border, cyan](readme-assets/textbox-builder.jpg)
-
 ### Imperative API
 
 ```rust
@@ -73,8 +71,6 @@ b.add_text_sgmt("A terminal box library for Rust.", "#32CD32", BoxAlign::Left);
 b.add_text_line("Second line in the same segment.", "#aaaaaa");
 b.display();
 ```
-
-![Multi-segment box, lime green, double border](readme-assets/textbox1.jpg) 
 
 ### Macro
 
@@ -147,8 +143,6 @@ Boxy::builder()
     .display();
 ```
 
-![Columnar box showing ┼ and ┴ junction characters](readme-assets/textbox-columns.jpg)
-
 ---
 
 ## Border Styles
@@ -220,9 +214,6 @@ fn main() {
     b.display();
 }
 ```
-
-### Output:
-![Multi-segment box, cyan, bold border](readme-assets/textbox2.jpg)  
 
 ---
 
