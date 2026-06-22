@@ -110,26 +110,29 @@ impl<'a> Boxy<'a> {
         BoxyBuilder::new()
     }
 
-    /// Adds a new text segment/section to the textbox, separated by a horizontal divider.
+    /// Adds a new plain-text segment to the box, separated from previous segments by a
+    /// horizontal divider.
     ///
-    /// Each segment represents a distinct section of the textbox that will be separated by
-    /// horizontal dividers. This method is typically used to add the first or later major
-    /// sections of content.
+    /// Each call creates one distinct section. Text is automatically word-wrapped to fit
+    /// the available width. For additional lines within the same segment (no divider between
+    /// them), use [`add_text_line`](Self::add_text_line) after this call.
     ///
     /// # Arguments
     ///
     /// * `data_string` - The text content for this segment
-    /// * `color` - A hex color code (e.g. "#ffffff") for the text color
-    /// * `text_align` - The alignment (left, center, right) for this text segment
+    /// * `color` - Hex color code for the text (e.g. `"#ffffff"`). Falls back to white on
+    ///   an invalid value
+    /// * `text_align` - How text is aligned within this segment: left, center, or right
     ///
     /// # Examples
     ///
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
-    /// my_box.add_text_sgmt("Header section", "#ffffff", BoxAlign::Center);
-    /// my_box.add_text_sgmt("Content section", "#ffffff", BoxAlign::Left);
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.add_text_sgmt("Header", "#ffffff", BoxAlign::Center);
+    /// b.add_text_sgmt("Body text below a divider", "#aaaaaa", BoxAlign::Left);
+    /// b.display();
     /// ```
     pub fn add_text_sgmt(&mut self, data_string: &str, color: &str, text_align: BoxAlign) {
         self.data
@@ -213,7 +216,8 @@ impl<'a> Boxy<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if `seg_index` is out of bounds.
+    /// Panics if `seg_index` is out of bounds, or if the segment at that index is a
+    /// columnar segment — use [`add_col_text_line_indx`](Self::add_col_text_line_indx) for those.
     pub fn add_text_line_indx(&mut self, data_string: &str, color: &str, seg_index: usize) {
         match &mut self.data[seg_index] {
             SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
@@ -256,6 +260,12 @@ impl<'a> Boxy<'a> {
     ///
     /// Panics if `seg_index` is out of bounds, if the segment at `seg_index` is not a
     /// columnar segment, or if `col_index` is out of bounds for that segment's column count.
+    ///
+    /// # Note
+    ///
+    /// If columns within the same segment have different numbers of lines, shorter columns
+    /// are padded with blank rows to match the height of the tallest one. This happens
+    /// automatically at render time — you do not need to add blank lines manually.
     pub fn add_col_text_line_indx(
         &mut self,
         data_string: &str,
@@ -282,15 +292,16 @@ impl<'a> Boxy<'a> {
         }
     }
 
-    /// Adds a new text line to the most recently added segment.
+    /// Adds a new line of text to the most recently added segment.
     ///
-    /// This is a convenience method that adds a line of text to the last segment that was
-    /// created, eliminating the need to specify the segment index.
+    /// This is a convenience method that adds a line to the last segment created,
+    /// eliminating the need to specify the segment index. The new line appears below
+    /// existing content in that segment with no divider between them.
     ///
     /// # Arguments
     ///
     /// * `data_string` - The text content to add
-    /// * `color` - A hex color code (e.g. "#ffffff") for the text color
+    /// * `color` - Hex color code for this line (e.g. `"#ffffff"`)
     ///
     /// # Examples
     ///
@@ -304,7 +315,8 @@ impl<'a> Boxy<'a> {
     ///
     /// # Panics
     ///
-    /// Panics if no segments have been added yet.
+    /// Panics if no segments have been added yet, or if the last segment is a columnar
+    /// segment — use [`add_col_text_line`](Self::add_col_text_line) for those.
     pub fn add_text_line(&mut self, data_string: &str, color: &str) {
         match &mut self.data[self.sect_count - 1] {
             SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
@@ -343,15 +355,30 @@ impl<'a> Boxy<'a> {
     ///
     /// Panics if no segments have been added yet, if the last segment is not a columnar
     /// segment, or if `col_index` is out of bounds for that segment's column count.
+    ///
+    /// # Note
+    ///
+    /// If columns within the same segment have different numbers of lines, shorter columns
+    /// are padded with blank rows to match the height of the tallest one. This happens
+    /// automatically at render time — you do not need to add blank lines manually.
     pub fn add_col_text_line(&mut self, data_string: &str, color: &str, col_index: &usize) {
         let seg_index = self.sect_count - 1;
         self.add_col_text_line_indx(data_string, color, &seg_index, col_index);
     }
 
-    /// Sets the overall alignment of the textbox within the terminal.
+    /// Sets the overall alignment of the box within the terminal.
     ///
-    /// This controls the horizontal positioning of the entire textbox relative to the terminal width.
-    /// It does not affect the alignment of text within the box segments.
+    /// This controls where the box is positioned horizontally on screen,
+    /// not the alignment of text inside it (which is set per-segment).
+    ///
+    /// # Behaviour with external padding
+    ///
+    /// When set to [`BoxAlign::Center`], the box is positioned at the true
+    /// centre of the terminal. External left/right padding is still used to
+    /// determine the box width (more padding → narrower box), but the resulting
+    /// box is always centred — the padding values do not shift it left or right.
+    /// As long as the terminal is wide enough, external padding is effectively
+    /// a width constraint rather than a margin.
     ///
     /// # Arguments
     ///
@@ -363,7 +390,16 @@ impl<'a> Boxy<'a> {
     /// use boxy_cli::prelude::*;
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
-    /// my_box.set_align(BoxAlign::Center); // Center the box in the terminal
+    /// my_box.set_align(BoxAlign::Center); // Centre the box in the terminal
+    /// ```
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// // External padding shrinks the box but does not shift it off-centre
+    /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
+    /// my_box.set_align(BoxAlign::Center);
+    /// my_box.set_ext_padding(BoxPad::uniform(5)); // box is 10 chars narrower, still centred
     /// ```
     pub fn set_align(&mut self, align: BoxAlign) {
         self.align = align;
@@ -395,12 +431,21 @@ impl<'a> Boxy<'a> {
     }
     /// Sets the external padding between the terminal edges and the textbox.
     ///
-    /// External padding creates space between the edges of the terminal and the border of the box.
-    /// This affects the positioning of the box within the terminal.
+    /// External padding creates space between the terminal edge and the box border,
+    /// which affects both positioning (for [`BoxAlign::Left`] and [`BoxAlign::Right`])
+    /// and box width.
+    ///
+    /// # Behaviour with centre alignment
+    ///
+    /// When the box alignment is [`BoxAlign::Center`], left and right external padding
+    /// values affect the **width** of the box (larger padding → narrower box) but do
+    /// not shift its position. The box always occupies the centre of the terminal
+    /// regardless of the padding values set here, as long as the terminal is wide enough.
+    /// Top and bottom padding always behave as blank lines regardless of alignment.
     ///
     /// # Arguments
     ///
-    /// * `ext_padding` - A `BoxPad` instance specifying the padding values
+    /// * `ext_padding` - A [`BoxPad`] instance specifying the padding values
     ///
     /// # Examples
     ///
@@ -408,12 +453,16 @@ impl<'a> Boxy<'a> {
     /// use boxy_cli::prelude::*;
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
-    ///
-    /// // Add 5 spaces of padding on all sides
     /// my_box.set_ext_padding(BoxPad::uniform(5));
+    /// ```
     ///
-    /// // Or set different padding for each side (top, left, down, right)
-    /// my_box.set_ext_padding(BoxPad::from_tldr(0, 10, 0, 0));
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// // With centre alignment, padding shrinks the box but keeps it centred
+    /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
+    /// my_box.set_align(BoxAlign::Center);
+    /// my_box.set_ext_padding(BoxPad::from_tldr(1, 10, 1, 10)); // 20 chars narrower, still centred
     /// ```
     pub fn set_ext_padding(&mut self, ext_padding: BoxPad) {
         self.ext_padding = ext_padding;
@@ -421,6 +470,11 @@ impl<'a> Boxy<'a> {
     /// Sets both internal and external padding for the textbox in a single call.
     ///
     /// This is a convenience method that combines `set_int_padding` and `set_ext_padding`.
+    ///
+    /// /// # Note
+    ///
+    /// See [`set_align`](Self::set_align) for how external padding interacts
+    /// with [`BoxAlign::Center`].
     ///
     /// # Arguments
     ///
@@ -445,27 +499,26 @@ impl<'a> Boxy<'a> {
         self.ext_padding = ext_padding;
     }
 
-    /// Sets a fixed width for the textbox instead of dynamically sizing it to the terminal width.
+    /// Sets a fixed width for the box instead of dynamically sizing to the terminal.
     ///
-    /// By default, the textbox automatically adjusts its width based on the terminal size.
-    /// This method allows you to specify a fixed width instead.
+    /// The `width` value includes the two border characters, so the usable inner text
+    /// area is `width - 2` columns (minus any internal padding on top of that). Setting
+    /// `width` to `0` returns to dynamic terminal-width sizing.
     ///
     /// # Arguments
     ///
-    /// * `width` - The desired width in characters (including borders)
+    /// * `width` - Total box width in terminal columns, including border characters
     ///
     /// # Examples
     ///
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
-    /// my_box.set_width(50); // Fix the box width to 50 characters
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.set_width(60); // 60 total columns: 2 borders + 58 usable
+    /// b.add_text_sgmt("Fixed width box", "#ffffff", BoxAlign::Center);
+    /// b.display();
     /// ```
-    ///
-    /// # Note
-    ///
-    /// Setting width to 0 returns to dynamic sizing based on terminal width.
     pub fn set_width(&mut self, width: usize) {
         self.fixed_width = width;
     }
@@ -493,29 +546,81 @@ impl<'a> Boxy<'a> {
         self.fixed_height = height;
     }
 
-    /// Sets the border type (box style).
+    /// Sets the border style for the box.
+    ///
+    /// Can be called at any point, including after segments have been added. Takes effect
+    /// on the next call to [`display`](Self::display).
+    ///
+    /// # Arguments
+    ///
+    /// * `box_type` - The border style from the [`BoxType`] enum
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.add_text_sgmt("Hello", "#ffffff", BoxAlign::Center);
+    /// b.set_type(BoxType::Double); // switch to double borders before displaying
+    /// b.display();
+    /// ```
     pub fn set_type(&mut self, box_type: BoxType) {
         self.type_enum = box_type;
     }
 
-    /// Sets the border color using a hex string (e.g., "#00ffff").
+    /// Sets the border color using a hex color code.
+    ///
+    /// Can be called at any point before [`display`](Self::display). On an invalid hex
+    /// string, falls back to white and prints a warning to stderr.
+    ///
+    /// # Arguments
+    ///
+    /// * `color` - A hex color code string (e.g. `"#00ffff"`)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.set_color("#ff0000"); // change border to red
+    /// ```
     pub fn set_color(&mut self, color: &str) {
         self.box_col = SegColor::parse_hexcolor(color);
     }
 
-    /// Sets the size-ratio between columns for an existing columnar segment.
+    /// Sets the column width ratios for a columnar segment.
     ///
-    /// Each value in `ratios` is the relative width of the corresponding column; e.g.
-    /// `vec![1, 2, 1]` gives the middle column twice the width of the other two.
+    /// Ratios are relative — `vec![1, 2, 1]` gives the middle column twice the width
+    /// of the others. The number of ratios must exactly match the column count the
+    /// segment was created with.
+    ///
+    /// If this is never called, columns default to equal widths (equivalent to
+    /// `vec![1; column_count]`).
     ///
     /// # Arguments
     ///
-    /// * `seg_index` - The index of the columnar segment to apply the ratios to
-    /// * `ratios` - A vector of relative width values, one per column
+    /// * `seg_index` - Zero-based index of the columnar segment to configure
+    /// * `ratios` - One ratio value per column; values are relative, not absolute
+    ///
     /// # Panics
     ///
-    /// Panics if `seg_index` is out of bounds, if the segment at `seg_index` is not a
-    /// columnar segment, or if `ratios.len()` doesn't match that segment's column count.
+    /// Panics if:
+    /// - `seg_index` is out of bounds
+    /// - The segment at `seg_index` is a [`Single`](SegType::Single) text segment, not columnar
+    /// - The length of `ratios` does not match the column count of the segment
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.add_col_text_sgmt(BoxAlign::Left, 3);
+    /// // Give the last column twice the space of the first two
+    /// b.set_segment_ratios(0, vec![1, 1, 2]);
+    /// ```
     pub fn set_segment_ratios(&mut self, seg_index: usize, ratios: Vec<usize>) {
         assert!(
             seg_index < self.data.len(),
@@ -541,9 +646,14 @@ impl<'a> Boxy<'a> {
 
     /// Renders and displays the textbox in the terminal.
     ///
-    /// This method performs all the necessary calculations to render the textbox with the
-    /// configured settings, including border style, colors, padding, and text content.
-    /// It then prints the textbox to the standard output.
+    /// Automatically sizes the box to the current terminal width unless a fixed width
+    /// has been set via [`set_width`](Self::set_width). Call this after all segments
+    /// and configuration are set — subsequent calls re-render with the current terminal
+    /// size, so the box will adapt if the terminal was resized between calls.
+    ///
+    /// Output uses ANSI true-color escape codes. Terminals without true-color support
+    /// will fall back gracefully to the nearest available color via the `colored` crate.
+    /// On terminals with `NO_COLOR` set or where color is disabled, plain text is emitted.
     ///
     /// # Examples
     ///
@@ -552,12 +662,8 @@ impl<'a> Boxy<'a> {
     ///
     /// let mut my_box = Boxy::new(BoxType::Double, "#00ffff");
     /// my_box.add_text_sgmt("Hello, World!", "#ffffff", BoxAlign::Center);
-    /// my_box.display(); // Renders the box to the terminal
+    /// my_box.display();
     /// ```
-    ///
-    /// # Note
-    ///
-    /// The appearance may vary depending on terminal support for colors and Unicode characters.
     pub fn display(&mut self) {
         // Initializing Display Variables
 
@@ -1018,8 +1124,8 @@ fn iter_line_prnt(
                     " ",
                     pad = int_padding.right + (printable_area - i.len())
                         - ((printable_area - i.len()) / 2)
-                        - (2 * (int_padding.right != 0) as usize)
-                        + (2 * (*fixed_size as usize))
+                        - (2 * (int_padding.right != 0) as usize) // sub 2 if doing internal padding
+                        + (2 * (*fixed_size as usize)) // add 2 if going by fixed size; if doing fixed with pad, do nothing
                 )
                 .unwrap();
                 write!(currline, "{}", vertical).unwrap();
@@ -1537,6 +1643,13 @@ impl<'a> BoxyBuilder<'a> {
     /// terminal width. It does not affect the alignment of text within the box segments,
     /// which is specified individually when adding segments.
     ///
+    /// # Behaviour with external padding
+    ///
+    /// When set to [`BoxAlign::Center`], external left/right padding affects the **width**
+    /// of the box (more padding → narrower box) but not its position. The box always occupies
+    /// the centre of the terminal regardless of padding values, as long as the terminal is
+    /// wide enough. See [`padding`](Self::padding) and [`external_padding`](Self::external_padding).
+    ///
     /// # Arguments
     ///
     /// * `alignment` - The alignment to use: `BoxAlign::Left`, `BoxAlign::Center`, or `BoxAlign::Right`
@@ -1550,16 +1663,16 @@ impl<'a> BoxyBuilder<'a> {
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // Create a box centered in the terminal
+    /// // Centre the box — external padding will shrink it but keep it centred
     /// let centered_box = Boxy::builder()
     ///     .align(BoxAlign::Center)
-    ///     .add_segment("This box is centered in the terminal", "#ffffff", BoxAlign::Left)
+    ///     .add_segment("Centred in the terminal", "#ffffff", BoxAlign::Left)
     ///     .build();
     ///
-    /// // Create a box aligned to the right edge of the terminal
+    /// // Right-align the box
     /// let right_box = Boxy::builder()
     ///     .align(BoxAlign::Right)
-    ///     .add_segment("This box is aligned to the right", "#ffffff", BoxAlign::Left)
+    ///     .add_segment("Aligned to the right", "#ffffff", BoxAlign::Left)
     ///     .build();
     /// ```
     pub fn align(mut self, alignment: BoxAlign) -> Self {
@@ -1666,15 +1779,19 @@ impl<'a> BoxyBuilder<'a> {
         self
     }
 
-    /// Sets a fixed width for the text box instead of dynamically sizing it to the terminal width.
+    /// Sets a fixed width for the box instead of dynamically sizing to the terminal width.
     ///
     /// By default, the text box automatically adjusts its width based on the terminal size.
     /// This method allows you to specify a fixed width instead, which can be useful for
     /// creating boxes of consistent size or for controlling the layout of multiple boxes.
     ///
+    /// The `width` value includes the two border characters, so the usable inner text area
+    /// is `width - 2` columns (minus any internal padding). Pass `0` to return to dynamic
+    /// terminal-width sizing.
+    ///
     /// # Arguments
     ///
-    /// * `width` - The desired width in number of characters (including borders)
+    /// * `width` - Total box width in terminal columns, including border characters
     ///
     /// # Returns
     ///
@@ -1685,16 +1802,23 @@ impl<'a> BoxyBuilder<'a> {
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // Create a box with a fixed width of 50 characters
-    /// let fixed_width_box = Boxy::builder()
-    ///     .width(50)
-    ///     .add_segment("This box has a fixed width of 50 characters", "#ffffff", BoxAlign::Left)
-    ///     .build();
+    /// Boxy::builder()
+    ///     .width(60) // 60 total: 2 borders + 58 usable
+    ///     .add_segment("Fixed width box", "#ffffff", BoxAlign::Center)
+    ///     .build()
+    ///     .display();
     /// ```
     ///
-    /// # Note
+    /// Setting to 0 restores dynamic sizing:
     ///
-    /// Setting width to 0 returns to dynamic sizing based on terminal width.
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// Boxy::builder()
+    ///     .width(0) // dynamic — sizes to terminal
+    ///     .add_segment("Dynamic width", "#ffffff", BoxAlign::Left)
+    ///     .build();
+    /// ```
     pub fn width(mut self, width: usize) -> Self {
         self.fixed_width = width;
         self
@@ -1737,40 +1861,40 @@ impl<'a> BoxyBuilder<'a> {
         self
     }
 
-    /// Sets the size ratios between segments for vertical divisions.
+    /// Sets the column width ratios for a columnar segment.
     ///
-    ///
-    /// # Note
-    ///
-    /// This feature is experimental and may not work as expected in the current version.
-    /// Setting height to 0 returns to dynamic sizing based on content.
-    ///
-    ///
-    /// This method allows you to specify the relative width ratios when dividing a segment
-    /// vertically into columns. Each number in the `ratios` vector represents the relative
-    /// width of a column.
+    /// Ratios are relative — `vec![1, 2, 1]` gives the middle column twice the width
+    /// of the others. The number of ratios must exactly match the column count the
+    /// segment was created with. If never called, columns default to equal widths.
     ///
     /// # Arguments
     ///
-    /// * `seg_index` - The index of the segment to apply the ratios to
-    /// * `ratios` - A vector of relative width values for each column
+    /// * `seg_index` - Zero-based index of the columnar segment to configure
+    /// * `ratios` - One ratio value per column; values are relative, not absolute widths
     ///
     /// # Returns
     ///
     /// The builder instance for method chaining
+    ///
+    /// # Panics
+    ///
+    /// Panics if `seg_index` refers to a Single text segment rather than a columnar one,
+    /// or if `ratios.len()` does not match that segment's column count.
     ///
     /// # Examples
     ///
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // Create a box with a segment that has three columns in a 1:2:1 ratio
-    /// let columned_box = Boxy::builder()
-    ///     .add_segment("Segment with columns", "#ffffff", BoxAlign::Center)
-    ///     .segment_ratios(0, vec![1, 2, 1])
-    ///     .build();
+    /// Boxy::builder()
+    ///     .add_col_segment(BoxAlign::Left, 3)
+    ///     .add_col_line("Name", "#aaaaaa", 0)
+    ///     .add_col_line("Status", "#aaaaaa", 1)
+    ///     .add_col_line("Notes", "#aaaaaa", 2)
+    ///     .segment_ratios(0, vec![1, 1, 2]) // Notes column gets twice the space
+    ///     .build()
+    ///     .display();
     /// ```
-    ///
     pub fn segment_ratios(mut self, seg_index: usize, ratios: Vec<usize>) -> Self {
         if seg_index >= self.seg_cols_ratio.len() {
             self.seg_cols_ratio.resize(seg_index + 1, Vec::new());
@@ -1779,23 +1903,23 @@ impl<'a> BoxyBuilder<'a> {
         self
     }
 
-    /// Sets the offset used when calculating the dynamic width of the text box based on the terminal size.
-    ///
+    /// Adjusts the effective terminal width used for dynamic box sizing.
     ///
     /// # Note
     ///
     /// This feature is experimental and may not work as expected in the current version.
     /// Setting height to 0 returns to dynamic sizing based on content.
     ///
+    /// When `fixed_width` is not set, the box width defaults to `terminal_width - 20`.
+    /// This method lets you change that offset. A larger positive value makes the box
+    /// narrower; a negative value makes it wider than the default. The default offset
+    /// of `-20` exists to leave a small margin; set to `0` to fill the full terminal width.
     ///
-    /// By default, when `fixed_width` is not set, the text box width is calculated as the terminal
-    /// width minus 20 characters. This method allows you to customize this default offset to make
-    /// the box wider or narrower relative to the terminal width.
+    /// Has no effect when a fixed width is set via [`width`](Self::width).
     ///
     /// # Arguments
     ///
-    /// * `offset` - The number of characters to subtract from the terminal width.
-    ///   Positive values make the box narrower, negative values widen it.
+    /// * `offset` - Characters to subtract from the terminal width (negative = wider)
     ///
     /// # Returns
     ///
@@ -1806,41 +1930,48 @@ impl<'a> BoxyBuilder<'a> {
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // Make the box 10 characters narrower than the default
-    /// let narrower_box = Boxy::builder()
-    ///     .set_terminal_width_offset(30) // terminal width - 30
-    ///     .build();
-    ///
-    /// // Make the box 10 characters wider than the default
-    /// let wider_box = Boxy::builder()
-    ///     .set_terminal_width_offset(10) // terminal width - 10
+    /// // Fill the full terminal width
+    /// Boxy::builder()
+    ///     .set_terminal_width_offset(0)
+    ///     .add_segment("Full width box", "#ffffff", BoxAlign::Left)
     ///     .build();
     /// ```
     ///
     /// # Warning
     ///
-    /// Using negative offsets can cause the box to extend beyond the terminal boundaries,
-    /// which may result in unexpected display issues.
-    ///
+    /// Negative offsets large enough to exceed the terminal width will cause display
+    /// issues. Prefer [`width`](Self::width) for precise control.
     pub fn set_terminal_width_offset(mut self, offset: i32) -> Self {
         self.terminal_width_offset = offset;
         self
     }
 
-    /// Builds the `Boxy` instance.
+    /// Consumes the builder and returns a configured [`Boxy`] instance ready to display.
+    ///
+    /// # Examples
     ///
     /// ```
-    /// # use boxy_cli::prelude::*;
-    /// # let mut my_box = BoxyBuilder::new();
-    /// my_box.build();
-    /// ```
-    /// Subsequently, display using display()
-    /// ```
-    /// # use boxy_cli::prelude::*;
-    /// # let mut my_box = BoxyBuilder::new();
-    /// my_box.build().display();
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let mut b = Boxy::builder()
+    ///     .box_type(BoxType::Double)
+    ///     .color("#00ffff")
+    ///     .add_segment("Hello, boxy-cli!", "#ffffff", BoxAlign::Center)
+    ///     .build();
+    ///
+    /// b.display();
     /// ```
     ///
+    /// Or chain directly into display:
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// Boxy::builder()
+    ///     .add_segment("Hello, boxy-cli!", "#ffffff", BoxAlign::Center)
+    ///     .build()
+    ///     .display();
+    /// ```
     pub fn build(self) -> Boxy<'a> {
         Boxy {
             type_enum: self.type_enum,

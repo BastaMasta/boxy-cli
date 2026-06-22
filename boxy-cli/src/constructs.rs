@@ -82,12 +82,14 @@ impl Display for BoxType {
 /// ```
 #[derive(Debug, Default)]
 pub enum BoxAlign {
-    /// Align to the left side
+    /// Align the box to the left in the terminal, or align text to the left within a segment
     Left,
-    /// Center alignment (default)
+    /// Centre the box in the terminal, or centre text within a segment.
+    /// When used as box alignment with external padding, the padding values
+    /// affect box width but not position — see [`Boxy::set_align`](crate::boxer::Boxy::set_align).
     #[default]
     Center,
-    /// Align to the right side
+    /// Align the box to the right in the terminal, or align text to the right within a segment
     Right,
 }
 
@@ -162,23 +164,30 @@ impl BoxPad {
     }
     /// Creates a new `BoxPad` with specific values for each side.
     ///
-    /// The parameter order follows the mnemonic "tldr" (top, left, down, right).
+    /// # Argument order
+    ///
+    /// The parameter order follows the mnemonic **tldr**: **t**op, **l**eft, **d**own, **r**ight.
+    /// Note this is not the CSS order (top/right/bottom/left) — left and right are swapped
+    /// relative to what you might expect. When in doubt, use [`vh`](Self::vh) for symmetric
+    /// padding or name the fields directly.
     ///
     /// # Arguments
     ///
-    /// * `top` - Padding at the top
-    /// * `left` - Padding on the left side
-    /// * `down` - Padding at the bottom
-    /// * `right` - Padding on the right side
+    /// * `top` - Padding above the content
+    /// * `left` - Padding to the left of the content
+    /// * `down` - Padding below the content
+    /// * `right` - Padding to the right of the content
     ///
     /// # Examples
     ///
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // Create padding with different values on each side
-    /// let padding = BoxPad::from_tldr(2, 4, 2, 4);
-    /// // top: 2, left: 4, down: 2, right: 4
+    /// let padding = BoxPad::from_tldr(1, 4, 1, 4); // 1 line top/bottom, 4 chars left/right
+    /// assert_eq!(padding.top, 1);
+    /// assert_eq!(padding.left, 4);
+    /// assert_eq!(padding.down, 1);
+    /// assert_eq!(padding.right, 4);
     /// ```
     pub fn from_tldr(top: usize, left: usize, down: usize, right: usize) -> Self {
         BoxPad {
