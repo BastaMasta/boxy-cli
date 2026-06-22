@@ -14,9 +14,9 @@
 //! - **Word wrapping** — automatic wrapping to terminal width with internal padding awareness
 //! - **Text alignment** — left, center, or right per segment
 //! - **Terminal-aware sizing** — auto-sizes to terminal width, or use a fixed width
-//! - **Two APIs** — imperative ([`Boxy`](crate::boxer::Boxy)) and fluent builder
-//!   ([`BoxyBuilder`](crate::boxer::BoxyBuilder))
-//! - **Macro support** — [`boxy!`] for quick one-liner
+//! - **Two APIs** — imperative ([`Boxy`]) and fluent builder
+//!   ([`BoxyBuilder`])
+//! - **Macro support** — [`boxy!`] for quick one-liner (Work in Progress)
 //!
 //! ## Quick Start
 //!
@@ -57,8 +57,8 @@
 //!
 //! ## Further Reading
 //!
-//! - [`Boxy`](crate::boxer::Boxy) — imperative API reference
-//! - [`BoxyBuilder`](crate::boxer::BoxyBuilder) — builder API reference
+//! - [`Boxy`] — imperative API reference
+//! - [`BoxyBuilder`] — builder API reference
 //! - [`BoxType`] — all available border styles
 //! - [`boxy!`] — macro reference
 //! - [GitHub README](https://github.com/BastaMasta/boxy-cli) — more examples and screenshots

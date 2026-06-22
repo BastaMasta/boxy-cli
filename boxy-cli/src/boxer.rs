@@ -609,7 +609,7 @@ impl<'a> Boxy<'a> {
     ///
     /// Panics if:
     /// - `seg_index` is out of bounds
-    /// - The segment at `seg_index` is a [`Single`](SegType::Single) text segment, not columnar
+    /// - The segment at `seg_index` is a `Single` text segment, not columnar
     /// - The length of `ratios` does not match the column count of the segment
     ///
     /// # Examples
@@ -1447,6 +1447,10 @@ impl<'a> BoxyBuilder<'a> {
     /// * `text_align` - Alignment applied to text within each column
     /// * `column_count` - Number of columns (must be at least 1)
     ///
+    /// # Returns
+    ///
+    /// The builder instance for method chaining
+    ///
     /// # Panics
     ///
     /// Panics if `column_count` is 0.
@@ -1545,6 +1549,10 @@ impl<'a> BoxyBuilder<'a> {
     /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `col_index` - Zero-based index of the column to add this line into
     ///
+    /// # Returns
+    ///
+    /// The builder instance for method chaining
+    ///
     /// # Panics
     ///
     /// Panics if no segment exists, if the last segment is not columnar, or if `col_index`
@@ -1596,6 +1604,10 @@ impl<'a> BoxyBuilder<'a> {
     /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `seg_index` - Zero-based index of the columnar segment
     /// * `col_index` - Zero-based index of the column within that segment
+    ///
+    /// # Returns
+    ///
+    /// The builder instance for method chaining
     ///
     /// # Panics
     ///
@@ -1948,6 +1960,7 @@ impl<'a> BoxyBuilder<'a> {
     }
 
     /// Consumes the builder and returns a configured [`Boxy`] instance ready to display.
+    /// (use .display() to output the box to stdout)
     ///
     /// # Examples
     ///
