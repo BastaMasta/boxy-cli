@@ -1,13 +1,14 @@
 name: BuildTests
+
 permissions:
   contents: read
   pull-requests: write
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,42 +17,67 @@ jobs:
   build-library:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - name: Build library
-      run: |
-        cd boxy-cli
-        cargo build --verbose
-    - name: Test library
-      run: |
-        cd boxy-cli
-        cargo test --verbose
+      - uses: actions/checkout@v6
+
+      - name: Cache cargo registry and build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: boxy-cli
+
+      - name: Build library
+        run: |
+          cd boxy-cli
+          cargo build --verbose
+
+      - name: Test library
+        run: |
+          cd boxy-cli
+          cargo test --verbose
+
+      - name: Format check
+        run: |
+          cd boxy-cli
+          cargo fmt --check
+
+      - name: Clippy
+        run: |
+          cd boxy-cli
+          cargo clippy -- -D warnings
+
+      - name: Security audit
+        run: |
+          cargo install cargo-audit --quiet
+          cd boxy-cli
+          cargo audit
 
   build-binary:
     needs: build-library
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - name: Build binary tests
-      run: |
-        cd binary-testing
-        cargo build --verbose
+      - uses: actions/checkout@v6
 
-  test-binary:
-    needs: build-binary
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v6
-    - name: Run binary tests
-      run: |
-        cd binary-testing
-        cargo test --verbose
-  
+      - name: Cache cargo registry and build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: binary-testing
+
+      - name: Build and run binary tests
+        run: |
+          cd binary-testing
+          cargo test --verbose
+
   test-docs:
     needs: build-library
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
-    - name: Compile Docs
-      run: |
-        cd boxy-cli
-        cargo doc
+      - uses: actions/checkout@v6
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: boxy-cli
+
+      - name: Compile docs
+        run: |
+          cd boxy-cli
+          cargo doc --no-deps
