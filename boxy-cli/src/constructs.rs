@@ -1,6 +1,8 @@
 //! The main datatypes and enums used by the `Boxy` struct.
 
-use std::fmt::Display;
+use std::{borrow::Cow, fmt::Display};
+
+use colored::Color;
 
 /// Defines the border style for the text box.
 ///
@@ -80,12 +82,14 @@ impl Display for BoxType {
 /// ```
 #[derive(Debug, Default)]
 pub enum BoxAlign {
-    /// Align to the left side
+    /// Align the box to the left in the terminal, or align text to the left within a segment
     Left,
-    /// Center alignment (default)
+    /// center the box in the terminal, or center text within a segment.
+    /// When used as box alignment with external padding, the padding values
+    /// affect box width but not position — see [`Boxy::set_align`](crate::boxer::Boxy::set_align).
     #[default]
     Center,
-    /// Align to the right side
+    /// Align the box to the right in the terminal, or align text to the right within a segment
     Right,
 }
 
@@ -160,23 +164,30 @@ impl BoxPad {
     }
     /// Creates a new `BoxPad` with specific values for each side.
     ///
-    /// The parameter order follows the mnemonic "tldr" (top, left, down, right).
+    /// # Argument order
+    ///
+    /// The parameter order follows the mnemonic **tldr**: **t**op, **l**eft, **d**own, **r**ight.
+    /// Note this is not the CSS order (top/right/bottom/left) — left and right are swapped
+    /// relative to what you might expect. When in doubt, use [`vh`](Self::vh) for symmetric
+    /// padding or name the fields directly.
     ///
     /// # Arguments
     ///
-    /// * `top` - Padding at the top
-    /// * `left` - Padding on the left side
-    /// * `down` - Padding at the bottom
-    /// * `right` - Padding on the right side
+    /// * `top` - Padding above the content
+    /// * `left` - Padding to the left of the content
+    /// * `down` - Padding below the content
+    /// * `right` - Padding to the right of the content
     ///
     /// # Examples
     ///
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // Create padding with different values on each side
-    /// let padding = BoxPad::from_tldr(2, 4, 2, 4);
-    /// // top: 2, left: 4, down: 2, right: 4
+    /// let padding = BoxPad::from_tldr(1, 4, 1, 4); // 1 line top/bottom, 4 chars left/right
+    /// assert_eq!(padding.top, 1);
+    /// assert_eq!(padding.left, 4);
+    /// assert_eq!(padding.down, 1);
+    /// assert_eq!(padding.right, 4);
     /// ```
     pub fn from_tldr(top: usize, left: usize, down: usize, right: usize) -> Self {
         BoxPad {
@@ -237,8 +248,97 @@ impl BoxPad {
             right: horizontal,
         }
     }
-    /// returns the total padidng on either side. used for text wrapping and display time calculations
+
+    /// Returns the total horizontal padding (left + right).
+    ///
+    /// Used internally for text wrapping and width calculations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let pad = BoxPad::vh(1, 3);
+    /// assert_eq!(pad.lr(), 6); // left (3) + right (3)
+    /// ```
     pub fn lr(&self) -> usize {
         self.right + self.left
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+/// Represents the data layout of a single segment in a [`Boxy`](crate::boxer::Boxy) box.
+///
+/// Each segment is either a [`Single`](SegType::Single) (plain text, one line per entry)
+/// or a [`Columnar`](SegType::Columnar) (side-by-side columns, each with their own lines).
+pub enum SegType<'a> {
+    /// A plain text segment. Each `Cow<str>` is one line of text content.
+    Single(Vec<Cow<'a, str>>),
+    /// A columnar segment. The outer `Vec` is the list of columns; each inner `Vec` is
+    /// the lines of text within that column.
+    Columnar(Vec<Vec<Cow<'a, str>>>),
+}
+
+#[allow(dead_code)]
+impl<'a> SegType<'a> {
+    /// Pushes a line into this segment. For [`Columnar`](SegType::Columnar), pushes into
+    /// the last column.
+    pub(crate) fn push(&mut self, p0: Cow<'a, str>) {
+        match self {
+            SegType::Single(vec) => vec.push(p0),
+            SegType::Columnar(vec) => {
+                if let Some(vec) = vec.last_mut() {
+                    vec.push(p0);
+                }
+            }
+        }
+    }
+    pub(crate) fn get_single(&self, index: usize) -> Option<&Cow<'a, str>> {
+        match self {
+            SegType::Single(vec) => vec.get(index),
+            _ => None,
+        }
+    }
+    pub(crate) fn get_columnar(&self, index: usize) -> Option<&Vec<Cow<'a, str>>> {
+        match self {
+            SegType::Columnar(vec) => vec.get(index),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+/// Stores pre-parsed text colors for each segment, mirroring the shape of [`SegType`].
+///
+/// Colors are parsed from hex strings once at segment-creation time and stored as
+/// [`Color`](colored::Color) values, so [`display()`](crate::boxer::Boxy::display) never
+/// needs to re-parse them.
+pub enum SegColor {
+    /// Colors for a [`SegType::Single`] segment — one `Color` per line of text.
+    Single(Vec<Color>),
+    /// Colors for a [`SegType::Columnar`] segment — one `Vec<Color>` per column,
+    /// with one `Color` per line within that column.
+    Columnar(Vec<Vec<Color>>),
+}
+
+use hex_color::HexColor;
+
+impl SegColor {
+    /// Parses a hex color string (e.g. `"#00ffff"`) into a [`Color::TrueColor`](colored::Color).
+    /// Falls back to [`Color::White`](colored::Color::White) and prints a warning on parse failure.
+    pub(crate) fn parse_hexcolor(hex: &str) -> Color {
+        let box_col = match HexColor::parse(hex) {
+            Ok(color) => Color::TrueColor {
+                r: color.r,
+                g: color.g,
+                b: color.b,
+            },
+            Err(e) => {
+                eprintln!("Error parsing box color '{}': {}", hex, e);
+                Color::White // Default color
+            }
+        };
+        box_col
     }
 }

@@ -7,178 +7,235 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-MIT)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/BastaMasta/boxy-cli/rust.yml?branch=main&style=flat-square)](https://github.com/BastaMasta/boxy-cli/actions/workflows/rust.yml?query=branch%3Amain)
 
-
- **A Crate to create boxes in command-line interfaces with Rust**
+**A Rust crate for creating styled, multi-segment text boxes in the terminal.**
 
 Dual-licensed under [Apache 2.0](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-APACHE) or [MIT](https://github.com/BastaMasta/boxy-cli/blob/main/LICENSE-MIT).
 
-## About
-
-**boxy-cli** is a Rust crate that makes it easy to create stylish text boxes in terminal applications. With a simple, intuitive API, you can quickly add visually appealing elements to your CLI applications.
+---
 
 ## Features
 
-- **Multiple Border Styles**: Choose from single, double, bold, rounded, and other border styles
-- **Color Support**: Customize border and text colors using hex color codes
-- **Flexible Layouts**: Create multi-segment boxes with horizontal dividers
-- **Text Alignment**: Align text left, center, or right within each segment
-- **Custom Padding**: Control spacing both inside and outside the box
-- **Terminal-Aware**: Automatically adjusts to terminal width or use fixed dimensions
-- **Builder Pattern**: Fluent API for easy box creation
+- **9 border styles** — classic ASCII, single, double, bold, rounded, bold-corners, and more
+- **True-color support** — hex color codes (`#rrggbb`) for borders and per-line text
+- **Multi-segment boxes** — stack sections separated by horizontal dividers
+- **Columnar layouts** — side-by-side columns inside a single box, with configurable width ratios and correct junction characters (`┼` / `┬` / `┴`) where column boundaries meet across adjacent segments
+- **Automatic word wrapping** — wraps to terminal width, respecting internal padding
+- **Text alignment** — left, center, or right per segment
+- **Terminal-aware sizing** — auto-sizes to terminal width, or set a fixed width
+- **Two APIs** — imperative `Boxy` struct and fluent `BoxyBuilder`
+- **Macro support** — `boxy!` for quick one-liners
+
+---
 
 ## Installation
 
-Add this to your `Cargo.toml`:
-
 ```toml
 [dependencies]
-boxy-cli = "0.1.0"
+boxy-cli = "2.1.0"
 ```
 
-Or use cargo add:
+Or:
+
 ```bash
 cargo add boxy-cli
 ```
 
-### How to use:
+---
 
-### Using the Builder Pattern
+## Quick Start
 
-The builder pattern provides a fluent, chainable API for creating and configuring text boxes:
+### Builder API
 
 ```rust
 use boxy_cli::prelude::*;
-```
 
-Next, you can create the BoxyBuilder struct
-
-```rust
-let mut my_box = Boxy::builder()
-    .box_type(BoxType::Double)       // Set border style
-    .color("#00ffff")               // Set border color
-    .padding(
-        BoxPad::uniform(1),         // External padding
-        BoxPad::from_tldr(2, 2, 1, 1) // Internal padding
-    )
-    .align(BoxAlign::Center)         // Center the box in the terminal
-    .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
-    .add_line("This is a new line.", "#32CD32")
-    .add_segment("Another section", "#663399", BoxAlign::Left)
-    .width(50)                      // Set fixed width
-    .build();
-```
-
-and now, display it:
-
-```rust
-my_box.display();
-```
-
-You can also build and display in one go:
-
-```rust
 Boxy::builder()
     .box_type(BoxType::Double)
-    .color("#aaffff")
-    .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
-    .align(BoxAlign::Center)
-    .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
-    .add_line("This is a new line.", "#32CD32")
-    .add_segment("Another section", "#f19356", BoxAlign::Right)
-    .width(50)
+    .color("#00ffff")
+    .add_segment("Hello, boxy-cli!", "#ffffff", BoxAlign::Center)
+    .add_segment("A terminal box library for Rust.", "#32CD32", BoxAlign::Left)
+    .add_line("Second line in the same segment.", "#aaaaaa")
+    .padding(BoxPad::uniform(1), BoxPad::vh(1, 2))
     .build()
     .display();
 ```
 
-further, you can use the same methods as displayed above to modify the textbox before building.
-
-But you can also modify the textbox after building it (before displaying) using the methods shown in the following section.
-
-#### Using the Struct and methods.
-
-First, import the crate into the current scope, using:
+### Imperative API
 
 ```rust
 use boxy_cli::prelude::*;
+
+let mut b = Boxy::new(BoxType::Bold, "#00ffff");
+b.add_text_sgmt("Hello, boxy-cli!", "#ffffff", BoxAlign::Center);
+b.add_text_sgmt("A terminal box library for Rust.", "#32CD32", BoxAlign::Left);
+b.add_text_line("Second line in the same segment.", "#aaaaaa");
+b.display();
 ```
 
-Next you create a new boxy struct with either the ```new``` method:
+### Macro
 
 ```rust
-let mut box1 = Boxy::new(BoxType::Double,"#00ffff");
-```
-or the macro:
+use boxy_cli::prelude::*;
 
-```rust
-let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
-```
-*for more info on the macro, view the [macro documentation](https://docs.rs/boxy-cli/0.1.0/boxy_cli/macro.boxy.html)*
-
-Next, we just add in text sections:
-```rust
-box1.add_text_sgmt("Lorem ipsum dolor sit amet", "#fffff", BoxAlign::Center);
-```
-Add some more text to the same segment (or the latest segment):
-```rust
-box1.add_text_line("consectetur adipiscing elit", "#32CD32");
-```
-or to a segment with a particular index:
-```rust
-box1.add_text_line_indx(" consectetur adipiscing elit", "#32CD32", 0);
-```
-Once you are done, display the TextBox:
-```rust
-box1.display();
+let mut b = boxy!(type: BoxType::Double, color: "#00ffff", internal_pad: 1, alignment: BoxAlign::Left);
+b.add_text_sgmt("Hello from the macro!", "#ffffff", BoxAlign::Center);
+b.display();
 ```
 
-## Examples:
+---
 
-### Example 1
+## Columnar Layouts
+
+Columnar segments let you place content side-by-side inside one box. Column widths are
+controlled by ratio values — `vec![1, 2, 1]` gives the middle column twice the space of the
+others.
+
+Where column boundaries from adjacent segments coincide, `boxy-cli` renders the correct
+junction character automatically:
+
+```
+┌─────────────────┬─────────────────┬─────────────┐
+│   Project       | Status          │ Purpose     |
+├─────────────────┼─────────────────┴─────────────┤   <- ┼ where both have a boundary
+│ Lumio V2        │ Shipped           Internship  │      ┴ where only the top segment does
+└─────────────────┴───────────────────────────────┘
+```
+
+```rust
+use boxy_cli::prelude::*;
+
+let mut b = Boxy::new(BoxType::Single, "#00ffff");
+
+// Plain text header segment
+b.add_text_sgmt("Project Status", "#ffffff", BoxAlign::Center);
+
+// 3-column segment with equal widths
+b.add_col_text_sgmt(BoxAlign::Left, 3);
+b.add_col_text_line("Name",     "#aaaaaa", &0usize);
+b.add_col_text_line("Status",   "#aaaaaa", &1usize);
+b.add_col_text_line("Notes",    "#aaaaaa", &2usize);
+b.add_col_text_line("Lumio V2", "#ffffff", &0usize);
+b.add_col_text_line("Shipped",  "#32CD32", &1usize);
+b.add_col_text_line("Internship project", "#ffffff", &2usize);
+
+// Optional: customize column width ratios (must match column count)
+b.set_segment_ratios(1, vec![1, 1, 2]);
+
+b.display();
+```
+
+Or using the builder:
+
+```rust
+use boxy_cli::prelude::*;
+
+Boxy::builder()
+    .add_segment("Project Status", "#ffffff", BoxAlign::Center)
+    .add_col_segment(BoxAlign::Left, 3)
+    .add_col_line("Name",     "#aaaaaa", 0)
+    .add_col_line("Status",   "#aaaaaa", 1)
+    .add_col_line("Notes",    "#aaaaaa", 2)
+    .add_col_line("Lumio V2", "#ffffff", 0)
+    .add_col_line("Shipped",  "#32CD32", 1)
+    .add_col_line("Internship project", "#ffffff", 2)
+    .segment_ratios(1, vec![1, 1, 2])
+    .build()
+    .display();
+```
+
+---
+
+## Border Styles
+
+| `BoxType` variant     | Appearance |
+|-----------------------|------------|
+| `Single`              | `┌─┐` / `│` / `└─┘` |
+| `Double`              | `╔═╗` / `║` / `╚═╝` |
+| `Bold`                | `┏━┓` / `┃` / `┗━┛` |
+| `Rounded`             | `╭─╮` / `│` / `╰─╯` |
+| `DoubleHorizontal`    | `╒═╕` / `│` / `╘═╛` |
+| `DoubleVertical`      | `╓─╖` / `║` / `╙─╜` |
+| `BoldCorners`         | `┍━┑` / `│` / `┕━┙` |
+| `Classic`             | `+-+` / `\|` / `+-+` |
+| `Empty`               | invisible borders |
+
+---
+
+## Padding
+
+`BoxPad` controls spacing between the terminal edge and the box (external), and between the
+box border and its text (internal).
+
+```rust
+use boxy_cli::prelude::*;
+
+// Uniform padding on all sides
+let pad = BoxPad::uniform(2);
+
+// Separate vertical and horizontal values
+let pad = BoxPad::vh(1, 3); // top/bottom: 1, left/right: 3
+
+// Full control: top, left, down, right
+let pad = BoxPad::from_tldr(1, 2, 1, 2);
+
+let mut b = Boxy::new(BoxType::Single, "#00ffff");
+b.set_ext_padding(BoxPad::uniform(1));
+b.set_int_padding(BoxPad::vh(1, 2));
+b.add_text_sgmt("Padded box", "#ffffff", BoxAlign::Center);
+b.display();
+```
+
+---
+
+## Examples
+
+### Multi-segment box
 
 ```rust
 use boxy_cli::prelude::*;
 
 fn main() {
-    let mut box1 = Boxy::new(BoxType::Double,"#bfff00");
-    box1.add_text_sgmt("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur", "#00ffff", BoxAlign::Left);
-    box1.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.", "#ffff", BoxAlign::Center);
-    box1.add_text_sgmt("Hello Theree", "#00ffff", BoxAlign::Center);
-    box1.display();
+    let mut b = Boxy::new(BoxType::Bold, "#00ffff");
+    b.add_text_sgmt(
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor \
+         incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud \
+         exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+        "#ffffff",
+        BoxAlign::Left,
+    );
+    b.add_text_sgmt(
+        "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium \
+         doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore \
+         veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+        "#ffffff",
+        BoxAlign::Left,
+    );
+    b.add_text_sgmt("Hello There", "#ffffff", BoxAlign::Center);
+    b.display();
 }
 ```
 
-### Example 2 (with the macro)
+---
 
-```rust
-use boxy_cli::prelude::*;
+## API Overview
 
-fn main() {
-    let mut box2 = boxy!(type: BoxType::Double, color:"#00ffff");
-    box2.add_text_sgmt("Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo ", "#ffff", BoxAlign::Left);
-    box2.add_text_line("Hello There Boi", "#32CD32");
-    box2.display();
-}
-```
+| Method | Description |
+|--------|-------------|
+| `Boxy::new(type, color)` | Create a new box |
+| `Boxy::builder()` | Start a builder chain |
+| `add_text_sgmt(text, color, align)` | Add a plain text segment |
+| `add_text_line(text, color)` | Add a line to the last segment |
+| `add_text_line_indx(text, color, idx)` | Add a line to a specific segment |
+| `add_col_text_sgmt(align, count)` | Add a columnar segment |
+| `add_col_text_line(text, color, col)` | Add a line to a column in the last segment |
+| `add_col_text_line_indx(text, color, seg, col)` | Add a line to a specific column in a specific segment |
+| `set_segment_ratios(seg, ratios)` | Set column width ratios for a columnar segment |
+| `set_align(align)` | Set box alignment within the terminal |
+| `set_int_padding(pad)` | Set internal padding |
+| `set_ext_padding(pad)` | Set external padding |
+| `set_width(n)` | Fix the box width |
+| `set_type(type)` | Change border style |
+| `set_color(color)` | Change border color |
+| `display()` | Render and print the box |
 
-### Example 3 (with the BoxyBuilder implementation)
-
-```rust
-use boxy_cli::prelude::*;
-
-fn main(){ 
-    Boxy::builder()
-        .box_type(BoxType::Double)
-        .color("#aaffff")
-        .padding(BoxPad::uniform(1), BoxPad::from_tldr(2, 2, 1, 1))
-        .align(BoxAlign::Center)
-        .add_segment("Hello, Boxy!", "#ffffff", BoxAlign::Center)
-        .add_line("This is a new line.", "#32CD32")
-        .add_segment("Another section", "#f19356", BoxAlign::Right)
-        .width(50)
-        .build()
-        .display();
-}
-```
-
-
-
+For the full API reference see [docs.rs/boxy-cli](https://docs.rs/boxy-cli/latest/).

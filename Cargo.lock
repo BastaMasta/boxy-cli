@@ -18,7 +18,7 @@ checksum = "b4388bee8683e3d04af747c73422af53102d2bd24d9eadb6cbc100baef4b43f8"
 
 [[package]]
 name = "boxy-cli"
-version = "2.0.1"
+version = "2.1.0"
 dependencies = [
  "colored",
  "hex_color",

@@ -10,5 +10,4 @@ fn main() {
 
     // Display the box
     box1.display();
-    
 }
