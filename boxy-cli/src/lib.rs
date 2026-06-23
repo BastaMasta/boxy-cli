@@ -20,6 +20,13 @@
 //!   ([`BoxyBuilder`])
 //! - **Macro support** — [`boxy!`] for quick one-liner (Work in Progress)
 //!
+//! ## Known Limitations
+//!
+//! **Unicode wide characters** — characters that occupy two terminal columns (CJK
+//! glyphs, most emoji) are measured as one column internally. Text containing these
+//! characters will appear narrower than expected and centering/alignment will be off.
+//! Full wide-character support is planned for a future release.
+//!
 //! ## Quick Start
 //!
 //! ```rust

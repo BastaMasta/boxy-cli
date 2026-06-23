@@ -1083,6 +1083,7 @@ fn iter_line_prnt(
     padding: (&BoxPad, &BoxPad),
     align: &BoxAlign,
 ) {
+    // TODO add support for unicode wide characters like glyphs and emojis
     let (ext_padding, int_padding) = padding;
     let (disp_width, fixed_size) = disp_params;
     let printable_area = disp_width - int_padding.lr()
