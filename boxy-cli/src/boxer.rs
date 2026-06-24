@@ -1086,11 +1086,11 @@ fn iter_line_prnt(
     padding: (&BoxPad, &BoxPad),
     align: &BoxAlign,
 ) {
-    // TODO add support for unicode wide characters like glyphs and emojis
+    // TODO: add support for unicode wide characters like glyphs and emojis\
+    // TODO: rework the printable are calculation math
     let (ext_padding, int_padding) = padding;
     let (disp_width, fixed_size) = disp_params;
-    let printable_area = disp_width - int_padding.lr()
-        + 2 * ((int_padding.left != 0) as usize) * (!*fixed_size as usize); // IDK why this works, but it does
+    let printable_area = disp_width - int_padding.lr(); // IDK why this works, but it does
     let vertical = box_pieces.vertical.to_string().color(*box_col);
     match align {
         BoxAlign::Left => {
@@ -1102,7 +1102,7 @@ fn iter_line_prnt(
                     currline,
                     "{:<width$}",
                     i.color(*text_col),
-                    width = printable_area - (2 * (!(*fixed_size) as usize)) // subtract 2 for the bars if on dynamic sizing
+                    width = printable_area - 2*((int_padding.right==0) as usize)// subtract 2 for the bars if on dynamic sizing w/no internal padding
                 )
                 .unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
@@ -1127,9 +1127,7 @@ fn iter_line_prnt(
                     "{:<pad$}",
                     " ",
                     pad = int_padding.right + (printable_area - i.len())
-                        - ((printable_area - i.len()) / 2)
-                        - (2 * (int_padding.right != 0) as usize) // sub 2 if doing internal padding
-                        + (2 * (*fixed_size as usize)) // add 2 if going by fixed size; if doing fixed with pad, do nothing
+                        - ((printable_area - i.len()) / 2) // add 2 if going by fixed size; if doing fixed with pad, do nothing
                 )
                 .unwrap();
                 write!(currline, "{}", vertical).unwrap();
@@ -1145,7 +1143,7 @@ fn iter_line_prnt(
                     currline,
                     "{:>width$}",
                     i.color(*text_col),
-                    width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
+                    width = printable_area // subtract 2 for the bars if on dynamic sizing
                 )
                 .unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
