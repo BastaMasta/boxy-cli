@@ -869,7 +869,7 @@ impl<'a> Boxy<'a> {
                 box_pieces,
                 box_col_truecolor,
                 &text_col_truecolor,
-                (&disp_width, &(self.fixed_width != 0)),
+                &disp_width,
                 (&ext_offset, &self.int_padding),
                 &self.seg_align[seg_index],
             );
@@ -1082,14 +1082,13 @@ fn iter_line_prnt(
     box_pieces: &BoxTemplates,
     box_col: &Color,
     text_col: &Color,
-    disp_params: (&usize, &bool),
+    disp_width: &usize,
     padding: (&BoxPad, &BoxPad),
     align: &BoxAlign,
 ) {
     // TODO: add support for unicode wide characters like glyphs and emojis\
     // TODO: rework the printable are calculation math
     let (ext_padding, int_padding) = padding;
-    let (disp_width, fixed_size) = disp_params;
     let printable_area = disp_width - int_padding.lr(); // IDK why this works, but it does
     let vertical = box_pieces.vertical.to_string().color(*box_col);
     match align {
@@ -1102,7 +1101,7 @@ fn iter_line_prnt(
                     currline,
                     "{:<width$}",
                     i.color(*text_col),
-                    width = printable_area - 2*((int_padding.right==0) as usize)// subtract 2 for the bars if on dynamic sizing w/no internal padding
+                    width = printable_area - 2 * ((int_padding.right == 0) as usize) // subtract 2 for the bars if on dynamic sizing w/no internal padding
                 )
                 .unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
