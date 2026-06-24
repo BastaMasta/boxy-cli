@@ -645,6 +645,173 @@ impl<'a> Boxy<'a> {
         self.seg_cols_ratio[seg_index] = ratios;
     }
 
+    /// Renders the textbox into a Vec<String>
+    pub fn render(&mut self) -> Vec<String> {
+        let mut output_buffer: Vec<String> = Vec::new();
+
+        // Initializing Display Variables
+
+        let term_size = match termsize::get() {
+            Some(s) => s.cols as usize,
+            None => {
+                // no tty, so just dunp raw text, no need to pollute stream with pipes and dividers
+                for seg in &self.data {
+                    match seg {
+                        SegType::Single(lines) => {
+                            for line in lines {
+                                output_buffer.push(line.trim().to_string());
+                            }
+                        }
+                        SegType::Columnar(cols) => {
+                            for col in cols {
+                                for line in col {
+                                    output_buffer.push(line.trim().to_string());
+                                }
+                            }
+                        }
+                    }
+                }
+                return output_buffer;
+            }
+        };
+
+        // Fix width to accommodate for box characters
+        let disp_width = if self.fixed_width != 0 {
+            self.fixed_width.saturating_sub(2)
+        } else {
+            term_size
+                .saturating_sub(self.ext_padding.lr())
+                .saturating_sub(2)
+                .max(1)
+        };
+
+        // Parse box color only once per display
+        let box_col_truecolor = self.box_col;
+        // Resolve template once per display
+        let box_pieces = map_box_type(&self.type_enum);
+        // get alignment-based offset
+        let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
+
+        // pre-emptively get the dividers map:
+        let mut col_widths_segwise: Vec<Vec<usize>> = Vec::new();
+        for i in 0..self.sect_count {
+            if let SegType::Single(_) = self.data[i] {
+                col_widths_segwise.push(Vec::new());
+            } else {
+                col_widths_segwise.push(self.col_widths(&i, &disp_width));
+            }
+        }
+
+        // Preparing the top segment
+        let mut top_seg: String = String::new();
+        match self.data.first() {
+            None | Some(&SegType::Single(_)) => {
+                write!(
+                    top_seg,
+                    "{:>width$}",
+                    box_pieces.top_left,
+                    width = self.ext_padding.left + align_offset
+                )
+                .unwrap();
+                top_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
+                top_seg.push(box_pieces.top_right);
+            }
+            Some(&SegType::Columnar(_)) => {
+                write!(
+                    top_seg,
+                    "{:>width$}",
+                    box_pieces.top_left,
+                    width = self.ext_padding.left + align_offset
+                )
+                .unwrap();
+                let below = self.col_boundaries(&col_widths_segwise[0]);
+                for i in 0..disp_width {
+                    match below.contains(&i) {
+                        true => {
+                            top_seg.push(box_pieces.upper_t);
+                        }
+                        false => {
+                            top_seg.push(box_pieces.horizontal);
+                        }
+                    };
+                }
+                top_seg.push(box_pieces.top_right);
+            }
+        }
+        // push top segment onto the buffer
+        output_buffer.push(top_seg.color(box_col_truecolor).to_string());
+
+        // Iteratively render all the textbox sections, with appropriate dividers in between
+        for i in 0..self.sect_count {
+            if i > 0 {
+                output_buffer.push(self.render_h_divider(
+                    &box_col_truecolor,
+                    disp_width,
+                    align_offset,
+                    &box_pieces,
+                    &col_widths_segwise.get(i - 1),
+                    &col_widths_segwise.get(i),
+                ));
+            }
+            if let SegType::Single(_) = self.data[i] {
+                // need to move to render, instead of print
+                self.display_segment(i, disp_width, align_offset, &box_pieces, &box_col_truecolor);
+            } else {
+                // need to move to render, instead of print
+                self.print_cols(
+                    i,
+                    align_offset,
+                    &box_pieces,
+                    &box_col_truecolor,
+                    &col_widths_segwise[i],
+                );
+            }
+        }
+        // Rendering the bottom segment
+        let mut bot_seg: String = String::new();
+        match self.data.last() {
+            None | Some(&SegType::Single(_)) => {
+                write!(
+                    bot_seg,
+                    "{:>width$}",
+                    box_pieces.bottom_left,
+                    width = self.ext_padding.left + align_offset
+                )
+                .unwrap();
+                bot_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
+                bot_seg.push(box_pieces.bottom_right);
+            }
+            Some(&SegType::Columnar(_)) => {
+                write!(
+                    bot_seg,
+                    "{:>width$}",
+                    box_pieces.bottom_left,
+                    width = self.ext_padding.left + align_offset
+                )
+                .unwrap();
+                let above = self.col_boundaries(
+                    col_widths_segwise
+                        .last()
+                        .expect("failed to get last element"),
+                );
+                for i in 0..disp_width {
+                    match above.contains(&i) {
+                        true => {
+                            bot_seg.push(box_pieces.lower_t);
+                        }
+                        false => {
+                            bot_seg.push(box_pieces.horizontal);
+                        }
+                    };
+                }
+                bot_seg.push(box_pieces.bottom_right);
+            }
+        }
+        output_buffer.push(bot_seg.color(box_col_truecolor).to_string());
+
+        output_buffer
+    }
+
     /// Renders and displays the text box in the terminal.
     ///
     /// Automatically sizes the box to the current terminal width unless a fixed width
@@ -884,6 +1051,42 @@ impl<'a> Boxy<'a> {
                 );
             }
         }
+    }
+
+    fn render_h_divider(
+        &self,
+        box_col_truecolor: &Color,
+        disp_width: usize,
+        align_offset: usize,
+        box_pieces: &BoxTemplates,
+        prev_seg: &Option<&Vec<usize>>,
+        next_seg: &Option<&Vec<usize>>,
+    ) -> String {
+        let mut div: String = String::new();
+
+        write!(
+            div,
+            "{:>width$}",
+            box_pieces.left_t.to_string(),
+            width = self.ext_padding.left + align_offset
+        )
+        .unwrap();
+        let empty = Vec::new();
+        let above = self.col_boundaries(prev_seg.unwrap_or(&empty));
+        let below = self.col_boundaries(next_seg.unwrap_or(&empty));
+        for i in 0..disp_width {
+            let ch = match (above.contains(&i), below.contains(&i)) {
+                (true, true) => box_pieces.cross,
+                (false, true) => box_pieces.upper_t,
+                (true, false) => box_pieces.lower_t,
+                (false, false) => box_pieces.horizontal,
+            };
+            div.push(ch);
+        }
+        // push right segment
+        div.push(box_pieces.right_t);
+
+        div.color(*box_col_truecolor).to_string()
     }
 
     // Printing the horizontal divider. - I don't think this is needed?
