@@ -328,7 +328,7 @@ impl SegColor {
     /// Parses a hex color string (e.g. `"#00ffff"`) into a [`Color::TrueColor`](colored::Color).
     /// Falls back to [`Color::White`](colored::Color::White) and prints a warning on parse failure.
     pub(crate) fn parse_hexcolor(hex: &str) -> Color {
-        let box_col = match HexColor::parse(hex) {
+        match HexColor::parse(hex) {
             Ok(color) => Color::TrueColor {
                 r: color.r,
                 g: color.g,
@@ -338,7 +338,6 @@ impl SegColor {
                 eprintln!("Error parsing box color '{}': {}", hex, e);
                 Color::White // Default color
             }
-        };
-        box_col
+        }
     }
 }
