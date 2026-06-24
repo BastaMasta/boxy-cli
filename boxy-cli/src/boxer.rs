@@ -884,8 +884,6 @@ impl<'a> Boxy<'a> {
                 );
             }
         }
-        // Recursive Printing of text -> now depreciated
-        // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
     }
 
     // Printing the horizontal divider. - I don't think this is needed?
