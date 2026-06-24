@@ -805,7 +805,7 @@ impl<'a> Boxy<'a> {
                 )
                 .unwrap();
                 let above = self.col_boundaries(
-                    &col_widths_segwise
+                    col_widths_segwise
                         .last()
                         .expect("failed to get last element"),
                 );
@@ -948,7 +948,7 @@ impl<'a> Boxy<'a> {
         col_seg_widths
     }
 
-    fn col_boundaries(&self, col_widths: &Vec<usize>) -> Vec<usize> {
+    fn col_boundaries(&self, col_widths: &[usize]) -> Vec<usize> {
         let mut boundaries: Vec<usize> = Vec::with_capacity(col_widths.len());
         let mut x = 0;
         for (i, w) in col_widths.iter().enumerate() {
@@ -967,7 +967,7 @@ impl<'a> Boxy<'a> {
         align_offset: usize,
         box_pieces: &BoxTemplates,
         box_col_truecolor: &Color,
-        col_seg_widths: &Vec<usize>,
+        col_seg_widths: &[usize],
     ) {
         let col_count = self.seg_cols_count[seg_index];
 
@@ -1278,25 +1278,13 @@ pub struct BoxyBuilder<'a> {
     seg_col_count: Vec<usize>,
 }
 
-impl<'a> BoxyBuilder<'a> {
+impl<'a> Default for BoxyBuilder<'a> {
     fn default() -> Self {
-        Self {
-            type_enum: BoxType::Single,
-            data: Vec::new(),
-            box_col: Color::White,
-            colors: Vec::new(),
-            int_padding: BoxPad::new(),
-            ext_padding: BoxPad::new(),
-            align: BoxAlign::Left,
-            seg_align: Vec::new(),
-            fixed_width: 0,
-            fixed_height: 0,
-            seg_cols_ratio: Vec::new(),
-            terminal_width_offset: -20,
-            seg_col_count: Vec::new(),
-        }
+        Self::new()
     }
+}
 
+impl<'a> BoxyBuilder<'a> {
     /// Creates a new `BoxyBuilder` with default values.
     ///
     /// This creates a builder with the following default values:
@@ -1327,7 +1315,21 @@ impl<'a> BoxyBuilder<'a> {
     /// let builder = Boxy::builder(); // Same as BoxyBuilder::new()
     /// ```
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            type_enum: BoxType::Single,
+            data: Vec::new(),
+            box_col: Color::White,
+            colors: Vec::new(),
+            int_padding: BoxPad::new(),
+            ext_padding: BoxPad::new(),
+            align: BoxAlign::Left,
+            seg_align: Vec::new(),
+            fixed_width: 0,
+            fixed_height: 0,
+            seg_cols_ratio: Vec::new(),
+            terminal_width_offset: -20,
+            seg_col_count: Vec::new(),
+        }
     }
 
     /// Sets the border type for the text box.
