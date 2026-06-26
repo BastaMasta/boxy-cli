@@ -124,4 +124,6 @@ fn main() {
     );
     b.add_text_sgmt("Hello There", "#ffffff", BoxAlign::Center);
     b.display();
+    let ok = b.render(termsize::get().unwrap().cols as usize);
+    println!("{}", ok.join("\n"));
 }
