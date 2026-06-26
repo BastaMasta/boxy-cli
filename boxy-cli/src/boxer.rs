@@ -645,6 +645,24 @@ impl<'a> Boxy<'a> {
         self.seg_cols_ratio[seg_index] = ratios;
     }
 
+    #[doc(hidden)]
+    #[cfg(test)]
+    pub(crate) fn sect_count(&self) -> usize {
+        self.sect_count
+    }
+
+    #[doc(hidden)]
+    #[cfg(test)]
+    pub(crate) fn seg_cols_ratio(&self) -> &Vec<Vec<usize>> {
+        &self.seg_cols_ratio
+    }
+
+    #[doc(hidden)]
+    #[cfg(test)]
+    pub(crate) fn seg_cols_count(&self) -> &Vec<usize> {
+        &self.seg_cols_count
+    }
+
     /// Renders and displays the text box in the terminal.
     ///
     /// Automatically sizes the box to the current terminal width unless a fixed width
@@ -689,340 +707,13 @@ impl<'a> Boxy<'a> {
                 return;
             }
         };
-        println!("{}", self.render(term_size).join("\n"))
-    }
 
-    /// method to directly print w/o render
-    pub fn display_print(&mut self) {
-        // Initializing Display Variables
-
-        let term_size = match termsize::get() {
-            Some(s) => s.cols as usize,
-            None => {
-                // no tty, so just dunp raw text, no need to pollute stream with pipes and dividers
-                for seg in &self.data {
-                    match seg {
-                        SegType::Single(lines) => {
-                            for line in lines {
-                                println!("{}", line.trim());
-                            }
-                        }
-                        SegType::Columnar(cols) => {
-                            for col in cols {
-                                for line in col {
-                                    println!("{}", line.trim());
-                                }
-                            }
-                        }
-                    }
-                }
-                return;
-            }
-        };
-
-        // Fix width to accommodate for box characters
-        let disp_width = if self.fixed_width != 0 {
-            self.fixed_width - 2
-        } else {
-            term_size
-                .saturating_sub(self.ext_padding.lr())
-                .saturating_sub(2)
-                .max(1)
-        };
-
-        // Parse box color only once per display
-        let box_col_truecolor = self.box_col;
-        // Resolve template once per display
-        let box_pieces = map_box_type(&self.type_enum);
-        // get alignment-based offset
-        let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
-
-        // pre-emptively get the dividers map:
-        let mut col_widths_segwise: Vec<Vec<usize>> = Vec::new();
-        for i in 0..self.sect_count {
-            if let SegType::Single(_) = self.data[i] {
-                col_widths_segwise.push(Vec::new());
-            } else {
-                col_widths_segwise.push(self.col_widths(&i, &disp_width));
-            }
-        }
-
-        // Printing the top segment
-        let mut top_seg: String = String::new();
-        match self.data.first() {
-            None | Some(&SegType::Single(_)) => {
-                write!(
-                    top_seg,
-                    "{:>width$}",
-                    box_pieces.top_left,
-                    width = self.ext_padding.left + align_offset
-                )
-                .unwrap();
-                top_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
-                top_seg.push(box_pieces.top_right);
-            }
-            Some(&SegType::Columnar(_)) => {
-                write!(
-                    top_seg,
-                    "{:>width$}",
-                    box_pieces.top_left,
-                    width = self.ext_padding.left + align_offset
-                )
-                .unwrap();
-                let below = self.col_boundaries(&col_widths_segwise[0]);
-                for i in 0..disp_width {
-                    match below.contains(&i) {
-                        true => {
-                            top_seg.push(box_pieces.upper_t);
-                        }
-                        false => {
-                            top_seg.push(box_pieces.horizontal);
-                        }
-                    };
-                }
-                top_seg.push(box_pieces.top_right);
-            }
-        }
-        println!("{}", top_seg.color(box_col_truecolor));
-
-        // Iteratively print all the textbox sections, with appropriate dividers in between
-        for i in 0..self.sect_count {
-            if i > 0 {
-                self.print_h_divider(
-                    &box_col_truecolor,
-                    disp_width,
-                    align_offset,
-                    &box_pieces,
-                    &col_widths_segwise.get(i - 1),
-                    &col_widths_segwise.get(i),
-                );
-            }
-            if let SegType::Single(_) = self.data[i] {
-                self.display_segment(i, disp_width, align_offset, &box_pieces, &box_col_truecolor);
-            } else {
-                self.print_cols(
-                    i,
-                    align_offset,
-                    &box_pieces,
-                    &box_col_truecolor,
-                    &col_widths_segwise[i],
-                );
-            }
-        }
-
-        // Printing the bottom segment
-        let mut bot_seg: String = String::new();
-        match self.data.last() {
-            None | Some(&SegType::Single(_)) => {
-                write!(
-                    bot_seg,
-                    "{:>width$}",
-                    box_pieces.bottom_left,
-                    width = self.ext_padding.left + align_offset
-                )
-                .unwrap();
-                bot_seg.push_str(&box_pieces.horizontal.to_string().repeat(disp_width));
-                bot_seg.push(box_pieces.bottom_right);
-            }
-            Some(&SegType::Columnar(_)) => {
-                write!(
-                    bot_seg,
-                    "{:>width$}",
-                    box_pieces.bottom_left,
-                    width = self.ext_padding.left + align_offset
-                )
-                .unwrap();
-                let above = self.col_boundaries(
-                    col_widths_segwise
-                        .last()
-                        .expect("failed to get last element"),
-                );
-                for i in 0..disp_width {
-                    match above.contains(&i) {
-                        true => {
-                            bot_seg.push(box_pieces.lower_t);
-                        }
-                        false => {
-                            bot_seg.push(box_pieces.horizontal);
-                        }
-                    };
-                }
-                bot_seg.push(box_pieces.bottom_right);
-            }
-        }
-        println!("{}", bot_seg.color(box_col_truecolor));
-    }
-
-    // Displaying each segment body
-    fn display_segment(
-        &mut self,
-        seg_index: usize,
-        disp_width: usize,
-        align_offset: usize,
-        box_pieces: &BoxTemplates,
-        box_col_truecolor: &Color,
-    ) {
-        let lines = match &self.data[seg_index] {
-            SegType::Single(lines) => lines,
-            SegType::Columnar(_) => return,
-        };
-
-        // Loop for all text lines
-        for i in 0..lines.len() {
-            // obtaining text colour truevalues
-            let text_col_truecolor = match &self.colors[seg_index] {
-                SegColor::Single(cols) => cols[i],
-                SegColor::Columnar(_) => Color::White, // shouldn't happen in display_segment
-            };
-            // Processing data
-            let processed_data = lines[i].trim().to_owned() + " ";
-
-            let liner: Vec<String> =
-                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding);
-
-            // Generating new External Pad based on alignment offset
-            let ext_offset = BoxPad {
-                top: self.ext_padding.top,
-                left: self.ext_padding.left + align_offset,
-                right: self.ext_padding.right,
-                down: self.ext_padding.down,
-            };
-
-            // Actually printing shiet
-
-            // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
-            // also to improve code efficiency
-            iter_line_prnt(
-                &liner,
-                box_pieces,
-                box_col_truecolor,
-                &text_col_truecolor,
-                &disp_width,
-                (&ext_offset, &self.int_padding),
-                &self.seg_align[seg_index],
-            );
-
-            // printing an empty line between consecutive non-terminal text line
-            if i < lines.len() - 1 {
-                println!(
-                    "{1:>width$}{}{1}",
-                    " ".repeat(disp_width),
-                    box_pieces.vertical.to_string().color(*box_col_truecolor),
-                    width = self.ext_padding.left + align_offset
-                );
-            }
-        }
-    }
-
-    // Printing the horizontal divider. - I don't think this is needed?
-    fn print_h_divider(
-        &self,
-        box_col_truecolor: &Color,
-        disp_width: usize,
-        align_offset: usize,
-        box_pieces: &BoxTemplates,
-        prev_seg: &Option<&Vec<usize>>,
-        next_seg: &Option<&Vec<usize>>,
-    ) {
-        // push left segment
-        let mut div: String = String::new();
-        write!(
-            div,
-            "{:>width$}",
-            box_pieces.left_t.to_string(),
-            width = self.ext_padding.left + align_offset
-        )
-        .unwrap();
-        let empty = Vec::new();
-        let above = self.col_boundaries(prev_seg.unwrap_or(&empty));
-        let below = self.col_boundaries(next_seg.unwrap_or(&empty));
-        for i in 0..disp_width {
-            let ch = match (above.contains(&i), below.contains(&i)) {
-                (true, true) => box_pieces.cross,
-                (false, true) => box_pieces.upper_t,
-                (true, false) => box_pieces.lower_t,
-                (false, false) => box_pieces.horizontal,
-            };
-            div.push(ch);
-        }
-        // push right segment
-        div.push(box_pieces.right_t);
-
-        // print this shit
-        println!("{}", div.color(*box_col_truecolor));
-    }
-
-    fn print_cols(
-        &self,
-        seg_index: usize,
-        align_offset: usize,
-        box_pieces: &BoxTemplates,
-        box_col_truecolor: &Color,
-        col_seg_widths: &[usize],
-    ) {
-        let col_count = self.seg_cols_count[seg_index];
-
-        let mut columnar_data: Vec<Vec<(String, Color)>> = Vec::new();
-        let mut col_height_max = 0;
-        for i in 0..col_count {
-            let col_data = match &self.data[seg_index] {
-                SegType::Columnar(cols) => &cols[i],
-                SegType::Single(_) => return,
-            };
-            let col_colors = match &self.colors[seg_index] {
-                SegColor::Columnar(cols) => &cols[i],
-                SegColor::Single(_) => return,
-            };
-            let mut col_wrapped: Vec<(String, Color)> = Vec::new();
-            for (line_idx, line) in col_data.iter().enumerate() {
-                // obtaining text colour truevalue for this line, falling back to white on
-                // a missing/unparseable color (mirrors display_segment's handling)
-                let text_col_truecolor = col_colors.get(line_idx).copied().unwrap_or(Color::White);
-                for wrapped_line in text_wrap_vec_fast(
-                    line.as_ref(),
-                    col_seg_widths[i],
-                    &DEFAULT_PAD, // keep the standard, default padding
-                ) {
-                    col_wrapped.push((wrapped_line, text_col_truecolor));
-                }
-            }
-            col_height_max = col_height_max.max(col_wrapped.len());
-            columnar_data.push(col_wrapped);
-        }
-
-        let vertical = box_pieces.vertical.to_string().color(*box_col_truecolor);
-
-        for curr_line in 0..col_height_max {
-            let mut currline = String::new();
-            write!(
-                currline,
-                "{:>width$}",
-                vertical,
-                width = self.ext_padding.left + align_offset
-            )
-            .unwrap();
-            for (i, col) in columnar_data.iter().enumerate() {
-                if i > 0 {
-                    write!(currline, "{}", vertical).unwrap();
-                }
-                let width = col_seg_widths[i].saturating_sub(1);
-                match col.get(curr_line) {
-                    Some((content, color)) => {
-                        write!(
-                            currline,
-                            " {:<width$}",
-                            content.color(*color),
-                            width = width
-                        )
-                        .unwrap();
-                    }
-                    None => {
-                        write!(currline, " {:<width$}", "", width = width).unwrap();
-                    }
-                }
-            }
-            write!(currline, "{}", vertical).unwrap();
-            println!("{}", currline);
+        use std::io::{self, Write};
+        let lines = self.render(term_size);
+        let stdout = io::stdout();
+        let mut handle = io::BufWriter::new(stdout.lock());
+        for line in lines {
+            writeln!(handle, "{}", line).unwrap();
         }
     }
 
@@ -1048,17 +739,15 @@ impl<'a> Boxy<'a> {
         let align_offset = align_offset(&disp_width, &term_width, &self.align, &self.ext_padding);
 
         // pre-emptively get the dividers map:
-        let mut col_widths_segwise: Vec<Vec<usize>> = Vec::new();
-        for i in 0..self.sect_count {
-            if let SegType::Single(_) = self.data[i] {
-                col_widths_segwise.push(Vec::new());
-            } else {
-                col_widths_segwise.push(self.col_widths(&i, &disp_width));
-            }
-        }
+        let col_widths_segwise: Vec<Vec<usize>> = (0..self.sect_count)
+            .map(|i| match &self.data[i] {
+                SegType::Single(_) => Vec::new(),
+                SegType::Columnar(_) => self.col_widths(&i, &disp_width),
+            })
+            .collect();
 
         // Preparing the top segment
-        let mut top_seg: String = String::new();
+        let mut top_seg: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
         match self.data.first() {
             None | Some(&SegType::Single(_)) => {
                 write!(
@@ -1120,17 +809,18 @@ impl<'a> Boxy<'a> {
                 );
             } else {
                 // need to move to render, instead of print
-                self.print_cols(
+                self.render_cols(
                     i,
                     align_offset,
                     &box_pieces,
                     &box_col_truecolor,
                     &col_widths_segwise[i],
+                    &mut output_buffer,
                 );
             }
         }
         // Rendering the bottom segment
-        let mut bot_seg: String = String::new();
+        let mut bot_seg: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
         match self.data.last() {
             None | Some(&SegType::Single(_)) => {
                 write!(
@@ -1188,6 +878,14 @@ impl<'a> Boxy<'a> {
             SegType::Columnar(_) => return,
         };
 
+        // Generating new External Pad based on alignment offset
+        let ext_offset = BoxPad {
+            top: self.ext_padding.top,
+            left: self.ext_padding.left + align_offset,
+            right: self.ext_padding.right,
+            down: self.ext_padding.down,
+        };
+
         for i in 0..lines.len() {
             // obtaining text colour truevalues
             let text_col_truecolor = match &self.colors[seg_index] {
@@ -1198,15 +896,10 @@ impl<'a> Boxy<'a> {
             let processed_data = lines[i].trim().to_owned() + " ";
 
             let liner: Vec<String> =
-                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding);
-
-            // Generating new External Pad based on alignment offset
-            let ext_offset = BoxPad {
-                top: self.ext_padding.top,
-                left: self.ext_padding.left + align_offset,
-                right: self.ext_padding.right,
-                down: self.ext_padding.down,
-            };
+                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding)
+                    .into_iter()
+                    .map(|s| s.trim_end().to_owned())
+                    .collect();
 
             // Actually printing shiet
 
@@ -1244,7 +937,7 @@ impl<'a> Boxy<'a> {
         prev_seg: &Option<&Vec<usize>>,
         next_seg: &Option<&Vec<usize>>,
     ) -> String {
-        let mut div: String = String::new();
+        let mut div: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
 
         write!(
             div,
@@ -1346,7 +1039,7 @@ impl<'a> Boxy<'a> {
         }
     }
 
-    fn col_widths(&self, seg_index: &usize, disp_width: &usize) -> Vec<usize> {
+    pub(crate) fn col_widths(&self, seg_index: &usize, disp_width: &usize) -> Vec<usize> {
         let col_count = self.seg_cols_count[*seg_index];
         let total_width_ratio: usize = self.seg_cols_ratio[*seg_index].iter().sum();
         // accommodate for the vertical dividers between the segments
@@ -1368,7 +1061,7 @@ impl<'a> Boxy<'a> {
         col_seg_widths
     }
 
-    fn col_boundaries(&self, col_widths: &[usize]) -> Vec<usize> {
+    pub(crate) fn col_boundaries(&self, col_widths: &[usize]) -> Vec<usize> {
         let mut boundaries: Vec<usize> = Vec::with_capacity(col_widths.len());
         let mut x = 0;
         for (i, w) in col_widths.iter().enumerate() {
@@ -1385,7 +1078,11 @@ impl<'a> Boxy<'a> {
 // Faster non-allocating whitespace scanning text wrapper
 // Returns wrapped text, line by line in a vec
 #[doc(hidden)]
-fn text_wrap_vec_fast(data: &str, disp_width: usize, int_padding: &BoxPad) -> Vec<String> {
+pub(crate) fn text_wrap_vec_fast(
+    data: &str,
+    disp_width: usize,
+    int_padding: &BoxPad,
+) -> Vec<String> {
     let mut liner: Vec<String> = Vec::new();
     let max_len = disp_width.saturating_sub(int_padding.lr() + 2);
     if max_len == 0 {
@@ -1458,22 +1155,23 @@ fn iter_line_rndr(
         }
         BoxAlign::Center => {
             for i in liner.iter() {
+                let text = i.trim_end();
+                let remaining = printable_area.saturating_sub(text.len());
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(
                     currline,
                     "{:<pad$}",
                     " ",
-                    pad = int_padding.left + ((printable_area - i.len()) / 2)
+                    pad = int_padding.left + remaining / 2
                 )
                 .unwrap();
-                write!(currline, "{}", i.color(*text_col)).unwrap();
+                write!(currline, "{}", text.color(*text_col)).unwrap();
                 write!(
                     currline,
                     "{:<pad$}",
                     " ",
-                    pad = int_padding.right + (printable_area - i.len())
-                        - ((printable_area - i.len()) / 2) // add 2 if going by fixed size; if doing fixed with pad, do nothing
+                    pad = int_padding.right + remaining - remaining / 2
                 )
                 .unwrap();
                 write!(currline, "{}", vertical).unwrap();
@@ -1489,7 +1187,7 @@ fn iter_line_rndr(
                     currline,
                     "{:>width$}",
                     i.color(*text_col),
-                    width = printable_area // subtract 2 for the bars if on dynamic sizing
+                    width = printable_area - 2 * ((int_padding.right == 0) as usize) // subtract 2 for the bars if on dynamic sizing
                 )
                 .unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
