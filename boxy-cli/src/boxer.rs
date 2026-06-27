@@ -935,7 +935,6 @@ impl<'a> Boxy<'a> {
                     .collect();
 
             // Actually printing shiet
-
             // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
             // also to improve code efficiency
             iter_line_rndr(
