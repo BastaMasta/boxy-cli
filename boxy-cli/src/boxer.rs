@@ -6,6 +6,8 @@ use crate::templates::*;
 use colored::{Color, Colorize};
 use std::borrow::Cow;
 use std::fmt::Write;
+use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 /// The main struct that represents a text box for CLI display.
 ///
@@ -645,6 +647,24 @@ impl<'a> Boxy<'a> {
         self.seg_cols_ratio[seg_index] = ratios;
     }
 
+    #[doc(hidden)]
+    #[cfg(test)]
+    pub(crate) fn sect_count(&self) -> usize {
+        self.sect_count
+    }
+
+    #[doc(hidden)]
+    #[cfg(test)]
+    pub(crate) fn seg_cols_ratio(&self) -> &Vec<Vec<usize>> {
+        &self.seg_cols_ratio
+    }
+
+    #[doc(hidden)]
+    #[cfg(test)]
+    pub(crate) fn seg_cols_count(&self) -> &Vec<usize> {
+        &self.seg_cols_count
+    }
+
     /// Renders and displays the text box in the terminal.
     ///
     /// Automatically sizes the box to the current terminal width unless a fixed width
@@ -666,8 +686,6 @@ impl<'a> Boxy<'a> {
     /// my_box.display();
     /// ```
     pub fn display(&mut self) {
-        // Initializing Display Variables
-
         let term_size = match termsize::get() {
             Some(s) => s.cols as usize,
             None => {
@@ -675,16 +693,16 @@ impl<'a> Boxy<'a> {
                 for seg in &self.data {
                     match seg {
                         SegType::Single(lines) => {
-                            for line in lines {
-                                println!("{}", line.trim());
-                            }
+                            println!("{}", lines.join("\n"));
                         }
                         SegType::Columnar(cols) => {
-                            for col in cols {
-                                for line in col {
-                                    println!("{}", line.trim());
-                                }
-                            }
+                            println!(
+                                "{}",
+                                cols.iter()
+                                    .map(|col| col.join("\n"))
+                                    .collect::<Vec<_>>()
+                                    .join("\n")
+                            );
                         }
                     }
                 }
@@ -692,11 +710,55 @@ impl<'a> Boxy<'a> {
             }
         };
 
+        use std::io::{self, Write};
+        let lines = self.render(term_size);
+        let stdout = io::stdout();
+        let mut handle = io::BufWriter::new(stdout.lock());
+        for line in lines {
+            writeln!(handle, "{}", line).unwrap();
+        }
+    }
+
+    /// Renders the text box into a `Vec<String>` without printing to stdout.
+    ///
+    /// This is the lower-level counterpart to [`display`](Self::display). Where `display`
+    /// detects the terminal width automatically and writes directly to stdout, `render`
+    /// lets you supply the width yourself and returns the lines for you to do with as
+    /// you like — buffering, testing, piping into another renderer, etc.
+    ///
+    /// Each string in the returned `Vec` is one fully-composed terminal line, including
+    /// ANSI color escape codes and box-drawing characters. The `Vec` contains exactly the
+    /// lines that would be printed by `display` for the same `term_width`.
+    ///
+    /// # Arguments
+    ///
+    /// * `term_width` - The total column width to render into. Typically the terminal's
+    ///   column count, but can be any value — useful for fixed-width output or tests.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.add_text_sgmt("Hello!", "#ffffff", BoxAlign::Center);
+    ///
+    /// let lines = b.render(60);
+    /// assert!(!lines.is_empty());
+    ///
+    /// // Write to a file, pipe to a pager, assert on content in tests, etc.
+    /// for line in &lines {
+    ///     println!("{}", line);
+    /// }
+    /// ```
+    pub fn render(&mut self, term_width: usize) -> Vec<String> {
+        let mut output_buffer: Vec<String> = Vec::new();
+
         // Fix width to accommodate for box characters
         let disp_width = if self.fixed_width != 0 {
-            self.fixed_width - 2
+            self.fixed_width.saturating_sub(2)
         } else {
-            term_size
+            term_width
                 .saturating_sub(self.ext_padding.lr())
                 .saturating_sub(2)
                 .max(1)
@@ -707,20 +769,18 @@ impl<'a> Boxy<'a> {
         // Resolve template once per display
         let box_pieces = map_box_type(&self.type_enum);
         // get alignment-based offset
-        let align_offset = align_offset(&disp_width, &term_size, &self.align, &self.ext_padding);
+        let align_offset = align_offset(&disp_width, &term_width, &self.align, &self.ext_padding);
 
         // pre-emptively get the dividers map:
-        let mut col_widths_segwise: Vec<Vec<usize>> = Vec::new();
-        for i in 0..self.sect_count {
-            if let SegType::Single(_) = self.data[i] {
-                col_widths_segwise.push(Vec::new());
-            } else {
-                col_widths_segwise.push(self.col_widths(&i, &disp_width));
-            }
-        }
+        let col_widths_segwise: Vec<Vec<usize>> = (0..self.sect_count)
+            .map(|i| match &self.data[i] {
+                SegType::Single(_) => Vec::new(),
+                SegType::Columnar(_) => self.col_widths(&i, &disp_width),
+            })
+            .collect();
 
-        // Printing the top segment
-        let mut top_seg: String = String::new();
+        // Preparing the top segment
+        let mut top_seg: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
         match self.data.first() {
             None | Some(&SegType::Single(_)) => {
                 write!(
@@ -755,35 +815,45 @@ impl<'a> Boxy<'a> {
                 top_seg.push(box_pieces.top_right);
             }
         }
-        println!("{}", top_seg.color(box_col_truecolor));
+        // push top segment onto the buffer
+        output_buffer.push(top_seg.color(box_col_truecolor).to_string());
 
-        // Iteratively print all the textbox sections, with appropriate dividers in between
+        // Iteratively render all the textbox sections, with appropriate dividers in between
         for i in 0..self.sect_count {
             if i > 0 {
-                self.print_h_divider(
+                output_buffer.push(self.render_h_divider(
                     &box_col_truecolor,
                     disp_width,
                     align_offset,
                     &box_pieces,
                     &col_widths_segwise.get(i - 1),
                     &col_widths_segwise.get(i),
-                );
+                ));
             }
             if let SegType::Single(_) = self.data[i] {
-                self.display_segment(i, disp_width, align_offset, &box_pieces, &box_col_truecolor);
+                // need to move to render, instead of print
+                self.render_segment(
+                    i,
+                    disp_width,
+                    align_offset,
+                    &box_pieces,
+                    &box_col_truecolor,
+                    &mut output_buffer,
+                );
             } else {
-                self.print_cols(
+                // need to move to render, instead of print
+                self.render_cols(
                     i,
                     align_offset,
                     &box_pieces,
                     &box_col_truecolor,
                     &col_widths_segwise[i],
+                    &mut output_buffer,
                 );
             }
         }
-
-        // Printing the bottom segment
-        let mut bot_seg: String = String::new();
+        // Rendering the bottom segment
+        let mut bot_seg: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
         match self.data.last() {
             None | Some(&SegType::Single(_)) => {
                 write!(
@@ -822,24 +892,33 @@ impl<'a> Boxy<'a> {
                 bot_seg.push(box_pieces.bottom_right);
             }
         }
-        println!("{}", bot_seg.color(box_col_truecolor));
+        output_buffer.push(bot_seg.color(box_col_truecolor).to_string());
+
+        output_buffer
     }
 
-    // Displaying each segment body
-    fn display_segment(
+    fn render_segment(
         &mut self,
         seg_index: usize,
         disp_width: usize,
         align_offset: usize,
         box_pieces: &BoxTemplates,
         box_col_truecolor: &Color,
+        output_buffer: &mut Vec<String>,
     ) {
         let lines = match &self.data[seg_index] {
             SegType::Single(lines) => lines,
             SegType::Columnar(_) => return,
         };
 
-        // Loop for all text lines
+        // Generating new External Pad based on alignment offset
+        let ext_offset = BoxPad {
+            top: self.ext_padding.top,
+            left: self.ext_padding.left + align_offset,
+            right: self.ext_padding.right,
+            down: self.ext_padding.down,
+        };
+
         for i in 0..lines.len() {
             // obtaining text colour truevalues
             let text_col_truecolor = match &self.colors[seg_index] {
@@ -850,46 +929,38 @@ impl<'a> Boxy<'a> {
             let processed_data = lines[i].trim().to_owned() + " ";
 
             let liner: Vec<String> =
-                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding);
-
-            // Generating new External Pad based on alignment offset
-            let ext_offset = BoxPad {
-                top: self.ext_padding.top,
-                left: self.ext_padding.left + align_offset,
-                right: self.ext_padding.right,
-                down: self.ext_padding.down,
-            };
+                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding)
+                    .into_iter()
+                    .map(|s| s.trim_end().to_owned())
+                    .collect();
 
             // Actually printing shiet
 
             // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
             // also to improve code efficiency
-            iter_line_prnt(
+            iter_line_rndr(
                 &liner,
                 box_pieces,
-                box_col_truecolor,
-                &text_col_truecolor,
-                (&disp_width, &(self.fixed_width != 0)),
+                (box_col_truecolor, &text_col_truecolor),
+                &disp_width,
                 (&ext_offset, &self.int_padding),
                 &self.seg_align[seg_index],
+                output_buffer,
             );
 
             // printing an empty line between consecutive non-terminal text line
             if i < lines.len() - 1 {
-                println!(
+                output_buffer.push(format!(
                     "{1:>width$}{}{1}",
                     " ".repeat(disp_width),
                     box_pieces.vertical.to_string().color(*box_col_truecolor),
                     width = self.ext_padding.left + align_offset
-                );
+                ));
             }
         }
-        // Recursive Printing of text -> now depreciated
-        // recur_whitespace_printing(&processed_data, &mut ws_indices, &self.type_enum, &terminal_size, 0usize, &col_truevals, &self.ext_padding, &self.int_padding, &self.align);
     }
 
-    // Printing the horizontal divider. - I don't think this is needed?
-    fn print_h_divider(
+    fn render_h_divider(
         &self,
         box_col_truecolor: &Color,
         disp_width: usize,
@@ -897,9 +968,9 @@ impl<'a> Boxy<'a> {
         box_pieces: &BoxTemplates,
         prev_seg: &Option<&Vec<usize>>,
         next_seg: &Option<&Vec<usize>>,
-    ) {
-        // push left segment
-        let mut div: String = String::new();
+    ) -> String {
+        let mut div: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
+
         write!(
             div,
             "{:>width$}",
@@ -922,52 +993,17 @@ impl<'a> Boxy<'a> {
         // push right segment
         div.push(box_pieces.right_t);
 
-        // print this shit
-        println!("{}", div.color(*box_col_truecolor));
+        div.color(*box_col_truecolor).to_string()
     }
 
-    fn col_widths(&self, seg_index: &usize, disp_width: &usize) -> Vec<usize> {
-        let col_count = self.seg_cols_count[*seg_index];
-        let total_width_ratio: usize = self.seg_cols_ratio[*seg_index].iter().sum();
-        // accommodate for the vertical dividers between the segments
-        let printable =
-            disp_width.saturating_sub(self.seg_cols_count[*seg_index].saturating_sub(1));
-        // get final terminal width ratios -> divide with floor, whatever's left goes to last segment
-        let mut col_seg_widths: Vec<usize> = Vec::new();
-        let mut allocated = 0usize;
-        // iteratively allocate column widths (w/o dividers, i.e. pure text printing areas)
-        for (i, ratio) in self.seg_cols_ratio[*seg_index].iter().enumerate() {
-            let width = if i == col_count - 1 {
-                printable.saturating_sub(allocated) // saturating_sub to prevent underflow panics
-            } else {
-                ((*ratio as f64 / total_width_ratio as f64) * printable as f64).floor() as usize
-            };
-            allocated += width;
-            col_seg_widths.push(width);
-        } // ^^^ a little complicated, but will work on improving it ^^^
-        col_seg_widths
-    }
-
-    fn col_boundaries(&self, col_widths: &[usize]) -> Vec<usize> {
-        let mut boundaries: Vec<usize> = Vec::with_capacity(col_widths.len());
-        let mut x = 0;
-        for (i, w) in col_widths.iter().enumerate() {
-            x += w;
-            if i < col_widths.len() - 1 {
-                boundaries.push(x);
-                x += 1;
-            }
-        }
-        boundaries
-    }
-
-    fn print_cols(
+    fn render_cols(
         &self,
         seg_index: usize,
         align_offset: usize,
         box_pieces: &BoxTemplates,
         box_col_truecolor: &Color,
         col_seg_widths: &[usize],
+        output_buffer: &mut Vec<String>,
     ) {
         let col_count = self.seg_cols_count[seg_index];
 
@@ -1017,13 +1053,10 @@ impl<'a> Boxy<'a> {
                 let width = col_seg_widths[i].saturating_sub(1);
                 match col.get(curr_line) {
                     Some((content, color)) => {
-                        write!(
-                            currline,
-                            " {:<width$}",
-                            content.color(*color),
-                            width = width
-                        )
-                        .unwrap();
+                        let col_width = UnicodeWidthStr::width(content.as_str());
+                        let fill = width.saturating_sub(col_width);
+                        write!(currline, " {}", content.color(*color)).unwrap();
+                        write!(currline, "{:<fill$}", "", fill = fill).unwrap();
                     }
                     None => {
                         write!(currline, " {:<width$}", "", width = width).unwrap();
@@ -1031,126 +1064,168 @@ impl<'a> Boxy<'a> {
                 }
             }
             write!(currline, "{}", vertical).unwrap();
-            println!("{}", currline);
+            output_buffer.push(currline);
         }
+    }
+
+    pub(crate) fn col_widths(&self, seg_index: &usize, disp_width: &usize) -> Vec<usize> {
+        let col_count = self.seg_cols_count[*seg_index];
+        let total_width_ratio: usize = self.seg_cols_ratio[*seg_index].iter().sum();
+        // accommodate for the vertical dividers between the segments
+        let printable =
+            disp_width.saturating_sub(self.seg_cols_count[*seg_index].saturating_sub(1));
+        // get final terminal width ratios -> divide with floor, whatever's left goes to last segment
+        let mut col_seg_widths: Vec<usize> = Vec::new();
+        let mut allocated = 0usize;
+        // iteratively allocate column widths (w/o dividers, i.e. pure text printing areas)
+        for (i, ratio) in self.seg_cols_ratio[*seg_index].iter().enumerate() {
+            let width = if i == col_count - 1 {
+                printable.saturating_sub(allocated) // saturating_sub to prevent underflow panics
+            } else {
+                ((*ratio as f64 / total_width_ratio as f64) * printable as f64).floor() as usize
+            };
+            allocated += width;
+            col_seg_widths.push(width);
+        } // ^^^ a little complicated, but will work on improving it ^^^
+        col_seg_widths
+    }
+
+    pub(crate) fn col_boundaries(&self, col_widths: &[usize]) -> Vec<usize> {
+        let mut boundaries: Vec<usize> = Vec::with_capacity(col_widths.len());
+        let mut x = 0;
+        for (i, w) in col_widths.iter().enumerate() {
+            x += w;
+            if i < col_widths.len() - 1 {
+                boundaries.push(x);
+                x += 1;
+            }
+        }
+        boundaries
     }
 }
 
 // Faster non-allocating whitespace scanning text wrapper
 // Returns wrapped text, line by line in a vec
 #[doc(hidden)]
-fn text_wrap_vec_fast(data: &str, disp_width: usize, int_padding: &BoxPad) -> Vec<String> {
-    let mut liner: Vec<String> = Vec::new();
-    let max_len = disp_width.saturating_sub(int_padding.lr() + 2);
-    if max_len == 0 {
-        return liner;
+pub(crate) fn text_wrap_vec_fast(
+    data: &str,
+    disp_width: usize,
+    int_padding: &BoxPad,
+) -> Vec<String> {
+    let max_cols = disp_width.saturating_sub(int_padding.lr() + 2);
+    if max_cols == 0 {
+        return Vec::new();
     }
-    let bytes = data.as_bytes();
-    let mut start = 0usize;
-    while start < data.len() {
-        let mut end = (start + max_len).min(data.len());
-        if end < data.len() {
-            let mut last_space: Option<usize> = None;
-            let mut j = start;
-            while j < end {
-                if bytes[j] == b' ' {
-                    last_space = Some(j);
-                }
-                j += 1;
+    let mut liner: Vec<String> = Vec::new();
+
+    let graphemes: Vec<&str> = data.graphemes(true).collect();
+    let total = graphemes.len();
+    let mut start: usize = 0;
+
+    while start < total {
+        let mut current_cols: usize = 0;
+        let mut end = start;
+        let mut last_space_g: Option<usize> = None;
+
+        while end < total {
+            let w = UnicodeWidthStr::width(graphemes[end]);
+            if current_cols + w > max_cols {
+                break;
             }
-            if let Some(ws) = last_space {
-                end = ws;
+            if graphemes[end] == " " {
+                last_space_g = Some(end);
             }
+            current_cols += w;
+            end += 1;
         }
-        liner.push(data[start..end].to_string());
-        if end >= data.len().saturating_sub(1) {
-            break;
-        }
-        // Advance past space if present to avoid leading spaces on next line
-        start = if end < data.len() && bytes[end] == b' ' {
-            end + 1
+        let break_at = if end < total {
+            last_space_g.unwrap_or(end)
         } else {
             end
+        };
+
+        liner.push(graphemes[start..break_at].concat());
+
+        start = if break_at < total && graphemes[break_at] == " " {
+            break_at + 1
+        } else {
+            break_at
         };
     }
     liner
 }
 
 #[doc(hidden)]
-fn iter_line_prnt(
+fn iter_line_rndr(
     liner: &[String],
     box_pieces: &BoxTemplates,
-    box_col: &Color,
-    text_col: &Color,
-    disp_params: (&usize, &bool),
+    context_colors: (&Color, &Color),
+    disp_width: &usize,
     padding: (&BoxPad, &BoxPad),
     align: &BoxAlign,
+    output_buffer: &mut Vec<String>,
 ) {
-    // TODO add support for unicode wide characters like glyphs and emojis
+    let (box_col, text_col): (&Color, &Color) = context_colors;
     let (ext_padding, int_padding) = padding;
-    let (disp_width, fixed_size) = disp_params;
-    let printable_area = disp_width - int_padding.lr()
-        + 2 * ((int_padding.left != 0) as usize) * (!*fixed_size as usize); // IDK why this works, but it does
+    let printable_area = disp_width - int_padding.lr(); // IDK why this works, but it does
     let vertical = box_pieces.vertical.to_string().color(*box_col);
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
+                let col_width = UnicodeWidthStr::width(i.as_str());
+                let fill = printable_area
+                    .saturating_sub(col_width)
+                    .saturating_sub(2 * ((int_padding.right == 0) as usize)); // subbing 2 for dynamic sizing w/o internal padding  -> bars on each end
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
-                write!(
-                    currline,
-                    "{:<width$}",
-                    i.color(*text_col),
-                    width = printable_area - (2 * (!(*fixed_size) as usize)) // subtract 2 for the bars if on dynamic sizing
-                )
-                .unwrap();
+                write!(currline, "{}", i.color(*text_col)).unwrap();
+                write!(currline, "{:<fill$}", " ", fill = fill).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
                 write!(currline, "{}", vertical).unwrap();
-                println!("{}", currline);
+                output_buffer.push(currline);
             }
         }
         BoxAlign::Center => {
             for i in liner.iter() {
+                let text = i.trim_end();
+                // display_width not .len(): "日".len()==3 but it only takes 2 columns
+                let remaining = printable_area.saturating_sub(UnicodeWidthStr::width(text));
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(
                     currline,
                     "{:<pad$}",
                     " ",
-                    pad = int_padding.left + ((printable_area - i.len()) / 2)
+                    pad = int_padding.left + remaining / 2
                 )
                 .unwrap();
-                write!(currline, "{}", i.color(*text_col)).unwrap();
+                write!(currline, "{}", text.color(*text_col)).unwrap();
                 write!(
                     currline,
                     "{:<pad$}",
                     " ",
-                    pad = int_padding.right + (printable_area - i.len())
-                        - ((printable_area - i.len()) / 2)
-                        - (2 * (int_padding.right != 0) as usize) // sub 2 if doing internal padding
-                        + (2 * (*fixed_size as usize)) // add 2 if going by fixed size; if doing fixed with pad, do nothing
+                    pad = int_padding.right + remaining - remaining / 2
                 )
                 .unwrap();
                 write!(currline, "{}", vertical).unwrap();
-                println!("{}", currline);
+                output_buffer.push(currline);
             }
         }
         BoxAlign::Right => {
             for i in liner.iter() {
+                let col_width = UnicodeWidthStr::width(i.as_str());
+                let fill = printable_area
+                    .saturating_sub(col_width)
+                    .saturating_sub(2 * ((int_padding.right == 0) as usize)); // subbing 2 for dynamic sizing w/o internal padding  -> bars on each end
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
-                write!(
-                    currline,
-                    "{:>width$}",
-                    i.color(*text_col),
-                    width = printable_area - (2 * (!*fixed_size as usize)) // subtract 2 for the bars if on dynamic sizing
-                )
-                .unwrap();
+                write!(currline, "{:<fill$}", " ", fill = fill).unwrap();
+                write!(currline, "{}", i.color(*text_col)).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
                 write!(currline, "{}", vertical).unwrap();
-                println!("{}", currline)
+                output_buffer.push(currline);
             }
         }
     }
@@ -1184,6 +1259,12 @@ fn align_offset(
         BoxAlign::Center => (term_size - disp_width) / 2 - padding.left,
         BoxAlign::Right => term_size - (disp_width + 2 * padding.right + padding.left),
     }
+}
+
+#[cfg(test)]
+#[doc(hidden)]
+pub(crate) fn display_width(s: &str) -> usize {
+    UnicodeWidthStr::width(s)
 }
 
 // Macro type resolution functions for boxy!

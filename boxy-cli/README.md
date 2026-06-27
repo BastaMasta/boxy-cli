@@ -23,7 +23,8 @@ Dual-licensed under [Apache 2.0](https://github.com/BastaMasta/boxy-cli/blob/mai
 - **Text alignment** — left, center, or right per segment
 - **Terminal-aware sizing** — auto-sizes to terminal width, or set a fixed width
 - **Two APIs** — imperative `Boxy` struct and fluent `BoxyBuilder`
-- **Macro support** — `boxy!` for quick one-liners
+- **Full Unicode support** — grapheme-cluster-aware word wrapping and display-width-correct alignment for CJK, emoji, combining marks, and ZWJ sequences
+- **Macro support** — `boxy!` for quick one-liners — still a work in progress with limited functionality
 
 ---
 
@@ -237,5 +238,6 @@ fn main() {
 | `set_type(type)` | Change border style |
 | `set_color(color)` | Change border color |
 | `display()` | Render and print the box |
+| `render(width)` | Render the box into a `Vec<String>` without printing |
 
 For the full API reference see [docs.rs/boxy-cli](https://docs.rs/boxy-cli/latest/).

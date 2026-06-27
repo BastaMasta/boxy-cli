@@ -1,6 +1,6 @@
 [package]
 name = "boxy-cli"
-version = "2.1.1"
+version = "2.2.0"
 edition = "2024"
 description = "Styled terminal boxes with multi-segment layouts, columnar grids, true-color borders, Unicode box-drawing, and word wrapping."
 readme = "README.md"
@@ -17,3 +17,5 @@ maintenance = { status = "stable" }
 colored = "3.1.1"
 hex_color = "3.0.0"
 termsize = "0.1.9"
+unicode-width = "0.2"
+unicode-segmentation = "1"
