@@ -6,6 +6,8 @@ use crate::templates::*;
 use colored::{Color, Colorize};
 use std::borrow::Cow;
 use std::fmt::Write;
+use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 /// The main struct that represents a text box for CLI display.
 ///
@@ -1083,37 +1085,44 @@ pub(crate) fn text_wrap_vec_fast(
     disp_width: usize,
     int_padding: &BoxPad,
 ) -> Vec<String> {
-    let mut liner: Vec<String> = Vec::new();
-    let max_len = disp_width.saturating_sub(int_padding.lr() + 2);
-    if max_len == 0 {
-        return liner;
+    let max_cols = disp_width.saturating_sub(int_padding.lr() + 2);
+    if max_cols == 0 {
+        return Vec::new();
     }
-    let bytes = data.as_bytes();
-    let mut start = 0usize;
-    while start < data.len() {
-        let mut end = (start + max_len).min(data.len());
-        if end < data.len() {
-            let mut last_space: Option<usize> = None;
-            let mut j = start;
-            while j < end {
-                if bytes[j] == b' ' {
-                    last_space = Some(j);
-                }
-                j += 1;
+    let mut liner: Vec<String> = Vec::new();
+
+    let graphemes: Vec<&str> = data.graphemes(true).collect();
+    let total = graphemes.len();
+    let mut start: usize = 0;
+
+    while start < total {
+        let mut current_cols: usize = 0;
+        let mut end = start;
+        let mut last_space_g: Option<usize> = None;
+
+        while end < total {
+            let w = UnicodeWidthStr::width(graphemes[end]);
+            if current_cols + w > max_cols {
+                break;
             }
-            if let Some(ws) = last_space {
-                end = ws;
+            if graphemes[end] == " " {
+                last_space_g = Some(end);
             }
+            current_cols += w;
+            end += 1;
         }
-        liner.push(data[start..end].to_string());
-        if end >= data.len().saturating_sub(1) {
-            break;
-        }
-        // Advance past space if present to avoid leading spaces on next line
-        start = if end < data.len() && bytes[end] == b' ' {
-            end + 1
+        let break_at = if end < total {
+            last_space_g.unwrap_or(end)
         } else {
             end
+        };
+
+        liner.push(graphemes[start..break_at].concat());
+
+        start = if break_at < total && graphemes[break_at] == " " {
+            break_at + 1
+        } else {
+            break_at
         };
     }
     liner
@@ -1138,16 +1147,15 @@ fn iter_line_rndr(
     match align {
         BoxAlign::Left => {
             for i in liner.iter() {
+                let col_width = UnicodeWidthStr::width(i.as_str());
+                let fill = printable_area
+                    .saturating_sub(col_width)
+                    .saturating_sub(2 * ((int_padding.right == 0) as usize)); // subbing 2 for dynamic sizing w/o internal padding  -> bars on each end
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
-                write!(
-                    currline,
-                    "{:<width$}",
-                    i.color(*text_col),
-                    width = printable_area - 2 * ((int_padding.right == 0) as usize) // subtract 2 for the bars if on dynamic sizing w/no internal padding
-                )
-                .unwrap();
+                write!(currline, "{}", i.color(*text_col)).unwrap();
+                write!(currline, "{:<fill$}", " ", fill = fill).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
                 write!(currline, "{}", vertical).unwrap();
                 output_buffer.push(currline);
@@ -1156,7 +1164,8 @@ fn iter_line_rndr(
         BoxAlign::Center => {
             for i in liner.iter() {
                 let text = i.trim_end();
-                let remaining = printable_area.saturating_sub(text.len());
+                // display_width not .len(): "日".len()==3 but it only takes 2 columns
+                let remaining = printable_area.saturating_sub(UnicodeWidthStr::width(text));
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(
@@ -1180,16 +1189,15 @@ fn iter_line_rndr(
         }
         BoxAlign::Right => {
             for i in liner.iter() {
+                let col_width = UnicodeWidthStr::width(i.as_str());
+                let fill = printable_area
+                    .saturating_sub(col_width)
+                    .saturating_sub(2 * ((int_padding.right == 0) as usize)); // subbing 2 for dynamic sizing w/o internal padding  -> bars on each end
                 let mut currline = String::new();
                 write!(currline, "{:>width$}", vertical, width = ext_padding.left).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.left).unwrap();
-                write!(
-                    currline,
-                    "{:>width$}",
-                    i.color(*text_col),
-                    width = printable_area - 2 * ((int_padding.right == 0) as usize) // subtract 2 for the bars if on dynamic sizing
-                )
-                .unwrap();
+                write!(currline, "{:<fill$}", " ", fill = fill).unwrap();
+                write!(currline, "{}", i.color(*text_col)).unwrap();
                 write!(currline, "{:<pad$}", " ", pad = int_padding.right).unwrap();
                 write!(currline, "{}", vertical).unwrap();
                 output_buffer.push(currline);
