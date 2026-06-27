@@ -1053,13 +1053,10 @@ impl<'a> Boxy<'a> {
                 let width = col_seg_widths[i].saturating_sub(1);
                 match col.get(curr_line) {
                     Some((content, color)) => {
-                        write!(
-                            currline,
-                            " {:<width$}",
-                            content.color(*color),
-                            width = width
-                        )
-                        .unwrap();
+                        let col_width = UnicodeWidthStr::width(content.as_str());
+                        let fill = width.saturating_sub(col_width);
+                        write!(currline, " {}", content.color(*color)).unwrap();
+                        write!(currline, "{:<fill$}", "", fill = fill).unwrap();
                     }
                     None => {
                         write!(currline, " {:<width$}", "", width = width).unwrap();
