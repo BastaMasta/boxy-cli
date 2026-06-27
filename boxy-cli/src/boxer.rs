@@ -719,7 +719,38 @@ impl<'a> Boxy<'a> {
         }
     }
 
-    /// Renders the textbox into a Vec<String>
+    /// Renders the text box into a `Vec<String>` without printing to stdout.
+    ///
+    /// This is the lower-level counterpart to [`display`](Self::display). Where `display`
+    /// detects the terminal width automatically and writes directly to stdout, `render`
+    /// lets you supply the width yourself and returns the lines for you to do with as
+    /// you like — buffering, testing, piping into another renderer, etc.
+    ///
+    /// Each string in the returned `Vec` is one fully-composed terminal line, including
+    /// ANSI color escape codes and box-drawing characters. The `Vec` contains exactly the
+    /// lines that would be printed by `display` for the same `term_width`.
+    ///
+    /// # Arguments
+    ///
+    /// * `term_width` - The total column width to render into. Typically the terminal's
+    ///   column count, but can be any value — useful for fixed-width output or tests.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boxy_cli::prelude::*;
+    ///
+    /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
+    /// b.add_text_sgmt("Hello!", "#ffffff", BoxAlign::Center);
+    ///
+    /// let lines = b.render(60);
+    /// assert!(!lines.is_empty());
+    ///
+    /// // Write to a file, pipe to a pager, assert on content in tests, etc.
+    /// for line in &lines {
+    ///     println!("{}", line);
+    /// }
+    /// ```
     pub fn render(&mut self, term_width: usize) -> Vec<String> {
         let mut output_buffer: Vec<String> = Vec::new();
 
