@@ -1,6 +1,6 @@
 //! The main datatypes and enums used by the `Boxy` struct.
 
-use std::{borrow::Cow, fmt::Display};
+use std::fmt::Display;
 
 use colored::Color;
 
@@ -272,19 +272,19 @@ impl BoxPad {
 ///
 /// Each segment is either a [`Single`](SegType::Single) (plain text, one line per entry)
 /// or a [`Columnar`](SegType::Columnar) (side-by-side columns, each with their own lines).
-pub enum SegType<'a> {
+pub enum SegType {
     /// A plain text segment. Each `Cow<str>` is one line of text content.
-    Single(Vec<Cow<'a, str>>),
+    Single(Vec<String>),
     /// A columnar segment. The outer `Vec` is the list of columns; each inner `Vec` is
     /// the lines of text within that column.
-    Columnar(Vec<Vec<Cow<'a, str>>>),
+    Columnar(Vec<Vec<String>>),
 }
 
 #[allow(dead_code)]
-impl<'a> SegType<'a> {
+impl SegType {
     /// Pushes a line into this segment. For [`Columnar`](SegType::Columnar), pushes into
     /// the last column.
-    pub(crate) fn push(&mut self, p0: Cow<'a, str>) {
+    pub(crate) fn push(&mut self, p0: String) {
         match self {
             SegType::Single(vec) => vec.push(p0),
             SegType::Columnar(vec) => {
@@ -294,13 +294,13 @@ impl<'a> SegType<'a> {
             }
         }
     }
-    pub(crate) fn get_single(&self, index: usize) -> Option<&Cow<'a, str>> {
+    pub(crate) fn get_single(&self, index: usize) -> Option<&String> {
         match self {
             SegType::Single(vec) => vec.get(index),
             _ => None,
         }
     }
-    pub(crate) fn get_columnar(&self, index: usize) -> Option<&Vec<Cow<'a, str>>> {
+    pub(crate) fn get_columnar(&self, index: usize) -> Option<&Vec<String>> {
         match self {
             SegType::Columnar(vec) => vec.get(index),
             _ => None,
