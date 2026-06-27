@@ -22,10 +22,10 @@
 //!
 //! ## Known Limitations
 //!
-//! **Unicode wide characters** — characters that occupy two terminal columns (CJK
-//! glyphs, most emoji) are measured as one column internally. Text containing these
-//! characters will appear narrower than expected and centering/alignment will be off.
-//! Full wide-character support is planned for a future release.
+//! **Unicode support** — as of v2.2.0, grapheme clusters (emoji sequences, combined
+//! characters) are treated as single units during word-wrap, and wide characters
+//! (CJK glyphs, most emoji) that occupy two terminal columns are measured correctly
+//! for alignment and padding.
 //!
 //! ## Quick Start
 //!

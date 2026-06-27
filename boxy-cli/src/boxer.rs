@@ -910,8 +910,7 @@ impl<'a> Boxy<'a> {
             iter_line_rndr(
                 &liner,
                 box_pieces,
-                box_col_truecolor,
-                &text_col_truecolor,
+                (box_col_truecolor, &text_col_truecolor),
                 &disp_width,
                 (&ext_offset, &self.int_padding),
                 &self.seg_align[seg_index],
@@ -1132,15 +1131,13 @@ pub(crate) fn text_wrap_vec_fast(
 fn iter_line_rndr(
     liner: &[String],
     box_pieces: &BoxTemplates,
-    box_col: &Color,
-    text_col: &Color,
+    context_colors: (&Color, &Color),
     disp_width: &usize,
     padding: (&BoxPad, &BoxPad),
     align: &BoxAlign,
     output_buffer: &mut Vec<String>,
 ) {
-    // TODO: add support for unicode wide characters like glyphs and emojis\
-    // TODO: rework the printable are calculation math
+    let (box_col, text_col): (&Color, &Color) = context_colors;
     let (ext_padding, int_padding) = padding;
     let printable_area = disp_width - int_padding.lr(); // IDK why this works, but it does
     let vertical = box_pieces.vertical.to_string().color(*box_col);
@@ -1234,6 +1231,12 @@ fn align_offset(
         BoxAlign::Center => (term_size - disp_width) / 2 - padding.left,
         BoxAlign::Right => term_size - (disp_width + 2 * padding.right + padding.left),
     }
+}
+
+#[cfg(test)]
+#[doc(hidden)]
+pub(crate) fn display_width(s: &str) -> usize {
+    UnicodeWidthStr::width(s)
 }
 
 // Macro type resolution functions for boxy!

@@ -1,8 +1,9 @@
-mod render;
-mod columnar;
-mod wrapping;
-mod padding;
-mod segment_api;
 mod builder;
 mod colors;
+mod columnar;
+mod padding;
 mod performance;
+mod render;
+mod segment_api;
+mod unicode;
+mod wrapping;
