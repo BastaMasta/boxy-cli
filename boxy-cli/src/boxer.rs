@@ -3,8 +3,8 @@
 use crate::constructs::SegColor;
 use crate::constructs::*;
 use crate::templates::*;
+use colored::ColoredString;
 use colored::{Color, Colorize};
-use std::borrow::Cow;
 use std::fmt::Write;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
@@ -25,9 +25,9 @@ use unicode_width::UnicodeWidthStr;
 /// my_box.display();
 /// ```
 #[derive(Debug)]
-pub struct Boxy<'a> {
+pub struct Boxy {
     type_enum: BoxType,
-    data: Vec<SegType<'a>>,
+    data: Vec<SegType>,
     sect_count: usize,
     box_col: Color,
     colors: Vec<SegColor>,
@@ -43,7 +43,7 @@ pub struct Boxy<'a> {
 }
 
 // Default struct values for the textbox
-impl Default for Boxy<'_> {
+impl Default for Boxy {
     fn default() -> Self {
         Self {
             type_enum: BoxType::Single,
@@ -71,7 +71,7 @@ const DEFAULT_PAD: BoxPad = BoxPad {
     right: 1,
 };
 
-impl<'a> Boxy<'a> {
+impl Boxy {
     /// Creates a new instance of the `Boxy` struct with the specified border type and color.
     ///
     /// # Arguments
@@ -108,7 +108,7 @@ impl<'a> Boxy<'a> {
     ///     .add_segment("Hello, World!", "#ffffff", BoxAlign::Center)
     ///     .build();
     /// ```
-    pub fn builder() -> BoxyBuilder<'a> {
+    pub fn builder() -> BoxyBuilder {
         BoxyBuilder::new()
     }
 
@@ -137,7 +137,7 @@ impl<'a> Boxy<'a> {
     /// ```
     pub fn add_text_sgmt(&mut self, data_string: &str, color: &str, text_align: BoxAlign) {
         self.data
-            .push(SegType::Single(vec![Cow::from(data_string.to_owned())]));
+            .push(SegType::Single(vec![data_string.to_string()]));
         self.colors
             .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
         self.seg_align.push(text_align);
@@ -221,7 +221,7 @@ impl<'a> Boxy<'a> {
     /// columnar segment — use [`add_col_text_line_indx`](Self::add_col_text_line_indx) for those.
     pub fn add_text_line_indx(&mut self, data_string: &str, color: &str, seg_index: usize) {
         match &mut self.data[seg_index] {
-            SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
+            SegType::Single(lines) => lines.push(data_string.to_string()),
             SegType::Columnar(_) => panic!("add_text_line_indx called on Columnar segment!"),
         }
         match &mut self.colors[seg_index] {
@@ -284,7 +284,7 @@ impl<'a> Boxy<'a> {
                 if *col_index >= self.seg_cols_count[*seg_index] {
                     panic!("failed to add columnar data: INVALID COLUMN INDEX");
                 }
-                data[*col_index].push(Cow::from(data_string.to_owned()));
+                data[*col_index].push(data_string.to_string());
             }
         }
         match &mut self.colors[*seg_index] {
@@ -322,7 +322,7 @@ impl<'a> Boxy<'a> {
     /// segment — use [`add_col_text_line`](Self::add_col_text_line) for those.
     pub fn add_text_line(&mut self, data_string: &str, color: &str) {
         match &mut self.data[self.sect_count - 1] {
-            SegType::Single(lines) => lines.push(Cow::from(data_string.to_owned())),
+            SegType::Single(lines) => lines.push(data_string.to_string()),
             SegType::Columnar(_) => panic!("add_text_line_indx called on Columnar segment!"),
         }
         match &mut self.colors[self.sect_count - 1] {
@@ -772,12 +772,17 @@ impl<'a> Boxy<'a> {
         let align_offset = align_offset(&disp_width, &term_width, &self.align, &self.ext_padding);
 
         // pre-emptively get the dividers map:
-        let col_widths_segwise: Vec<Vec<usize>> = (0..self.sect_count)
+        let (col_widths_segwise, col_boundaries_segwise): (Vec<Vec<usize>>, Vec<Vec<usize>>) = (0
+            ..self.sect_count)
             .map(|i| match &self.data[i] {
-                SegType::Single(_) => Vec::new(),
-                SegType::Columnar(_) => self.col_widths(&i, &disp_width),
+                SegType::Single(_) => (Vec::new(), Vec::new()),
+                SegType::Columnar(_) => {
+                    let widths = self.col_widths(&i, &disp_width);
+                    let boundaries = self.col_boundaries(&widths);
+                    (widths, boundaries)
+                }
             })
-            .collect();
+            .unzip();
 
         // Preparing the top segment
         let mut top_seg: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
@@ -826,8 +831,8 @@ impl<'a> Boxy<'a> {
                     disp_width,
                     align_offset,
                     &box_pieces,
-                    &col_widths_segwise.get(i - 1),
-                    &col_widths_segwise.get(i),
+                    &col_boundaries_segwise[i - 1],
+                    &col_boundaries_segwise[i],
                 ));
             }
             if let SegType::Single(_) = self.data[i] {
@@ -919,6 +924,8 @@ impl<'a> Boxy<'a> {
             down: self.ext_padding.down,
         };
 
+        let vertical: ColoredString = box_pieces.vertical.to_string().color(*box_col_truecolor);
+
         for i in 0..lines.len() {
             // obtaining text colour truevalues
             let text_col_truecolor = match &self.colors[seg_index] {
@@ -929,10 +936,7 @@ impl<'a> Boxy<'a> {
             let processed_data = lines[i].trim().to_owned() + " ";
 
             let liner: Vec<String> =
-                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding)
-                    .into_iter()
-                    .map(|s| s.trim_end().to_owned())
-                    .collect();
+                text_wrap_vec_fast(&processed_data, disp_width, &self.int_padding);
 
             // Actually printing shiet
             // Iterative printing. Migrated from recursive to prevent stack overflows with larger text bodies and reduce complexity,
@@ -952,7 +956,7 @@ impl<'a> Boxy<'a> {
                 output_buffer.push(format!(
                     "{1:>width$}{}{1}",
                     " ".repeat(disp_width),
-                    box_pieces.vertical.to_string().color(*box_col_truecolor),
+                    vertical,
                     width = self.ext_padding.left + align_offset
                 ));
             }
@@ -965,8 +969,8 @@ impl<'a> Boxy<'a> {
         disp_width: usize,
         align_offset: usize,
         box_pieces: &BoxTemplates,
-        prev_seg: &Option<&Vec<usize>>,
-        next_seg: &Option<&Vec<usize>>,
+        above_boundaries: &[usize],
+        below_boundaries: &[usize],
     ) -> String {
         let mut div: String = String::with_capacity(disp_width + self.ext_padding.left + 4);
 
@@ -977,11 +981,8 @@ impl<'a> Boxy<'a> {
             width = self.ext_padding.left + align_offset
         )
         .unwrap();
-        let empty = Vec::new();
-        let above = self.col_boundaries(prev_seg.unwrap_or(&empty));
-        let below = self.col_boundaries(next_seg.unwrap_or(&empty));
         for i in 0..disp_width {
-            let ch = match (above.contains(&i), below.contains(&i)) {
+            let ch = match (above_boundaries.contains(&i), below_boundaries.contains(&i)) {
                 (true, true) => box_pieces.cross,
                 (false, true) => box_pieces.upper_t,
                 (true, false) => box_pieces.lower_t,
@@ -1117,39 +1118,46 @@ pub(crate) fn text_wrap_vec_fast(
     }
     let mut liner: Vec<String> = Vec::new();
 
-    let graphemes: Vec<&str> = data.graphemes(true).collect();
-    let total = graphemes.len();
+    // Walk byte offsets directly — no Vec allocation.
+    // Each iteration of the outer loop processes one output line.
+    // `start` is a byte offset into `data`.
     let mut start: usize = 0;
 
-    while start < total {
+    while start < data.len() {
         let mut current_cols: usize = 0;
-        let mut end = start;
-        let mut last_space_g: Option<usize> = None;
+        // byte offset of the end of the current window (exclusive)
+        let mut end: usize = start;
+        // byte offset just past the last space seen, and the offset of that space itself
+        let mut last_space_end: Option<usize> = None;
+        let mut last_space_at: Option<usize> = None;
 
-        while end < total {
-            let w = UnicodeWidthStr::width(graphemes[end]);
+        for g in data[start..].graphemes(true) {
+            let w = UnicodeWidthStr::width(g);
             if current_cols + w > max_cols {
                 break;
             }
-            if graphemes[end] == " " {
-                last_space_g = Some(end);
+            if g == " " {
+                last_space_at = Some(end);
+                last_space_end = Some(end + g.len());
             }
             current_cols += w;
-            end += 1;
+            end += g.len();
         }
-        let break_at = if end < total {
-            last_space_g.unwrap_or(end)
+
+        // If we didn't reach the end of the string, word-break at the last space.
+        // If no space was found, hard-break at the column limit.
+        let (line_end, next_start) = if end < data.len() {
+            match last_space_at {
+                Some(sp) => (sp, last_space_end.unwrap()),
+                None => (end, end),
+            }
         } else {
-            end
+            (end, end)
         };
 
-        liner.push(graphemes[start..break_at].concat());
-
-        start = if break_at < total && graphemes[break_at] == " " {
-            break_at + 1
-        } else {
-            break_at
-        };
+        let line = data[start..line_end].trim_end();
+        liner.push(line.to_string());
+        start = next_start;
     }
     liner
 }
@@ -1342,9 +1350,9 @@ pub fn resolve_segments(dat: String) -> usize {
 ///     .display();
 /// ```
 #[derive(Debug)]
-pub struct BoxyBuilder<'a> {
+pub struct BoxyBuilder {
     type_enum: BoxType,
-    data: Vec<SegType<'a>>,
+    data: Vec<SegType>,
     box_col: Color,
     colors: Vec<SegColor>,
     int_padding: BoxPad,
@@ -1358,13 +1366,13 @@ pub struct BoxyBuilder<'a> {
     seg_col_count: Vec<usize>,
 }
 
-impl<'a> Default for BoxyBuilder<'a> {
+impl Default for BoxyBuilder {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a> BoxyBuilder<'a> {
+impl BoxyBuilder {
     /// Creates a new `BoxyBuilder` with default values.
     ///
     /// This creates a builder with the following default values:
@@ -1510,8 +1518,7 @@ impl<'a> BoxyBuilder<'a> {
     ///     .build();
     /// ```
     pub fn add_segment(mut self, text: &str, color: &str, text_align: BoxAlign) -> Self {
-        self.data
-            .push(SegType::Single(vec![Cow::from(text.to_owned())]));
+        self.data.push(SegType::Single(vec![text.to_string()]));
         self.colors
             .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
         self.seg_align.push(text_align);
@@ -1599,7 +1606,7 @@ impl<'a> BoxyBuilder<'a> {
     pub fn add_line(mut self, text: &str, color: &str) -> Self {
         if let Some(last) = self.data.last_mut() {
             match last {
-                SegType::Single(lines) => lines.push(Cow::from(text.to_owned())),
+                SegType::Single(lines) => lines.push(text.to_string()),
                 SegType::Columnar(_) => panic!("add_line called on Columnar segment"),
             }
             match self
@@ -1612,8 +1619,7 @@ impl<'a> BoxyBuilder<'a> {
             }
         } else {
             // no segment yet — create one, mirroring add_segment
-            self.data
-                .push(SegType::Single(vec![Cow::from(text.to_owned())]));
+            self.data.push(SegType::Single(vec![text.to_string()]));
             self.colors
                 .push(SegColor::Single(vec![SegColor::parse_hexcolor(color)]));
             self.seg_align.push(BoxAlign::Left);
@@ -1666,7 +1672,7 @@ impl<'a> BoxyBuilder<'a> {
                     col_index < cols.len(),
                     "add_col_line: col_index out of bounds"
                 );
-                cols[col_index].push(Cow::from(text.to_owned()));
+                cols[col_index].push(text.to_string());
             }
             SegType::Single(_) => panic!("add_col_line called on a Single segment"),
         }
@@ -1724,7 +1730,7 @@ impl<'a> BoxyBuilder<'a> {
                     col_index < cols.len(),
                     "add_col_line_indx: col_index out of bounds"
                 );
-                cols[col_index].push(Cow::from(text.to_owned()));
+                cols[col_index].push(text.to_string());
             }
             SegType::Single(_) => panic!("add_col_line_indx called on a Single segment"),
         }
@@ -2071,7 +2077,7 @@ impl<'a> BoxyBuilder<'a> {
     ///     .build()
     ///     .display();
     /// ```
-    pub fn build(self) -> Boxy<'a> {
+    pub fn build(self) -> Boxy {
         Boxy {
             type_enum: self.type_enum,
             sect_count: self.data.len(),

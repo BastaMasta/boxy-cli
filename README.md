@@ -148,7 +148,7 @@ Boxy::builder()
     .display();
 ```
 
-![Columnar box showing ┼ and ┴ junction characters](readme-assets/textbox-columns.jpg)
+![Columnar box showing ┼ and ┴ junction characters](readme-assets/textbox-columnar.jpg)
 
 ---
 
