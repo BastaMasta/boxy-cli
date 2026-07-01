@@ -23,7 +23,9 @@ Dual-licensed under [Apache 2.0](https://github.com/BastaMasta/boxy-cli/blob/mai
 - **Text alignment** — left, center, or right per segment
 - **Terminal-aware sizing** — auto-sizes to terminal width, or set a fixed width
 - **Two APIs** — imperative `Boxy` struct and fluent `BoxyBuilder`
-- **Full Unicode support** — grapheme-cluster-aware word wrapping and display-width-correct alignment for CJK, emoji, combining marks, and ZWJ sequences
+- **Full Unicode support** — grapheme-cluster-aware word wrapping and display-width-correct alignment for CJK, emoji, and combining marks. 
+
+  Note: ZWJ sequences (e.g. 👨‍👩‍👧) may display with slightly incorrect padding on some terminals due to disagreements between the Unicode standard and individual terminal emulators on ZWJ rendering width; plain emoji (🦀, 🚀) and CJK text are unaffected
 - **Macro support** — `boxy!` for quick one-liners — still a work in progress with limited functionality
 
 ---
