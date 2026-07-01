@@ -3,6 +3,7 @@ name = "binary-testing"
 version = "0.1.0"
 edition = "2021"
 default-run = "binary-testing"
+publish = false
 
 [dependencies]
 boxy-cli = { version = "2.0.1", path = "../boxy-cli" }
