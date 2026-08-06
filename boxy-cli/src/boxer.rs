@@ -1054,9 +1054,8 @@ impl Boxy {
                 match col.get(curr_line) {
                     Some((content, color)) => {
                         let col_width = UnicodeWidthStr::width(content.as_str());
-                        let fill = width.saturating_sub(col_width);
                         write!(currline, " {}", content.color(*color)).unwrap();
-                        write!(currline, "{:<fill$}", "", fill = fill).unwrap();
+                        write!(currline, "{:<fill$}", "", fill = width.saturating_sub(col_width)).unwrap();
                     }
                     None => {
                         write!(currline, " {:<width$}", "", width = width).unwrap();
