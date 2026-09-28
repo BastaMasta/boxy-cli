@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use boxy_cli::prelude::*;
+    use boxy_cli::*;
     use std::time::{Duration, Instant};
 
     fn validate_runtime(time: Duration) -> Result<(), String> {

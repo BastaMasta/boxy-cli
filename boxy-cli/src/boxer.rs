@@ -17,7 +17,7 @@ use unicode_width::UnicodeWidthStr;
 /// # Examples
 ///
 /// ```
-/// use boxy_cli::prelude::*;
+/// use boxy_cli::{BoxAlign, BoxType, Boxy};
 ///
 /// // Create a simple text box
 /// let mut my_box = Boxy::new(BoxType::Double, "#00ffff");
@@ -82,7 +82,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Double, "#00ffff");
     /// ```
@@ -100,7 +100,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let my_box = Boxy::builder()
     ///     .box_type(BoxType::Double)
@@ -128,7 +128,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
     /// b.add_text_sgmt("Header", "#ffffff", BoxAlign::Center);
@@ -164,7 +164,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.add_col_text_sgmt(BoxAlign::Left, 2);
@@ -205,7 +205,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.add_text_sgmt("First segment", "#ffffff", BoxAlign::Left);
@@ -247,7 +247,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.add_col_text_sgmt(BoxAlign::Left, 2);
@@ -309,7 +309,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.add_text_sgmt("Header", "#ffffff", BoxAlign::Center);
@@ -346,7 +346,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.add_col_text_sgmt(BoxAlign::Left, 2);
@@ -390,14 +390,14 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.set_align(BoxAlign::Center); // center the box in the terminal
     /// ```
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxPad, BoxType, Boxy};
     ///
     /// // External padding shrinks the box but does not shift it off-center
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
@@ -419,7 +419,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxPad, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     ///
@@ -453,14 +453,14 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxPad, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.set_ext_padding(BoxPad::uniform(5));
     /// ```
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxPad, BoxType, Boxy};
     ///
     /// // With center alignment, padding shrinks the box but keeps it centerd
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
@@ -487,7 +487,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxPad, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     ///
@@ -515,7 +515,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
     /// b.set_width(60); // 60 total columns: 2 borders + 58 usable
@@ -535,7 +535,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.set_height(20); // Set box height to 20 lines
@@ -561,7 +561,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
     /// b.add_text_sgmt("Hello", "#ffffff", BoxAlign::Center);
@@ -584,7 +584,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxType, Boxy};
     ///
     /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
     /// b.set_color("#ff0000"); // change border to red
@@ -617,7 +617,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
     /// b.add_col_text_sgmt(BoxAlign::Left, 3);
@@ -659,12 +659,6 @@ impl Boxy {
         &self.seg_cols_ratio
     }
 
-    #[doc(hidden)]
-    #[cfg(test)]
-    pub(crate) fn seg_cols_count(&self) -> &Vec<usize> {
-        &self.seg_cols_count
-    }
-
     /// Renders and displays the text box in the terminal.
     ///
     /// Automatically sizes the box to the current terminal width unless a fixed width
@@ -679,7 +673,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut my_box = Boxy::new(BoxType::Double, "#00ffff");
     /// my_box.add_text_sgmt("Hello, World!", "#ffffff", BoxAlign::Center);
@@ -738,7 +732,7 @@ impl Boxy {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut b = Boxy::new(BoxType::Single, "#00ffff");
     /// b.add_text_sgmt("Hello!", "#ffffff", BoxAlign::Center);
@@ -1276,7 +1270,7 @@ pub(crate) fn display_width(s: &str) -> usize {
 
 // Macro type resolution functions for boxy!
 
-// These helpers are public so the macro can access them across crate boundaries via $crate::boxer::...
+// These helpers are public so the macro can access them across crate boundaries via $crate::...
 // They are hidden from docs and not intended for direct user consumption.
 #[doc(hidden)]
 #[allow(dead_code)]
@@ -1334,7 +1328,7 @@ pub fn resolve_segments(dat: String) -> usize {
 /// # Examples
 ///
 /// ```
-/// use boxy_cli::prelude::*;
+/// use boxy_cli::{BoxAlign, BoxPad, BoxType, Boxy};
 ///
 /// // Create and display a text box in a single fluent sequence
 /// Boxy::builder()
@@ -1385,7 +1379,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxType, BoxyBuilder};
     ///
     /// let builder = BoxyBuilder::new();
     /// // Configure the builder with various methods
@@ -1398,7 +1392,7 @@ impl BoxyBuilder {
     ///
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{Boxy, BoxyBuilder};
     ///
     /// let builder = Boxy::builder(); // Same as BoxyBuilder::new()
     /// ```
@@ -1437,7 +1431,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxType, Boxy};
     ///
     /// let builder = Boxy::builder()
     ///     .box_type(BoxType::Double); // Use double-lined borders
@@ -1468,7 +1462,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::Boxy;
     ///
     /// // Create a box with cyan borders
     /// let cyan_box = Boxy::builder()
@@ -1508,7 +1502,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// let my_box = Boxy::builder()
     ///     // Add a centered header segment in white
@@ -1550,7 +1544,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// let my_box = Boxy::builder()
     ///     .add_col_segment(BoxAlign::Left, 2)
@@ -1591,7 +1585,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// let my_box = Boxy::builder()
     ///     // Add a header segment
@@ -1652,7 +1646,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// let my_box = Boxy::builder()
     ///     .add_col_segment(BoxAlign::Left, 3)
@@ -1708,7 +1702,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// let my_box = Boxy::builder()
     ///     .add_segment("Header", "#ffffff", BoxAlign::Center)
@@ -1765,7 +1759,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// // center the box — external padding will shrink it but keep it centerd
     /// let centered_box = Boxy::builder()
@@ -1800,7 +1794,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxPad, Boxy};
     ///
     /// // Set uniform internal padding of 2 spaces on all sides
     /// let padded_box = Boxy::builder()
@@ -1833,7 +1827,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxPad, Boxy};
     ///
     /// // Add 5 spaces of external padding on all sides
     /// let padded_box = Boxy::builder()
@@ -1867,7 +1861,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxPad, Boxy};
     ///
     /// // Set both padding types at once
     /// let box_with_padding = Boxy::builder()
@@ -1904,7 +1898,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// Boxy::builder()
     ///     .width(60) // 60 total: 2 borders + 58 usable
@@ -1916,7 +1910,7 @@ impl BoxyBuilder {
     /// Setting to 0 restores dynamic sizing:
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// Boxy::builder()
     ///     .width(0) // dynamic — sizes to terminal
@@ -1951,7 +1945,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// // Create a box with a fixed height of 20 lines
     /// let fixed_height_box = Boxy::builder()
@@ -1988,7 +1982,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// Boxy::builder()
     ///     .add_col_segment(BoxAlign::Left, 3)
@@ -2032,7 +2026,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// // Fill the full terminal width
     /// Boxy::builder()
@@ -2056,7 +2050,7 @@ impl BoxyBuilder {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, BoxType, Boxy};
     ///
     /// let mut b = Boxy::builder()
     ///     .box_type(BoxType::Double)
@@ -2070,7 +2064,7 @@ impl BoxyBuilder {
     /// Or chain directly into display:
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::{BoxAlign, Boxy};
     ///
     /// Boxy::builder()
     ///     .add_segment("Hello, boxy-cli!", "#ffffff", BoxAlign::Center)

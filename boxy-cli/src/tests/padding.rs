@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use crate::*;
 
     #[test]
     fn boxpad_uniform_all_sides_equal() {

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use crate::*;
 
     #[test]
     fn sect_count_increments_correctly() {

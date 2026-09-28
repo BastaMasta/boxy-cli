@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::boxer::{display_width, text_wrap_vec_fast};
-    use crate::prelude::*;
+    use crate::*;
     use std::time::{Duration, Instant};
 
     // ── display_width ─────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use crate::*;
     use std::time::{Duration, Instant};
 
     fn validate_runtime(d: Duration) {

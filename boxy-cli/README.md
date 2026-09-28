@@ -50,7 +50,7 @@ cargo add boxy-cli
 ### Builder API
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{BoxAlign, BoxPad, BoxType, Boxy};
 
 Boxy::builder()
     .box_type(BoxType::Double)
@@ -66,7 +66,7 @@ Boxy::builder()
 ### Imperative API
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{BoxAlign, BoxType, Boxy};
 
 let mut b = Boxy::new(BoxType::Bold, "#00ffff");
 b.add_text_sgmt("Hello, boxy-cli!", "#ffffff", BoxAlign::Center);
@@ -78,7 +78,7 @@ b.display();
 ### Macro
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{boxy, BoxAlign, BoxType};
 
 let mut b = boxy!(type: BoxType::Double, color: "#00ffff", internal_pad: 1, alignment: BoxAlign::Left);
 b.add_text_sgmt("Hello from the macro!", "#ffffff", BoxAlign::Center);
@@ -105,7 +105,7 @@ junction character automatically:
 ```
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{BoxAlign, BoxType, Boxy};
 
 let mut b = Boxy::new(BoxType::Single, "#00ffff");
 
@@ -130,7 +130,7 @@ b.display();
 Or using the builder:
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{BoxAlign, Boxy};
 
 Boxy::builder()
     .add_segment("Project Status", "#ffffff", BoxAlign::Center)
@@ -170,7 +170,7 @@ Boxy::builder()
 box border and its text (internal).
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{BoxAlign, BoxPad, BoxType, Boxy};
 
 // Uniform padding on all sides
 let pad = BoxPad::uniform(2);
@@ -195,7 +195,7 @@ b.display();
 ### Multi-segment box
 
 ```rust
-use boxy_cli::prelude::*;
+use boxy_cli::{BoxAlign, BoxType, Boxy};
 
 fn main() {
     let mut b = Boxy::new(BoxType::Bold, "#00ffff");

@@ -1,6 +1,6 @@
 mod tests;
 
-use boxy_cli::prelude::*;
+use boxy_cli::*;
 use std::time::Instant;
 use terminal_size::terminal_size;
 

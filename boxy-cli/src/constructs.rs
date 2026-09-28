@@ -11,7 +11,7 @@ use colored::Color;
 /// # Examples
 ///
 /// ```
-/// use boxy_cli::prelude::*;
+/// use boxy_cli::{BoxType, Boxy};
 ///
 /// let mut box1 = Boxy::new(BoxType::Double, "#00ffff");
 /// let mut box2 = Boxy::new(BoxType::Rounded, "#00ffff");
@@ -67,7 +67,7 @@ impl Display for BoxType {
 /// # Examples
 ///
 /// ```
-/// use boxy_cli::prelude::*;
+/// use boxy_cli::{BoxAlign, BoxType, Boxy};
 ///
 /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
 ///
@@ -86,7 +86,7 @@ pub enum BoxAlign {
     Left,
     /// center the box in the terminal, or center text within a segment.
     /// When used as box alignment with external padding, the padding values
-    /// affect box width but not position — see [`Boxy::set_align`](crate::boxer::Boxy::set_align).
+    /// affect box width but not position — see [`Boxy::set_align`](crate::Boxy::set_align).
     #[default]
     Center,
     /// Align the box to the right in the terminal, or align text to the right within a segment
@@ -114,7 +114,7 @@ impl Display for BoxAlign {
 /// # Examples
 ///
 /// ```
-/// use boxy_cli::prelude::*;
+/// use boxy_cli::BoxPad;
 ///
 /// // Create uniform padding of 2 spaces on all sides
 /// let uniform_padding = BoxPad::uniform(2);
@@ -149,7 +149,7 @@ impl BoxPad {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::BoxPad;
     ///
     /// let padding = BoxPad::new();
     /// // Equivalent to BoxPad { top: 0, down: 0, left: 0, right: 0 }
@@ -181,7 +181,7 @@ impl BoxPad {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::BoxPad;
     ///
     /// let padding = BoxPad::from_tldr(1, 4, 1, 4); // 1 line top/bottom, 4 chars left/right
     /// assert_eq!(padding.top, 1);
@@ -207,7 +207,7 @@ impl BoxPad {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::BoxPad;
     ///
     /// // Create uniform padding of 3 spaces on all sides
     /// let padding = BoxPad::uniform(3);
@@ -234,7 +234,7 @@ impl BoxPad {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::BoxPad;
     ///
     /// // Create padding with 1 space vertically and 3 spaces horizontally
     /// let padding = BoxPad::vh(1, 3);
@@ -256,7 +256,7 @@ impl BoxPad {
     /// # Examples
     ///
     /// ```
-    /// use boxy_cli::prelude::*;
+    /// use boxy_cli::BoxPad;
     ///
     /// let pad = BoxPad::vh(1, 3);
     /// assert_eq!(pad.lr(), 6); // left (3) + right (3)
@@ -268,7 +268,7 @@ impl BoxPad {
 
 #[allow(dead_code)]
 #[derive(Debug)]
-/// Represents the data layout of a single segment in a [`Boxy`](crate::boxer::Boxy) box.
+/// Represents the data layout of a single segment in a [`Boxy`](crate::Boxy) box.
 ///
 /// Each segment is either a [`Single`](SegType::Single) (plain text, one line per entry)
 /// or a [`Columnar`](SegType::Columnar) (side-by-side columns, each with their own lines).
@@ -312,7 +312,7 @@ impl SegType {
 /// Stores pre-parsed text colors for each segment, mirroring the shape of [`SegType`].
 ///
 /// Colors are parsed from hex strings once at segment-creation time and stored as
-/// [`Color`](colored::Color) values, so [`display()`](crate::boxer::Boxy::display) never
+/// [`Color`](colored::Color) values, so [`display()`](crate::Boxy::display) never
 /// needs to re-parse them.
 pub enum SegColor {
     /// Colors for a [`SegType::Single`] segment — one `Color` per line of text.

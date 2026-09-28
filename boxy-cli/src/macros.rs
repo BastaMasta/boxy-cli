@@ -4,19 +4,19 @@
 ///
 /// Currently, it has the following accepting fields:
 ///
-///  - **type** - takes a [BoxType](crate::constructs::BoxType) enum
+///  - **type** - takes a [BoxType](crate::BoxType) enum
 ///
 ///  - **color** - takes a hex code for a color
 ///
 ///  - **external_pad** and **internal-pad** - take any integer or float value
 ///
-///  - **alignment** - sets the alignment for the text inside the box. Takes a [BoxAlign](crate::constructs::BoxAlign) enum
+///  - **alignment** - sets the alignment for the text inside the box. Takes a [BoxAlign](crate::BoxAlign) enum
 ///
 ///  - **segcount** - sets the number of segments in the textbox (not necessary to use)
 ///
 /// # Example
 /// ```
-/// # use boxy_cli::prelude::*;
+/// # use boxy_cli::{boxy, BoxAlign, BoxType};
 /// # fn main() {
 /// // use the boxy macro
 /// let mut boxy = boxy!(type: BoxType::Double, color:"#00ffff", external_pad: 2, internal_pad: 1, alignment: BoxAlign::Left);
@@ -34,14 +34,14 @@
 #[macro_export]
 macro_rules! boxy {
     ($($key:ident: $value:expr),* $(,)?) => {{
-        let mut boxy = $crate::boxer::Boxy::default();
+        let mut boxy = $crate::Boxy::default();
         $(
             match stringify!($key) {
-                "type" => boxy.set_type($crate::boxer::resolve_type($value.to_string())),
-                "color" => boxy.set_color(&$crate::boxer::resolve_col($value.to_string())),
-                "internal_pad" => boxy.set_int_padding($crate::boxer::resolve_pad($value.to_string())),
-                "external_pad" => boxy.set_ext_padding($crate::boxer::resolve_pad($value.to_string())),
-                "alignment" => boxy.set_align($crate::boxer::resolve_align($value.to_string())),
+                "type" => boxy.set_type($crate::__private::resolve_type($value.to_string())),
+                "color" => boxy.set_color(&$crate::__private::resolve_col($value.to_string())),
+                "internal_pad" => boxy.set_int_padding($crate::__private::resolve_pad($value.to_string())),
+                "external_pad" => boxy.set_ext_padding($crate::__private::resolve_pad($value.to_string())),
+                "alignment" => boxy.set_align($crate::__private::resolve_align($value.to_string())),
                 _ => panic!("Unknown field: {}", stringify!($key)),
             }
         )*

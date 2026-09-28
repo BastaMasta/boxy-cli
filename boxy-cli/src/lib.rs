@@ -30,7 +30,7 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use boxy_cli::prelude::*;
+//! use boxy_cli::{BoxAlign, BoxPad, BoxType, Boxy};
 //!
 //! // Fluent builder API
 //! Boxy::builder()
@@ -49,7 +49,7 @@
 //! controlled by ratio values — `vec![1, 2, 1]` gives the middle column twice the space.
 //!
 //! ```rust
-//! use boxy_cli::prelude::*;
+//! use boxy_cli::{BoxAlign, BoxType, Boxy};
 //!
 //! let mut b = Boxy::new(BoxType::Single, "#00ffff");
 //! b.add_text_sgmt("Project Status", "#ffffff", BoxAlign::Center);
@@ -72,15 +72,20 @@
 //! - [`boxy!`] — macro reference
 //! - [GitHub README](https://github.com/BastaMasta/boxy-cli) — more examples and screenshots
 
-#[allow(dead_code)]
-pub mod boxer;
+mod boxer;
 mod constructs;
 mod macros;
 pub mod prelude;
-pub(crate) mod templates;
+mod templates;
 
 // crate tests
 mod tests;
 
-// Re-export prelude at crate root
-pub use prelude::*;
+pub use boxer::{Boxy, BoxyBuilder};
+pub use constructs::{BoxAlign, BoxPad, BoxType};
+
+// Used by the `boxy!` macro across crate boundaries; not public API.
+#[doc(hidden)]
+pub mod __private {
+    pub use crate::boxer::{resolve_align, resolve_col, resolve_pad, resolve_type};
+}

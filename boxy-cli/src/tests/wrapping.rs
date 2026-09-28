@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::boxer::text_wrap_vec_fast;
-    use crate::prelude::*;
+    use crate::*;
 
     #[test]
     fn wrap_short_text_single_line() {

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::prelude::*;
+    use crate::*;
 
     fn strip_ansi(s: &str) -> String {
         let mut out = String::new();

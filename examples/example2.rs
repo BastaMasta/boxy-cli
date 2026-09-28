@@ -1,4 +1,4 @@
-use boxy_cli::prelude::*;
+use boxy_cli::*;
 
 fn main() {
     // Create a new Boxy instance
