@@ -71,7 +71,7 @@ impl Display for BoxType {
 ///
 /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
 ///
-/// // Center the box in the terminal
+/// // Centre the box in the terminal
 /// my_box.set_align(BoxAlign::Center);
 ///
 /// // Add a left-aligned text segment
@@ -84,7 +84,7 @@ impl Display for BoxType {
 pub enum BoxAlign {
     /// Align the box to the left in the terminal, or align text to the left within a segment
     Left,
-    /// center the box in the terminal, or center text within a segment.
+    /// centre the box in the terminal, or centre text within a segment.
     /// When used as box alignment with external padding, the padding values
     /// affect box width but not position — see [`Boxy::set_align`](crate::boxer::Boxy::set_align).
     #[default]
@@ -309,24 +309,24 @@ impl SegType {
 }
 
 #[derive(Debug, Clone)]
-/// Stores pre-parsed text colors for each segment, mirroring the shape of [`SegType`].
+/// Stores pre-parsed text colours for each segment, mirroring the shape of [`SegType`].
 ///
-/// Colors are parsed from hex strings once at segment-creation time and stored as
-/// [`Color`](colored::Color) values, so [`display()`](crate::boxer::Boxy::display) never
+/// Colours are parsed from hex strings once at segment-creation time and stored as
+/// [`Colour`](Colour) values, so [`display()`](crate::boxer::Boxy::display) never
 /// needs to re-parse them.
 pub enum SegColor {
     /// Colors for a [`SegType::Single`] segment — one `Color` per line of text.
     Single(Vec<Color>),
-    /// Colors for a [`SegType::Columnar`] segment — one `Vec<Color>` per column,
-    /// with one `Color` per line within that column.
+    /// Colours for a [`SegType::Columnar`] segment — one `Vec<Colour>` per column,
+    /// with one `Colour` per line within that column.
     Columnar(Vec<Vec<Color>>),
 }
 
 use hex_color::HexColor;
 
 impl SegColor {
-    /// Parses a hex color string (e.g. `"#00ffff"`) into a [`Color::TrueColor`](colored::Color).
-    /// Falls back to [`Color::White`](colored::Color::White) and prints a warning on parse failure.
+    /// Parses a hex colour string (e.g. `"#00ffff"`) into a [`Colour::TrueColor`](Colour).
+    /// Falls back to [`Colour::White`](Colour::White) and prints a warning on parse failure.
     pub(crate) fn parse_hexcolor(hex: &str) -> Color {
         match HexColor::parse(hex) {
             Ok(color) => Color::TrueColor {
@@ -336,7 +336,7 @@ impl SegColor {
             },
             Err(e) => {
                 eprintln!("Error parsing box color '{}': {}", hex, e);
-                Color::White // Default color
+                Color::White // Default colour
             }
         }
     }

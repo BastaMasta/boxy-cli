@@ -6,7 +6,7 @@
 ///
 ///  - **type** - takes a [BoxType](crate::constructs::BoxType) enum
 ///
-///  - **color** - takes a hex code for a color
+///  - **colour** - takes a hex code for a colour
 ///
 ///  - **external_pad** and **internal-pad** - take any integer or float value
 ///

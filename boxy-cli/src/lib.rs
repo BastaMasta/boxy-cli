@@ -3,18 +3,18 @@
 //! # boxy-cli
 //!
 //! A Rust library for creating beautifully styled, multi-segment text boxes in terminal
-//! applications — with full Unicode border support, true-color text, word-wrapping, columnar
+//! applications — with full Unicode border support, true-colour text, word-wrapping, columnar
 //! layouts, and automatic terminal-width awareness.
 //!
 //! ## Features
 //!
 //! - **9 border styles** — classic ASCII, single, double, bold, rounded, and more
-//! - **True-color support** — hex color codes for both borders and per-line text
+//! - **True-colour support** — hex colour codes for both borders and per-line text
 //! - **Multi-segment boxes** — stack multiple sections separated by smart dividers
 //! - **Columnar layouts** — side-by-side columns inside a single box, with per-segment
 //!   ratio control and correct `┼`/`┬`/`┴` junction characters where column boundaries meet
 //! - **Word wrapping** — automatic wrapping to terminal width with internal padding awareness
-//! - **Text alignment** — left, center, or right per segment
+//! - **Text alignment** — left, centre, or right per segment
 //! - **Terminal-aware sizing** — auto-sizes to terminal width, or use a fixed width
 //! - **Two APIs** — imperative ([`Boxy`]) and fluent builder
 //!   ([`BoxyBuilder`])
