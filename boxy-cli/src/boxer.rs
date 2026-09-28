@@ -12,7 +12,7 @@ use unicode_width::UnicodeWidthStr;
 /// The main struct that represents a text box for CLI display.
 ///
 /// `Boxy` contains all the configuration and content needed to render a styled text box
-/// in the terminal, including borders, text content, colors, padding, and alignment options.
+/// in the terminal, including borders, text content, colours, padding, and alignment options.
 ///
 /// # Examples
 ///
@@ -72,12 +72,12 @@ const DEFAULT_PAD: BoxPad = BoxPad {
 };
 
 impl Boxy {
-    /// Creates a new instance of the `Boxy` struct with the specified border type and color.
+    /// Creates a new instance of the `Boxy` struct with the specified border type and colour.
     ///
     /// # Arguments
     ///
     /// * `box_type` - The border style to use from the `BoxType` enum
-    /// * `box_color` - Hex color code (e.g. `\"#ffffff\"`) for the border. Falls back to white with a stderr warning on invalid input
+    /// * `box_colour` - Hex colour code (e.g. `\"#ffffff\"`) for the border. Falls back to white with a stderr warning on invalid input
     ///
     /// # Examples
     ///
@@ -122,8 +122,8 @@ impl Boxy {
     /// # Arguments
     ///
     /// * `data_string` - The text content for this segment
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
-    /// * `text_align` - How text is aligned within this segment: left, center, or right
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `text_align` - How text is aligned within this segment: left, centre, or right
     ///
     /// # Examples
     ///
@@ -153,12 +153,12 @@ impl Boxy {
     /// columns start out empty and are populated afterwards with
     /// [`add_col_text_line`](Self::add_col_text_line) or
     /// [`add_col_text_line_indx`](Self::add_col_text_line_indx). By default, all columns are
-    /// given equal width; use [`set_segment_ratios`](Self::set_segment_ratios) to customize
+    /// given equal width; use [`set_segment_ratios`](Self::set_segment_ratios) to customise
     /// the width ratio between columns.
     ///
     /// # Arguments
     ///
-    /// * `text_align` - The alignment (left, center, right) applied to text within each column
+    /// * `text_align` - The alignment (left, centre, right) applied to text within each column
     /// * `column_count` - The number of columns in this segment (must be at least 1)
     ///
     /// # Examples
@@ -182,7 +182,7 @@ impl Boxy {
         );
         self.data
             .push(SegType::Columnar(vec![Vec::new(); column_count]));
-        //colors are shaped to mirror data: one color-per-line, per columns
+        //colours are shaped to mirror data: one colour-per-line, per columns
         self.colors
             .push(SegColor::Columnar(vec![Vec::new(); column_count]));
         self.seg_align.push(text_align);
@@ -199,7 +199,7 @@ impl Boxy {
     /// # Arguments
     ///
     /// * `data_string` - The text content to add
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `seg_index` - The index of the segment to add this line to (0-based)
     ///
     /// # Examples
@@ -240,7 +240,7 @@ impl Boxy {
     /// # Arguments
     ///
     /// * `data_string` - The text content to add
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `seg_index` - The index of the columnar segment to add this line to (0-based)
     /// * `col_index` - The index of the column within that segment to add this line to (0-based)
     ///
@@ -304,7 +304,7 @@ impl Boxy {
     /// # Arguments
     ///
     /// * `data_string` - The text content to add
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     ///
     /// # Examples
     ///
@@ -340,7 +340,7 @@ impl Boxy {
     /// # Arguments
     ///
     /// * `data_string` - The text content to add
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `col_index` - The index of the column within the last segment to add this line to (0-based)
     ///
     /// # Examples
@@ -376,8 +376,8 @@ impl Boxy {
     ///
     /// # Behaviour with external padding
     ///
-    /// When set to [`BoxAlign::Center`], the box is positioned at the true
-    /// center of the terminal. External left/right padding is still used to
+    /// When set to [`BoxAlign::Centre`], the box is positioned at the true
+    /// centre of the terminal. External left/right padding is still used to
     /// determine the box width (more padding → narrower box), but the resulting
     /// box is always centerd — the padding values do not shift it left or right.
     /// As long as the terminal is wide enough, external padding is effectively
@@ -385,7 +385,7 @@ impl Boxy {
     ///
     /// # Arguments
     ///
-    /// * `align` - The alignment to use: `BoxAlign::Left`, `BoxAlign::Center`, or `BoxAlign::Right`
+    /// * `align` - The alignment to use: `BoxAlign::Left`, `BoxAlign::Centre`, or `BoxAlign::Right`
     ///
     /// # Examples
     ///
@@ -393,13 +393,13 @@ impl Boxy {
     /// use boxy_cli::prelude::*;
     ///
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
-    /// my_box.set_align(BoxAlign::Center); // center the box in the terminal
+    /// my_box.set_align(BoxAlign::Center); // centre the box in the terminal
     /// ```
     ///
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // External padding shrinks the box but does not shift it off-center
+    /// // External padding shrinks the box but does not shift it off-centre
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.set_align(BoxAlign::Center);
     /// my_box.set_ext_padding(BoxPad::uniform(5)); // box is 10 chars narrower, still centerd
@@ -438,11 +438,11 @@ impl Boxy {
     /// which affects both positioning (for [`BoxAlign::Left`] and [`BoxAlign::Right`])
     /// and box width.
     ///
-    /// # Behaviour with center alignment
+    /// # Behaviour with centre alignment
     ///
-    /// When the box alignment is [`BoxAlign::Center`], left and right external padding
+    /// When the box alignment is [`BoxAlign::Centre`], left and right external padding
     /// values affect the **width** of the box (larger padding → narrower box) but do
-    /// not shift its position. The box always occupies the center of the terminal
+    /// not shift its position. The box always occupies the centre of the terminal
     /// regardless of the padding values set here, as long as the terminal is wide enough.
     /// Top and bottom padding always behave as blank lines regardless of alignment.
     ///
@@ -462,7 +462,7 @@ impl Boxy {
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // With center alignment, padding shrinks the box but keeps it centerd
+    /// // With centre alignment, padding shrinks the box but keeps it centerd
     /// let mut my_box = Boxy::new(BoxType::Single, "#00ffff");
     /// my_box.set_align(BoxAlign::Center);
     /// my_box.set_ext_padding(BoxPad::from_tldr(1, 10, 1, 10)); // 20 chars narrower, still centerd
@@ -477,7 +477,7 @@ impl Boxy {
     /// /// # Note
     ///
     /// See [`set_align`](Self::set_align) for how external padding interacts
-    /// with [`BoxAlign::Center`].
+    /// with [`BoxAlign::Centre`].
     ///
     /// # Arguments
     ///
@@ -572,14 +572,14 @@ impl Boxy {
         self.type_enum = box_type;
     }
 
-    /// Sets the border color using a hex color code.
+    /// Sets the border colour using a hex colour code.
     ///
     /// Can be called at any point before [`display`](Self::display). On an invalid hex
     /// string, falls back to white and prints a warning to stderr.
     ///
     /// # Arguments
     ///
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`). Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`). Falls back to white with a stderr warning on invalid input
     ///
     /// # Examples
     ///
@@ -672,9 +672,9 @@ impl Boxy {
     /// and configuration are set — subsequent calls re-render with the current terminal
     /// size, so the box will adapt if the terminal was resized between calls.
     ///
-    /// Output uses ANSI true-color escape codes. Terminals without true-color support
-    /// will fall back gracefully to the nearest available color via the `colored` crate.
-    /// On terminals with `NO_COLOR` set or where color is disabled, plain text is emitted.
+    /// Output uses ANSI true-colour escape codes. Terminals without true-colour support
+    /// will fall back gracefully to the nearest available colour via the `coloured` crate.
+    /// On terminals with `NO_COLOR` set or where colour is disabled, plain text is emitted.
     ///
     /// # Examples
     ///
@@ -727,12 +727,12 @@ impl Boxy {
     /// you like — buffering, testing, piping into another renderer, etc.
     ///
     /// Each string in the returned `Vec` is one fully-composed terminal line, including
-    /// ANSI color escape codes and box-drawing characters. The `Vec` contains exactly the
+    /// ANSI colour escape codes and box-drawing characters. The `Vec` contains exactly the
     /// lines that would be printed by `display` for the same `term_width`.
     ///
     /// # Arguments
     ///
-    /// * `term_width` - The total column width to render into. Typically the terminal's
+    /// * `term_width` - The total column width to render into. Typically, the terminal's
     ///   column count, but can be any value — useful for fixed-width output or tests.
     ///
     /// # Examples
@@ -764,7 +764,7 @@ impl Boxy {
                 .max(1)
         };
 
-        // Parse box color only once per display
+        // Parse box colour only once per display
         let box_col_truecolor = self.box_col;
         // Resolve template once per display
         let box_pieces = map_box_type(&self.type_enum);
@@ -1021,7 +1021,7 @@ impl Boxy {
             let mut col_wrapped: Vec<(String, Color)> = Vec::new();
             for (line_idx, line) in col_data.iter().enumerate() {
                 // obtaining text colour truevalue for this line, falling back to white on
-                // a missing/unparseable color (mirrors display_segment's handling)
+                // a missing/unparseable colour (mirrors display_segment's handling)
                 let text_col_truecolor = col_colors.get(line_idx).copied().unwrap_or(Color::White);
                 for wrapped_line in text_wrap_vec_fast(
                     line.as_ref(),
@@ -1376,7 +1376,7 @@ impl BoxyBuilder {
     ///
     /// This creates a builder with the following default values:
     /// - Box type: `BoxType::Single`
-    /// - Color: empty string (will use white if not set)
+    /// - Colour: empty string (will use white if not set)
     /// - Padding: zero on all sides
     /// - Alignment: `BoxAlign::Left`
     /// - No text segments
@@ -1451,14 +1451,14 @@ impl BoxyBuilder {
         self
     }
 
-    /// Sets the border color for the text box.
+    /// Sets the border colour for the text box.
     ///
-    /// This method defines the color of the box borders, including corners, edges, and intersections.
-    /// The color is specified using a hexadecimal color code (e.g. "#00ffff" for cyan).
+    /// This method defines the colour of the box borders, including corners, edges, and intersections.
+    /// The colour is specified using a hexadecimal colour code (e.g. "#00ffff" for cyan).
     ///
     /// # Arguments
     ///
-    /// * `box_color` - Hex color code (e.g. `\"#ffffff\"`). Falls back to white with a stderr warning on invalid input
+    /// * `box_colour` - Hex colour code (e.g. `\"#ffffff\"`). Falls back to white with a stderr warning on invalid input
     ///
     /// # Returns
     ///
@@ -1482,13 +1482,13 @@ impl BoxyBuilder {
     ///
     /// # Note
     ///
-    /// The actual appearance depends on terminal support for colors.
+    /// The actual appearance depends on terminal support for colours.
     pub fn color(mut self, box_color: &str) -> Self {
         self.box_col = SegColor::parse_hexcolor(box_color);
         self
     }
 
-    /// Adds a new text segment to the box with specified text, color, and alignment.
+    /// Adds a new text segment to the box with specified text, colour, and alignment.
     ///
     /// Each segment represents a distinct section of the text box that will be separated by
     /// horizontal dividers. This method is used to add the first or subsequent major
@@ -1497,8 +1497,8 @@ impl BoxyBuilder {
     /// # Arguments
     ///
     /// * `text` - The text content for this segment
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
-    /// * `text_align` - The alignment for this text segment (left, center, right)
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `text_align` - The alignment for this text segment (left, centre, right)
     ///
     /// # Returns
     ///
@@ -1531,7 +1531,7 @@ impl BoxyBuilder {
     ///
     /// Columns start empty and are populated with [`add_col_line`](Self::add_col_line) or
     /// [`add_col_line_indx`](Self::add_col_line_indx). All columns default to equal width;
-    /// use [`segment_ratios`](Self::segment_ratios) to customize.
+    /// use [`segment_ratios`](Self::segment_ratios) to customise.
     ///
     /// # Arguments
     ///
@@ -1581,7 +1581,7 @@ impl BoxyBuilder {
     /// # Arguments
     ///
     /// * `text` - The text content to add as a new line
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     ///
     /// # Returns
     ///
@@ -1636,7 +1636,7 @@ impl BoxyBuilder {
     /// # Arguments
     ///
     /// * `text` - The text content to add
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `col_index` - Zero-based index of the column to add this line into
     ///
     /// # Returns
@@ -1691,7 +1691,7 @@ impl BoxyBuilder {
     /// # Arguments
     ///
     /// * `text` - The text content to add
-    /// * `color` - Hex color code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
+    /// * `colour` - Hex colour code (e.g. `\"#ffffff\"`) for the text. Falls back to white with a stderr warning on invalid input
     /// * `seg_index` - Zero-based index of the columnar segment
     /// * `col_index` - Zero-based index of the column within that segment
     ///
@@ -1748,14 +1748,14 @@ impl BoxyBuilder {
     ///
     /// # Behaviour with external padding
     ///
-    /// When set to [`BoxAlign::Center`], external left/right padding affects the **width**
+    /// When set to [`BoxAlign::Centre`], external left/right padding affects the **width**
     /// of the box (more padding → narrower box) but not its position. The box always occupies
-    /// the center of the terminal regardless of padding values, as long as the terminal is
+    /// the centre of the terminal regardless of padding values, as long as the terminal is
     /// wide enough. See [`padding`](Self::padding) and [`external_padding`](Self::external_padding).
     ///
     /// # Arguments
     ///
-    /// * `alignment` - The alignment to use: `BoxAlign::Left`, `BoxAlign::Center`, or `BoxAlign::Right`
+    /// * `alignment` - The alignment to use: `BoxAlign::Left`, `BoxAlign::Centre`, or `BoxAlign::Right`
     ///
     /// # Returns
     ///
@@ -1766,7 +1766,7 @@ impl BoxyBuilder {
     /// ```
     /// use boxy_cli::prelude::*;
     ///
-    /// // center the box — external padding will shrink it but keep it centerd
+    /// // centre the box — external padding will shrink it but keep it centerd
     /// let centered_box = Boxy::builder()
     ///     .align(BoxAlign::Center)
     ///     .add_segment("centerd in the terminal", "#ffffff", BoxAlign::Left)
